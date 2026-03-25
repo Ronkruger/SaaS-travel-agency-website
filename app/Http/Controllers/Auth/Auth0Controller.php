@@ -15,7 +15,7 @@ class Auth0Controller extends Controller
      */
     public function redirect()
     {
-        return Socialite::driver('auth0')->redirect();
+        return Socialite::driver('auth0')->enablePKCE()->redirect();
     }
 
     /**
@@ -33,7 +33,7 @@ class Auth0Controller extends Controller
         }
 
         try {
-            $socialUser = Socialite::driver('auth0')->user();
+            $socialUser = Socialite::driver('auth0')->enablePKCE()->user();
         } catch (\Exception $e) {
             $body = '';
             if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
