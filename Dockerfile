@@ -1,8 +1,8 @@
-FROM php:8.4-cli
+FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies + nginx + envsubst
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip \
+    git curl zip unzip nginx gettext-base \
     libpng-dev libonig-dev libxml2-dev libzip-dev \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -20,13 +20,16 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data /var/www
+
+# Nginx config template (PORT substituted at runtime by start.sh)
+COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
+
+# Startup script
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
 
 EXPOSE 8080
 
-CMD php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    php artisan migrate --force && \
-    php artisan storage:link --force && \
-    php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+CMD ["/start.sh"]
