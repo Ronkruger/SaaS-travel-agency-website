@@ -61,7 +61,7 @@
                     <tr {{ $tour->trashed() ? 'class=row-trashed' : '' }}>
                         <td>
                             @if($tour->main_image)
-                                <img src="{{ asset('storage/' . $tour->main_image) }}"
+                                <img src="{{ cdn_url($tour->main_image) }}"
                                      alt="{{ $tour->title }}" class="table-thumb">
                             @else
                                 <div class="table-thumb" style="background:var(--gray-100);display:flex;align-items:center;justify-content:center">

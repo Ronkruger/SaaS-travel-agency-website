@@ -107,7 +107,7 @@
             <div class="card-body p-0">
                 @foreach($topTours as $tour)
                     <div class="top-item">
-                        <img src="{{ asset('storage/' . $tour->featured_image) }}" alt="{{ $tour->title }}" class="top-item-img">
+                        <img src="{{ cdn_url($tour->main_image) }}" alt="{{ $tour->title }}" class="top-item-img">
                         <div class="top-item-info">
                             <strong>{{ Str::limit($tour->title, 35) }}</strong>
                             <span>{{ $tour->total_bookings }} bookings</span>

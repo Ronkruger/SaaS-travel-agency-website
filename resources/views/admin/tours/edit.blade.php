@@ -243,8 +243,8 @@
                     <label>Main Image</label>
                     @if($tour->main_image)
                     <div class="existing-thumb-wrap">
-                        <img src="{{ asset('storage/' . $tour->main_image) }}" class="existing-thumb" alt="main">
-                        <small class="text-muted">Current: {{ basename($tour->main_image) }}</small>
+                        <img src="{{ cdn_url($tour->main_image) }}" class="existing-thumb" alt="main">
+                        <small class="text-muted">Current image</small>
                     </div>
                     @endif
                     <input type="file" name="main_image" class="form-control" accept="image/*">
@@ -256,7 +256,7 @@
                     @if(!empty($tour->gallery_images))
                     <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem">
                         @foreach($tour->gallery_images as $gi)
-                        <img src="{{ asset('storage/' . $gi) }}" class="existing-thumb" alt="gallery">
+                        <img src="{{ cdn_url($gi) }}" class="existing-thumb" alt="gallery">
                         @endforeach
                     </div>
                     @endif
@@ -269,7 +269,7 @@
                     @if(!empty($tour->related_images))
                     <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem">
                         @foreach($tour->related_images as $ri)
-                        <img src="{{ asset('storage/' . $ri) }}" class="existing-thumb" alt="related">
+                        <img src="{{ cdn_url($ri) }}" class="existing-thumb" alt="related">
                         @endforeach
                     </div>
                     @endif

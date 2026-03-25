@@ -38,7 +38,7 @@
                     <div class="card-header"><h4><i class="fas fa-map-marked-alt"></i> Tour Information</h4></div>
                     <div class="card-body">
                         <div class="tour-detail-row">
-                            <img src="{{ asset('storage/' . $booking->tour->featured_image) }}"
+                            <img src="{{ cdn_url($booking->tour->main_image) }}"
                                  alt="{{ $booking->tour->title }}" class="tour-thumb-sm">
                             <div>
                                 <h4><a href="{{ route('tours.show', $booking->tour->slug) }}">

@@ -4,7 +4,7 @@
 @section('content')
 <!-- Tour Hero -->
 <div class="tour-hero">
-    <div class="tour-hero-img" style="background-image: url('{{ $tour->main_image ? asset('storage/' . $tour->main_image) : asset('images/placeholder-tour.jpg') }}')">
+    <div class="tour-hero-img" style="background-image: url('{{ cdn_url($tour->main_image, asset('images/placeholder-tour.jpg')) }}')">
         <div class="tour-hero-overlay"></div>
     </div>
     <div class="container">
@@ -42,12 +42,12 @@
                 @if(count($galleryImages) > 0)
                     <div class="tour-gallery">
                         <div class="gallery-main" id="galleryMain">
-                            <img src="{{ asset('storage/' . $galleryImages[0]) }}"
+                            <img src="{{ cdn_url($galleryImages[0]) }}"
                                  alt="{{ $tour->title }}" id="mainGalleryImg">
                         </div>
                         <div class="gallery-thumbs" id="galleryThumbs">
                             @foreach($galleryImages as $i => $imgPath)
-                                <img src="{{ asset('storage/' . $imgPath) }}"
+                                <img src="{{ cdn_url($imgPath) }}"
                                      alt="{{ $tour->title }}"
                                      class="gallery-thumb {{ $i === 0 ? 'active' : '' }}"
                                      onclick="changeGalleryImage(this)"

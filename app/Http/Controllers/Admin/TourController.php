@@ -7,6 +7,7 @@ use App\Models\Tour;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class TourController extends Controller
 {
@@ -163,23 +164,23 @@ class TourController extends Controller
     private function handleFileUploads(Request $request, array $data, ?Tour $existing): array
     {
         if ($request->hasFile('main_image')) {
-            if ($existing?->main_image) {
-                Storage::disk('public')->delete($existing->main_image);
-            }
-            $data['main_image'] = $request->file('main_image')->store('tours/main', 'public');
+            $this->cloudinaryDelete($existing?->main_image);
+            $data['main_image'] = $request->file('main_image')
+                ->storeOnCloudinary('tours/main')
+                ->getSecurePath();
         }
 
         if ($request->hasFile('video_file')) {
-            if ($existing?->video_file) {
-                Storage::disk('public')->delete($existing->video_file);
-            }
-            $data['video_file'] = $request->file('video_file')->store('tours/videos', 'public');
+            $this->cloudinaryDelete($existing?->video_file, 'video');
+            $data['video_file'] = $request->file('video_file')
+                ->storeOnCloudinary('tours/videos')
+                ->getSecurePath();
         }
 
         if ($request->hasFile('gallery_image_files')) {
             $gallery = [];
             foreach ($request->file('gallery_image_files') as $file) {
-                $gallery[] = $file->store('tours/gallery', 'public');
+                $gallery[] = $file->storeOnCloudinary('tours/gallery')->getSecurePath();
             }
             $data['gallery_images'] = $gallery;
         }
@@ -187,12 +188,30 @@ class TourController extends Controller
         if ($request->hasFile('related_image_files')) {
             $related = [];
             foreach ($request->file('related_image_files') as $file) {
-                $related[] = $file->store('tours/related', 'public');
+                $related[] = $file->storeOnCloudinary('tours/related')->getSecurePath();
             }
             $data['related_images'] = $related;
         }
 
         return $data;
+    }
+
+    /**
+     * Delete a file from Cloudinary (full URL) or the legacy public disk (relative path).
+     */
+    private function cloudinaryDelete(?string $path, string $resourceType = 'image'): void
+    {
+        if (!$path) return;
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            // Extract Cloudinary public_id: path after /upload/v{version}/ without extension
+            $urlPath = parse_url($path, PHP_URL_PATH);
+            $publicId = preg_replace('#^.*/upload/(?:v\d+/)?#', '', $urlPath);
+            $publicId = preg_replace('#\.[^.]+$#', '', $publicId);
+            Cloudinary::destroy($publicId, ['resource_type' => $resourceType]);
+        } else {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     private function parseLines(?string $input): array

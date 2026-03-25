@@ -16,7 +16,7 @@
                 @foreach($bookings as $booking)
                     <div class="booking-card status-border-{{ $booking->status }}">
                         <div class="booking-card-img">
-                            <img src="{{ asset('storage/' . $booking->tour->featured_image) }}"
+                            <img src="{{ cdn_url($booking->tour->main_image) }}"
                                  alt="{{ $booking->tour->title }}">
                         </div>
                         <div class="booking-card-body">

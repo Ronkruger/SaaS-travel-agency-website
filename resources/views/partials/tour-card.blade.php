@@ -1,6 +1,6 @@
 <div class="tour-card">
     <div class="tour-card-img">
-        <img src="{{ $tour->main_image ? asset('storage/' . $tour->main_image) : asset('images/tour-placeholder.jpg') }}"
+        <img src="{{ cdn_url($tour->main_image, asset('images/tour-placeholder.jpg')) }}"
              alt="{{ $tour->title }}"
              loading="lazy"
              onerror="this.src='{{ asset('images/tour-placeholder.jpg') }}'">

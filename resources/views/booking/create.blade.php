@@ -160,7 +160,7 @@
                 <div class="summary-card">
                     <div class="summary-tour-img">
                         @if($tour->main_image)
-                            <img src="{{ asset('storage/' . $tour->main_image) }}" alt="{{ $tour->title }}">
+                            <img src="{{ cdn_url($tour->main_image) }}" alt="{{ $tour->title }}">
                         @endif
                     </div>
                     <div class="summary-content">

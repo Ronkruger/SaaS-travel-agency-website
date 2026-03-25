@@ -78,7 +78,7 @@
         <div class="card mb-4">
             <div class="card-header"><h4>Tour</h4></div>
             <div class="card-body">
-                <img src="{{ asset('storage/' . $booking->tour->featured_image) }}"
+                <img src="{{ cdn_url($booking->tour->main_image) }}"
                      alt="{{ $booking->tour->title }}" class="img-fluid rounded mb-3">
                 <h5>{{ $booking->tour->title }}</h5>
                 <p><i class="fas fa-map-marker-alt"></i> {{ $booking->tour->destination }}, {{ $booking->tour->country }}</p>
