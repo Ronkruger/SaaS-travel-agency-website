@@ -25,11 +25,12 @@
 
                 <div class="form-group">
                     <label for="phone"><i class="fas fa-phone"></i> Phone (optional)</label>
-                    <input type="tel" id="phone" name="phone" value="{{ old('phone') }}"
-                        class="form-control @error('phone') is-invalid @enderror"
-                        placeholder="+1 (555) 000-0000">
+                    @include('components.phone-input', [
+                        'value' => old('phone'),
+                        'name'  => 'phone',
+                    ])
                     @error('phone')
-                        <span class="invalid-feedback">{{ $message }}</span>
+                        <span class="invalid-feedback" style="display:block">{{ $message }}</span>
                     @enderror
                 </div>
             </div>

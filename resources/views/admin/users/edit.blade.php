@@ -58,9 +58,11 @@
 
                     <div class="form-group">
                         <label>Phone</label>
-                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror"
-                               value="{{ old('phone', $user->phone) }}">
-                        @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        @include('components.phone-input', [
+                            'value' => old('phone', $user->phone),
+                            'name'  => 'phone',
+                            'error' => $errors->first('phone'),
+                        ])
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">

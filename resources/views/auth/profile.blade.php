@@ -48,8 +48,10 @@
                             </div>
                             <div class="form-group">
                                 <label>Phone</label>
-                                <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}"
-                                    class="form-control">
+                                @include('components.phone-input', [
+                                    'value' => old('phone', $user->phone),
+                                    'name'  => 'phone',
+                                ])
                             </div>
                         </div>
                         <div class="form-group">
