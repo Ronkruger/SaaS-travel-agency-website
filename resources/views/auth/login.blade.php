@@ -10,6 +10,12 @@
             <p>Sign in to manage your bookings</p>
         </div>
 
+        @if(session('auth0_error'))
+            <div style="background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:.75rem 1rem;border-radius:.5rem;margin-bottom:1rem;font-size:.875rem;display:flex;align-items:center;gap:.5rem">
+                <i class="fas fa-exclamation-circle"></i> {{ session('auth0_error') }}
+            </div>
+        @endif
+
         <form action="{{ route('login') }}" method="POST" class="auth-form">
             @csrf
             <div class="form-group">
@@ -57,7 +63,7 @@
 
         <a href="{{ route('auth0.redirect') }}" class="btn btn-block" style="display:flex;align-items:center;justify-content:center;gap:.625rem;background:#fff;border:1px solid #d1d5db;color:#374151;font-weight:500;padding:.625rem 1rem;border-radius:.5rem;text-decoration:none">
             <img src="https://cdn.auth0.com/styleguide/latest/lib/logos/img/favicon.png" alt="Auth0" style="width:1.125rem;height:1.125rem">
-            Continue with Auth0
+            Sign in with Auth0
         </a>
 
         <div class="auth-footer">

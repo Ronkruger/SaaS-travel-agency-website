@@ -92,9 +92,9 @@
             <hr style="flex:1;border:none;border-top:1px solid #e5e7eb">
         </div>
 
-        <a href="{{ route('auth0.redirect') }}" class="btn btn-block" style="display:flex;align-items:center;justify-content:center;gap:.625rem;background:#fff;border:1px solid #d1d5db;color:#374151;font-weight:500;padding:.625rem 1rem;border-radius:.5rem;text-decoration:none">
+        <a href="{{ route('auth0.redirect', ['mode' => 'register']) }}" class="btn btn-block" style="display:flex;align-items:center;justify-content:center;gap:.625rem;background:#fff;border:1px solid #d1d5db;color:#374151;font-weight:500;padding:.625rem 1rem;border-radius:.5rem;text-decoration:none">
             <img src="https://cdn.auth0.com/styleguide/latest/lib/logos/img/favicon.png" alt="Auth0" style="width:1.125rem;height:1.125rem">
-            Continue with Auth0
+            Sign up with Auth0
         </a>
 
         <div class="auth-footer">

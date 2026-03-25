@@ -11,45 +11,42 @@ use Laravel\Socialite\Facades\Socialite;
 class Auth0Controller extends Controller
 {
     /**
-     * Redirect the user to the Auth0 login page.
+     * Redirect to Auth0. Pass ?mode=register for the sign-up screen.
      */
     public function redirect()
     {
-        return Socialite::driver('auth0')->enablePKCE()->redirect();
+        $driver = Socialite::driver('auth0')->stateless();
+
+        if (request()->input('mode') === 'register') {
+            $driver->with(['screen_hint' => 'signup']);
+        }
+
+        return $driver->redirect();
     }
 
     /**
-     * Handle the Auth0 callback and log the user in (or create their account).
+     * Handle the Auth0 callback — works for both login and registration.
      */
     public function callback()
     {
-        // Auth0 can redirect back with ?error=... if auth failed on their end
+        // Auth0 can redirect back with ?error=... if auth failed on its end
         if (request()->has('error')) {
-            $err = request()->input('error');
-            $desc = request()->input('error_description', '');
-            error_log("[Auth0] error redirect received: {$err} — {$desc}");
+            $desc = request()->input('error_description', 'Unknown error');
+            error_log('[Auth0] error redirect: ' . $desc);
             return redirect()->route('login')
-                ->withErrors(['email' => 'Auth0 login failed: ' . $desc]);
+                ->with('auth0_error', 'Auth0: ' . $desc);
         }
 
         try {
-            $socialUser = Socialite::driver('auth0')->enablePKCE()->user();
+            $socialUser = Socialite::driver('auth0')->stateless()->user();
         } catch (\Exception $e) {
             $body = '';
             if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
                 $body = (string) $e->getResponse()->getBody();
             }
             error_log('[Auth0] callback exception: ' . get_class($e) . ' — ' . $e->getMessage() . ' | body: ' . $body);
-            \Illuminate\Support\Facades\Log::error('Auth0 callback failed', [
-                'message' => $e->getMessage(),
-                'class'   => get_class($e),
-                'body'    => $body,
-                'redirect_uri' => config('services.auth0.redirect'),
-                'base_url'     => config('services.auth0.base_url'),
-                'client_id'    => config('services.auth0.client_id'),
-            ]);
             return redirect()->route('login')
-                ->withErrors(['email' => 'Auth0 login failed. Please try again.']);
+                ->with('auth0_error', 'Auth0 login failed. Please try again.');
         }
 
         // Find existing user by email or create a new one
