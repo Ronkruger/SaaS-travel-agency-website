@@ -14,6 +14,7 @@
             <div style="background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:.75rem 1rem;border-radius:.5rem;margin-bottom:1rem;font-size:.875rem;display:flex;align-items:center;gap:.5rem">
                 <i class="fas fa-exclamation-circle"></i> {{ session('auth0_error') }}
             </div>
+            <script>console.error('[Auth0] Login failed:', @json(session('auth0_error')));</script>
         @endif
 
         <form action="{{ route('login') }}" method="POST" class="auth-form">
