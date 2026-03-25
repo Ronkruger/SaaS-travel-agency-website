@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Xendit\Configuration;
 use Xendit\Invoice\InvoiceApi;
+use Xendit\Invoice\CreateInvoiceRequest;
 
 class XenditController extends Controller
 {
@@ -22,7 +23,7 @@ class XenditController extends Controller
 
         $apiInstance = new InvoiceApi();
 
-        $params = [
+        $createInvoiceRequest = new CreateInvoiceRequest([
             'external_id'       => 'BOOKING-' . $booking->id . '-' . time(),
             'amount'            => (float) $booking->total_amount,
             'description'       => 'Tour Booking: ' . $booking->tour->title,
@@ -44,9 +45,9 @@ class XenditController extends Controller
                 ],
             ],
             'payment_methods'   => ['CREDIT_CARD', 'BPI', 'BDO', 'GCASH', 'GRABPAY', 'PAYMAYA'],
-        ];
+        ]);
 
-        $invoice = $apiInstance->createInvoice(['createInvoiceRequest' => $params]);
+        $invoice = $apiInstance->createInvoice($createInvoiceRequest);
 
         // Store the Xendit invoice ID on the booking so the webhook can match it
         $booking->update(['xendit_invoice_id' => $invoice->getId()]);
