@@ -62,11 +62,11 @@ foreach ($countries as $c) {
 $uid = 'phone_' . uniqid();
 @endphp
 
-<div class="phone-input-group" style="display:flex;gap:.375rem">
+<div class="phone-input-group" style="display:flex;gap:.375rem;width:100%;align-items:stretch">
     {{-- Country code dropdown --}}
-    <div style="position:relative;flex-shrink:0">
+    <div style="position:relative;flex-shrink:0;width:auto">
         <select id="{{ $uid }}_dial"
-                style="appearance:none;-webkit-appearance:none;padding:.5rem 2rem .5rem .625rem;border:1px solid #d1d5db;border-radius:.5rem;background:#f9fafb;font-size:.9375rem;cursor:pointer;height:100%;min-width:5rem"
+                style="appearance:none;-webkit-appearance:none;padding:.5rem 2rem .5rem .625rem;border:1px solid #d1d5db;border-radius:.5rem;background:#f9fafb;font-size:.9375rem;cursor:pointer;height:100%;width:auto;min-width:5rem"
                 onchange="updatePhone_{{ $uid }}()">
             @foreach($countries as $c)
                 <option value="{{ $c['dial'] }}" {{ $dialCode === $c['dial'] ? 'selected' : '' }}>
@@ -83,7 +83,7 @@ $uid = 'phone_' . uniqid();
            class="form-control {{ isset($error) && $error ? 'is-invalid' : '' }}"
            placeholder="912 345 6789"
            value="{{ $localPart }}"
-           style="flex:1"
+           style="flex:1;min-width:0"
            {{ $required ? 'required' : '' }}
            oninput="updatePhone_{{ $uid }}()">
 
