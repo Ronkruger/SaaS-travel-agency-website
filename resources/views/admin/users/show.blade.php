@@ -7,9 +7,23 @@
         <h1 class="page-title">User Detail</h1>
         <small class="text-muted">Viewing profile of {{ $user->name }}</small>
     </div>
-    <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">
-        <i class="fa-solid fa-arrow-left"></i> Back to Users
-    </a>
+    <div style="display:flex;gap:.5rem;">
+        <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-edit"></i> Edit
+        </a>
+        @if($user->id !== auth()->id())
+        <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+              onsubmit="return confirm('Delete {{ addslashes($user->name) }}? This cannot be undone.')">
+            @csrf @method('DELETE')
+            <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5">
+                <i class="fa-solid fa-trash"></i> Delete
+            </button>
+        </form>
+        @endif
+        <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">
+            <i class="fa-solid fa-arrow-left"></i> Back to Users
+        </a>
+    </div>
 </div>
 
 <div class="booking-admin-layout" style="grid-template-columns: 1fr 300px;">

@@ -44,10 +44,22 @@
                         <td>{{ $user->country ?? '—' }}</td>
                         <td>{{ $user->bookings_count }}</td>
                         <td>{{ $user->created_at->format('M d, Y') }}</td>
-                        <td>
+                        <td style="white-space:nowrap">
                             <a href="{{ route('admin.users.show', $user) }}" class="btn btn-xs btn-outline">
                                 <i class="fas fa-eye"></i> View
                             </a>
+                            <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-xs btn-outline" style="margin-left:.25rem">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            @if($user->id !== auth()->id())
+                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display:inline;margin-left:.25rem"
+                                  onsubmit="return confirm('Delete {{ addslashes($user->name) }}? This cannot be undone.')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-xs" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                            @endif
                         </td>
                     </tr>
                 @empty
