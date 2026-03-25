@@ -23,13 +23,30 @@ class Auth0Controller extends Controller
      */
     public function callback()
     {
+        // Auth0 can redirect back with ?error=... if auth failed on their end
+        if (request()->has('error')) {
+            $err = request()->input('error');
+            $desc = request()->input('error_description', '');
+            error_log("[Auth0] error redirect received: {$err} — {$desc}");
+            return redirect()->route('login')
+                ->withErrors(['email' => 'Auth0 login failed: ' . $desc]);
+        }
+
         try {
             $socialUser = Socialite::driver('auth0')->user();
         } catch (\Exception $e) {
-            error_log('[Auth0] callback exception: ' . get_class($e) . ' — ' . $e->getMessage());
+            $body = '';
+            if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
+                $body = (string) $e->getResponse()->getBody();
+            }
+            error_log('[Auth0] callback exception: ' . get_class($e) . ' — ' . $e->getMessage() . ' | body: ' . $body);
             \Illuminate\Support\Facades\Log::error('Auth0 callback failed', [
                 'message' => $e->getMessage(),
                 'class'   => get_class($e),
+                'body'    => $body,
+                'redirect_uri' => config('services.auth0.redirect'),
+                'base_url'     => config('services.auth0.base_url'),
+                'client_id'    => config('services.auth0.client_id'),
             ]);
             return redirect()->route('login')
                 ->withErrors(['email' => 'Auth0 login failed. Please try again.']);
