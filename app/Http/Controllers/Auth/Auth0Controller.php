@@ -26,6 +26,10 @@ class Auth0Controller extends Controller
         try {
             $socialUser = Socialite::driver('auth0')->user();
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Auth0 callback failed', [
+                'message' => $e->getMessage(),
+                'class'   => get_class($e),
+            ]);
             return redirect()->route('login')
                 ->withErrors(['email' => 'Auth0 login failed. Please try again.']);
         }

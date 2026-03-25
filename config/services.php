@@ -22,7 +22,7 @@ return [
     'auth0' => [
         'client_id'     => env('AUTH0_CLIENT_ID'),
         'client_secret' => env('AUTH0_CLIENT_SECRET'),
-        'redirect'      => env('AUTH0_REDIRECT_URI', '/auth/auth0/callback'),
+        'redirect'      => env('AUTH0_REDIRECT_URI', env('APP_URL', 'http://localhost') . '/auth/auth0/callback'),
         'base_url'      => 'https://' . env('AUTH0_DOMAIN'),
     ],
 
