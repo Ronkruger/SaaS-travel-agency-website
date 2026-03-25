@@ -7,7 +7,11 @@ use Illuminate\Http\Request;
 
 class TrustProxies extends Middleware
 {
-    protected $proxies;
+    /**
+     * Trust all proxies — required for Railway, Heroku, and similar
+     * reverse-proxy platforms so HTTPS/host headers are passed through.
+     */
+    protected $proxies = '*';
     protected $headers = Request::HEADER_X_FORWARDED_FOR
                        | Request::HEADER_X_FORWARDED_HOST
                        | Request::HEADER_X_FORWARDED_PORT
