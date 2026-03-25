@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\Auth0Controller;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\BookingController;
@@ -45,6 +46,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    // Auth0 OAuth
+    Route::get('/auth/auth0', [Auth0Controller::class, 'redirect'])->name('auth0.redirect');
+    Route::get('/auth/auth0/callback', [Auth0Controller::class, 'callback'])->name('auth0.callback');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');

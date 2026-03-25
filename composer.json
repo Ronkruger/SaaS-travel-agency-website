@@ -10,8 +10,10 @@
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.2",
+        "laravel/socialite": "^5.26",
         "laravel/tinker": "^2.8",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "socialiteproviders/auth0": "^4.2",
         "xendit/xendit-php": "^7.0"
     },
     "require-dev": {

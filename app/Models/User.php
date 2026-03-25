@@ -22,6 +22,7 @@ class User extends Authenticatable
         'city',
         'country',
         'role',
+        'auth0_id',
     ];
 
     protected $hidden = [
