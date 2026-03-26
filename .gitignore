@@ -4,6 +4,8 @@
 /storage/*.key
 /vendor
 .env
+.env.*
+!.env.example
 .env.backup
 .env.production
 .phpunit.result.cache
@@ -15,3 +17,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Laravel cache files - NEVER commit these (contain sensitive config)
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitkeep
