@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Tour;
+use App\Models\TourSchedule;
 use App\Models\Payment;
 use App\Services\SecurityLogger;
 use Illuminate\Http\Request;
@@ -57,8 +58,34 @@ class BookingController extends Controller
 
         $totalGuests = $validated['adults'] + $validated['children'] + $validated['infants'];
 
-        // Calculate pricing
-        $pricePerAdult = (float) ($tour->effective_price ?? 0);
+        // Calculate pricing - check multiple price sources
+        $pricePerAdult = null;
+
+        // 1. Check if schedule has a price override
+        if (!empty($validated['schedule_id'])) {
+            $schedule = TourSchedule::find($validated['schedule_id']);
+            if ($schedule && $schedule->price_override > 0) {
+                $pricePerAdult = (float) $schedule->price_override;
+            }
+        }
+
+        // 2. Check if selected departure_date has a price in tour's departure_dates array
+        if ($pricePerAdult === null && !empty($validated['tour_date'])) {
+            $departureDates = $tour->departure_dates ?? [];
+            foreach ($departureDates as $dateEntry) {
+                $startDate = $dateEntry['start'] ?? null;
+                if ($startDate && $startDate === $validated['tour_date'] && !empty($dateEntry['price'])) {
+                    $pricePerAdult = (float) $dateEntry['price'];
+                    break;
+                }
+            }
+        }
+
+        // 3. Fallback to tour's effective price
+        if ($pricePerAdult === null) {
+            $pricePerAdult = (float) ($tour->effective_price ?? 0);
+        }
+
         $pricePerChild = $pricePerAdult * 0.75; // Children 25% off
         $subtotal      = ($validated['adults'] * $pricePerAdult) + ($validated['children'] * $pricePerChild);
         $taxableCount  = $validated['adults'] + $validated['children']; // infants exempt
