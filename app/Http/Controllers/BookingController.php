@@ -5,14 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Tour;
 use App\Models\Payment;
+use App\Services\SecurityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class BookingController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware('secure.resource:booking')->only(['show', 'cancel']);
     }
 
     public function index()
@@ -102,14 +105,23 @@ class BookingController extends Controller
 
     public function show(Booking $booking)
     {
-        $this->authorizeBooking($booking);
+        // Use policy for authorization
+        if (Gate::denies('view', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'booking', $booking->id);
+            abort(403, 'You are not authorized to view this booking.');
+        }
+
         $booking->load(['tour', 'payment', 'review']);
         return view('booking.show', compact('booking'));
     }
 
     public function cancel(Booking $booking)
     {
-        $this->authorizeBooking($booking);
+        // Use policy for authorization
+        if (Gate::denies('cancel', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'booking', $booking->id);
+            abort(403, 'You are not authorized to cancel this booking.');
+        }
 
         if (!$booking->isCancellable()) {
             return back()->withErrors(['error' => 'This booking cannot be cancelled.']);
@@ -120,12 +132,5 @@ class BookingController extends Controller
         });
 
         return back()->with('success', 'Booking cancelled successfully.');
-    }
-
-    private function authorizeBooking(Booking $booking): void
-    {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
     }
 }

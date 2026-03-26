@@ -41,7 +41,7 @@ Route::prefix('tours')->name('tours.')->group(function () {
 | Auth Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'throttle:auth'])->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -63,14 +63,16 @@ Route::middleware('auth')->group(function () {
     // Profile
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
     Route::put('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
-    Route::put('/profile/password', [AuthController::class, 'changePassword'])->name('profile.password');
+    Route::put('/profile/password', [AuthController::class, 'changePassword'])
+        ->middleware('throttle:password')
+        ->name('profile.password');
 
     // Wishlist
     Route::post('/tours/{tour}/wishlist', [TourController::class, 'wishlistToggle'])->name('tours.wishlist.toggle');
     Route::get('/wishlist', [TourController::class, 'wishlist'])->name('wishlist');
 
-    // Bookings
-    Route::prefix('bookings')->name('booking.')->group(function () {
+    // Bookings (with sensitive rate limiting)
+    Route::prefix('bookings')->name('booking.')->middleware('throttle:sensitive')->group(function () {
         Route::get('/', [BookingController::class, 'index'])->name('index');
         Route::get('/create', [BookingController::class, 'create'])->name('create');
         Route::post('/', [BookingController::class, 'store'])->name('store');
@@ -78,8 +80,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
     });
 
-    // Checkout
-    Route::prefix('checkout')->name('checkout.')->group(function () {
+    // Checkout (with sensitive rate limiting)
+    Route::prefix('checkout')->name('checkout.')->middleware('throttle:sensitive')->group(function () {
         Route::get('/{booking}', [CheckoutController::class, 'show'])->name('show');
         Route::post('/{booking}', [CheckoutController::class, 'process'])->name('process');
         Route::get('/{booking}/confirmation', [CheckoutController::class, 'confirmation'])->name('confirmation');
@@ -95,7 +97,7 @@ Route::middleware('auth')->group(function () {
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Tours

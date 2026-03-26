@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Review;
 use App\Models\Tour;
+use App\Services\SecurityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ReviewController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware('secure.resource:review')->only(['destroy']);
     }
 
     public function store(Request $request)
@@ -44,8 +47,9 @@ class ReviewController extends Controller
 
     public function destroy(Review $review)
     {
-        if ($review->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
-            abort(403);
+        if (Gate::denies('delete', $review)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'review', $review->id);
+            abort(403, 'You are not authorized to delete this review.');
         }
 
         $tour = $review->tour;

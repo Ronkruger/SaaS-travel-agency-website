@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Services\SecurityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
@@ -11,12 +13,14 @@ class CheckoutController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware('secure.resource:checkout');
     }
 
     public function show(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
+        if (Gate::denies('view', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'checkout', $booking->id);
+            abort(403, 'You are not authorized to access this checkout.');
         }
 
         if ($booking->payment_status === 'paid') {
@@ -29,8 +33,9 @@ class CheckoutController extends Controller
 
     public function process(Request $request, Booking $booking)
     {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
+        if (Gate::denies('update', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'checkout', $booking->id);
+            abort(403, 'You are not authorized to process this checkout.');
         }
 
         if ($booking->payment_status === 'paid') {
@@ -48,8 +53,9 @@ class CheckoutController extends Controller
 
     public function confirmation(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
+        if (Gate::denies('view', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'checkout', $booking->id);
+            abort(403, 'You are not authorized to view this confirmation.');
         }
 
         $booking->load(['tour', 'payment']);
