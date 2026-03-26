@@ -26,6 +26,9 @@ class DashboardController extends Controller
 
         $recentBookings = Booking::with(['user', 'tour'])->latest()->take(10)->get();
         $topTours       = Tour::orderByDesc('total_bookings')->take(5)->get();
+        
+        // SECURITY NOTE: These raw queries are safe because they use no user input.
+        // Never pass user-supplied values to selectRaw/groupByRaw/orderByRaw methods.
         $monthlyRevenue = Payment::where('status', 'completed')
             ->selectRaw('MONTH(paid_at) as month, YEAR(paid_at) as year, SUM(amount) as total')
             ->groupByRaw('YEAR(paid_at), MONTH(paid_at)')

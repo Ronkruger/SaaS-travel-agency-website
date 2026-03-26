@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Tour;
 use App\Models\Category;
 use App\Models\Review;
+use App\Services\SecurityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class TourController extends Controller
 {
@@ -13,14 +15,18 @@ class TourController extends Controller
     {
         $query = Tour::active();
 
-        // Search
+        // Search - sanitize input
         if ($search = $request->input('search')) {
+            $search = strip_tags($search);
             $query->where('title', 'like', "%{$search}%");
         }
 
-        // Filter by continent
+        // Filter by continent - validate against allowed values
         if ($continent = $request->input('continent')) {
-            $query->where('continent', $continent);
+            $allowedContinents = ['Asia', 'Europe', 'Africa', 'North America', 'South America', 'Oceania', 'Antarctica'];
+            if (in_array($continent, $allowedContinents)) {
+                $query->where('continent', $continent);
+            }
         }
 
         // Filter by duration
@@ -34,16 +40,23 @@ class TourController extends Controller
             };
         }
 
-        // Filter by price range
+        // Filter by price range - validate numeric input
         if ($minPrice = $request->input('min_price')) {
-            $query->where('regular_price_per_person', '>=', $minPrice);
+            if (is_numeric($minPrice) && $minPrice >= 0) {
+                $query->where('regular_price_per_person', '>=', (float) $minPrice);
+            }
         }
         if ($maxPrice = $request->input('max_price')) {
-            $query->where('regular_price_per_person', '<=', $maxPrice);
+            if (is_numeric($maxPrice) && $maxPrice >= 0) {
+                $query->where('regular_price_per_person', '<=', (float) $maxPrice);
+            }
         }
 
-        // Sort
-        match ($request->input('sort', 'latest')) {
+        // Sort - validate against allowed values
+        $allowedSorts = ['latest', 'price_asc', 'price_desc', 'rating', 'popular'];
+        $sort = in_array($request->input('sort'), $allowedSorts) ? $request->input('sort') : 'latest';
+        
+        match ($sort) {
             'price_asc'  => $query->orderBy('regular_price_per_person'),
             'price_desc' => $query->orderByDesc('regular_price_per_person'),
             'rating'     => $query->orderByDesc('average_rating'),
@@ -83,6 +96,12 @@ class TourController extends Controller
     {
         if (!auth()->check()) {
             return response()->json(['error' => 'Please login first.'], 401);
+        }
+
+        // SECURITY: Verify tour is active and user can wishlist it
+        if (Gate::denies('wishlist', $tour)) {
+            SecurityLogger::logUnauthorizedAccess($request, 'tour_wishlist', $tour->id);
+            return response()->json(['error' => 'This tour is not available.'], 403);
         }
 
         $user = auth()->user();

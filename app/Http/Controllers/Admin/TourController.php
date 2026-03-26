@@ -5,32 +5,48 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Tour;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class TourController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('secure.resource:tour');
+    }
+
     // ── Index ──────────────────────────────────────────────────────────────
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Tour::class);
+        
         $query = Tour::withTrashed();
 
         if ($search = $request->input('search')) {
+            // Sanitize search input
+            $search = strip_tags($search);
             $query->where('title', 'like', "%{$search}%");
         }
         if ($status = $request->input('status')) {
-            if ($status === 'trashed') {
-                $query->onlyTrashed();
-            } elseif ($status === 'active') {
-                $query->where('is_active', true)->withoutTrashed();
-            } elseif ($status === 'inactive') {
-                $query->where('is_active', false)->withoutTrashed();
+            // Validate status against allowed values
+            if (in_array($status, ['trashed', 'active', 'inactive'])) {
+                if ($status === 'trashed') {
+                    $query->onlyTrashed();
+                } elseif ($status === 'active') {
+                    $query->where('is_active', true)->withoutTrashed();
+                } elseif ($status === 'inactive') {
+                    $query->where('is_active', false)->withoutTrashed();
+                }
             }
         }
         if ($continent = $request->input('continent')) {
-            $query->where('continent', $continent);
+            $allowedContinents = ['Asia', 'Europe', 'Africa', 'North America', 'South America', 'Oceania', 'Antarctica'];
+            if (in_array($continent, $allowedContinents)) {
+                $query->where('continent', $continent);
+            }
         }
 
         $tours = $query->latest()->paginate(15)->withQueryString();
@@ -41,11 +57,14 @@ class TourController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Tour::class);
         return view('admin.tours.create');
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', Tour::class);
+        
         $data = $this->validateAndPrepare($request);
         $data['slug'] = $this->uniqueSlug($request, null);
         $data = $this->handleFileUploads($request, $data, null);
@@ -58,11 +77,14 @@ class TourController extends Controller
 
     public function edit(Tour $tour)
     {
+        $this->authorize('update', $tour);
         return view('admin.tours.edit', compact('tour'));
     }
 
     public function update(Request $request, Tour $tour)
     {
+        $this->authorize('update', $tour);
+        
         $data = $this->validateAndPrepare($request, $tour->id);
         $data['slug'] = $this->uniqueSlug($request, $tour);
         $data = $this->handleFileUploads($request, $data, $tour);
@@ -75,13 +97,16 @@ class TourController extends Controller
 
     public function destroy(Tour $tour)
     {
+        $this->authorize('delete', $tour);
         $tour->delete();
         return back()->with('success', 'Tour moved to trash.');
     }
 
     public function restore(int $id)
     {
-        Tour::withTrashed()->findOrFail($id)->restore();
+        $tour = Tour::withTrashed()->findOrFail($id);
+        $this->authorize('restore', $tour);
+        $tour->restore();
         return back()->with('success', 'Tour restored.');
     }
 
@@ -95,10 +120,11 @@ class TourController extends Controller
             'regular_price_per_person'     => ['nullable', 'numeric', 'min:0'],
             'promo_price_per_person'       => ['nullable', 'numeric', 'min:0'],
             'base_price_per_day'           => ['nullable', 'numeric', 'min:0'],
-            'main_image'                   => [$ignoreId ? 'nullable' : 'nullable', 'image', 'max:8192'],
-            'gallery_image_files.*'        => ['nullable', 'image', 'max:8192'],
-            'related_image_files.*'        => ['nullable', 'image', 'max:8192'],
-            'video_file'                   => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime,video/webm', 'max:102400'],
+            'main_image'                   => [$ignoreId ? 'nullable' : 'nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
+            'gallery_image_files.*'        => ['nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
+            'related_image_files.*'        => ['nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
+            // Enhanced video validation - limit file types and add extension check
+            'video_file'                   => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime,video/webm', 'mimes:mp4,mov,webm', 'max:102400'],
         ]);
 
         return [

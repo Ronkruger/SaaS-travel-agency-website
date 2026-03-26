@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Services\SecurityLogger;
+use App\Services\XenditWebhookValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Xendit\Configuration;
 use Xendit\Invoice\InvoiceApi;
@@ -57,31 +60,54 @@ class XenditController extends Controller
 
     /**
      * Xendit webhook — called by Xendit when payment status changes.
-     * Verifies the token then marks booking as paid.
+     * Verifies the token, validates request, then marks booking as paid.
      */
     public function webhook(Request $request)
     {
-        // Verify webhook token
         $token = $request->header('x-callback-token');
-        if ($token !== config('xendit.webhook_token')) {
-            Log::warning('Xendit webhook: invalid token', ['ip' => $request->ip()]);
-            return response()->json(['error' => 'Unauthorized'], 401);
+        $ip = $request->ip();
+        $data = $request->all();
+
+        // Comprehensive validation
+        $errors = XenditWebhookValidator::validate($token, $ip, $data);
+        
+        if (!empty($errors)) {
+            SecurityLogger::logSuspiciousAccess(
+                $request,
+                'xendit_webhook',
+                $data['external_id'] ?? 'unknown',
+                'webhook_validation_failed: ' . implode(', ', $errors)
+            );
+            
+            if (in_array('invalid_token', $errors)) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+            return response()->json(['error' => 'Invalid request', 'details' => $errors], 400);
         }
 
-        $data   = $request->all();
         $status = strtoupper($data['status'] ?? '');
-        $externalId = $data['external_id'] ?? null;
+        $externalId = $data['external_id'];
 
         Log::info('Xendit webhook received', ['external_id' => $externalId, 'status' => $status]);
 
-        // external_id format: BOOKING-{id}-{timestamp}
-        if (!$externalId || !preg_match('/^BOOKING-(\d+)-/', $externalId, $m)) {
-            return response()->json(['error' => 'Invalid external_id'], 400);
+        // Extract booking ID from external_id format: BOOKING-{id}-{timestamp}
+        preg_match('/^BOOKING-(\d+)-/', $externalId, $m);
+        $booking = Booking::find($m[1]);
+        
+        if (!$booking) {
+            SecurityLogger::logNotFoundAccess($request, 'booking', $m[1]);
+            return response()->json(['error' => 'Booking not found'], 404);
         }
 
-        $booking = Booking::find($m[1]);
-        if (!$booking) {
-            return response()->json(['error' => 'Booking not found'], 404);
+        // Verify the invoice ID matches (extra security)
+        if ($booking->xendit_invoice_id && $booking->xendit_invoice_id !== ($data['id'] ?? null)) {
+            SecurityLogger::logSuspiciousAccess(
+                $request,
+                'xendit_webhook',
+                $booking->id,
+                'invoice_id_mismatch'
+            );
+            return response()->json(['error' => 'Invoice ID mismatch'], 400);
         }
 
         if ($status === 'PAID' || $status === 'SETTLED') {
@@ -97,7 +123,8 @@ class XenditController extends Controller
                     'method'                 => $data['payment_method'] ?? 'xendit',
                     'status'                 => 'completed',
                     'gateway_transaction_id' => $data['id'] ?? null,
-                    'gateway_response'       => $data,
+                    // SECURITY: Only store sanitized gateway response
+                    'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
                     'paid_at'                => now(),
                 ]);
 
@@ -120,7 +147,10 @@ class XenditController extends Controller
      */
     public function success(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id()) abort(403);
+        if (Gate::denies('view', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'payment_success', $booking->id);
+            abort(403);
+        }
 
         $booking->load(['tour', 'payment']);
         return view('checkout.confirmation', compact('booking'))
@@ -132,7 +162,10 @@ class XenditController extends Controller
      */
     public function failure(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id()) abort(403);
+        if (Gate::denies('view', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'payment_failure', $booking->id);
+            abort(403);
+        }
 
         return redirect()->route('checkout.show', $booking)
             ->withErrors(['error' => 'Payment was not completed. Please try again.']);
