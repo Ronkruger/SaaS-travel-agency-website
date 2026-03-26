@@ -40,6 +40,7 @@ BLOCKED_FILES=(
     ".env.local"
     "auth.json"
     "storage/*.key"
+    "bootstrap/cache/*.php"
 )
 
 for pattern in "${BLOCKED_FILES[@]}"; do
