@@ -26,6 +26,8 @@ class AIItineraryService
             'headers'  => [
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type'  => 'application/json',
+                'HTTP-Referer'  => config('app.url', 'https://discovergrp.com'),
+                'X-Title'       => config('app.name', 'DiscoverGRP'),
             ],
         ]);
     }
@@ -50,21 +52,20 @@ class AIItineraryService
         try {
             $response = $this->client->post('v1/chat/completions', [
                 'json' => [
-                    'model'       => $this->model,
-                    'messages'    => [
+                    'model'    => $this->model,
+                    'messages' => [
                         ['role' => 'system', 'content' => $systemPrompt],
                         ['role' => 'user',   'content' => $userPrompt],
                     ],
-                    'temperature'     => 0.7,
-                    'max_tokens'      => 4096,
-                    'response_format' => ['type' => 'json_object'],
+                    'temperature' => 0.7,
+                    'max_tokens'  => 4096,
                 ],
             ]);
 
-            $body = json_decode((string) $response->getBody(), true);
+            $body    = json_decode((string) $response->getBody(), true);
             $content = $body['choices'][0]['message']['content'] ?? '{}';
 
-            $parsed = json_decode($content, true);
+            $parsed = json_decode($this->extractJson($content), true);
 
             if (json_last_error() !== JSON_ERROR_NONE || empty($parsed['itinerary'])) {
                 Log::warning('AI itinerary: malformed JSON from OpenAI', ['raw' => substr($content, 0, 500)]);
@@ -99,8 +100,8 @@ class AIItineraryService
         try {
             $response = $this->client->post('v1/chat/completions', [
                 'json' => [
-                    'model'       => $this->model,
-                    'messages'    => [
+                    'model'    => $this->model,
+                    'messages' => [
                         [
                             'role'    => 'system',
                             'content' => 'You are an expert European tour planner. Respond ONLY with a valid JSON object containing a "suggestions" array. Each suggestion must have: message (string), type (route_optimization|add_city|remove_city|budget|timing), auto_apply_data (object or null). Be concise, max 3 suggestions.',
@@ -110,15 +111,14 @@ class AIItineraryService
                             'content' => 'The user just ' . $action . '. Current itinerary: ' . json_encode($itinerary, JSON_UNESCAPED_UNICODE),
                         ],
                     ],
-                    'temperature'     => 0.5,
-                    'max_tokens'      => 512,
-                    'response_format' => ['type' => 'json_object'],
+                    'temperature' => 0.5,
+                    'max_tokens'  => 512,
                 ],
             ]);
 
             $body    = json_decode((string) $response->getBody(), true);
             $content = $body['choices'][0]['message']['content'] ?? '{}';
-            $parsed  = json_decode($content, true);
+            $parsed  = json_decode($this->extractJson($content), true);
 
             return $parsed['suggestions'] ?? [];
 
@@ -229,6 +229,18 @@ OUTPUT: Respond ONLY with a JSON object matching this EXACT structure:
   "ai_explanation": "string"
 }
 PROMPT;
+    }
+
+    /**
+     * Strip markdown code fences (```json ... ```) that some models wrap their output in.
+     */
+    private function extractJson(string $raw): string
+    {
+        $raw = trim($raw);
+        if (preg_match('/```(?:json)?\s*([\s\S]+?)\s*```/i', $raw, $m)) {
+            return trim($m[1]);
+        }
+        return $raw;
     }
 
     private function buildUserPrompt(array $preferences): string
