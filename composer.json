@@ -53,6 +53,9 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
+        ],
+        "serve-local": [
+            "@php -d upload_max_filesize=20M -d post_max_size=24M -d memory_limit=256M artisan serve"
         ]
     },
     "extra": {

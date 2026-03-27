@@ -21,3 +21,11 @@ yarn-error.log
 # Laravel cache files - NEVER commit these (contain sensitive config)
 /bootstrap/cache/*.php
 !/bootstrap/cache/.gitkeep
+
+# Laravel runtime / generated files
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/logs/
+*.log
+.user.ini

@@ -393,3 +393,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .data-table th,
     .data-table td  { padding: .5rem .625rem; }
 }
+
+/* --- Global responsive hardening -------------- */
+html, body { max-width: 100%; overflow-x: hidden; }
+iframe, video, canvas, svg { max-width: 100%; }
+.form-control, .btn { max-width: 100%; }
+
+/* Keep complex admin tables readable on small devices by enabling horizontal scroll in cards */
+@media (max-width: 767px) {
+    .card { overflow-x: auto; }
+    .card .data-table,
+    .card .admin-table { min-width: 640px; }
+    .table-wrap { -webkit-overflow-scrolling: touch; }
+}

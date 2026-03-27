@@ -45,6 +45,13 @@
                     <span class="badge">{{ $pending }}</span>
                 @endif
             </a>
+            <a href="{{ route('admin.diy.index') }}" class="{{ request()->routeIs('admin.diy.*') ? 'active' : '' }}">
+                <i class="fas fa-magic"></i> DIY Tours
+                @php $pendingDiy = \App\Models\DIYTourSession::where('status','pending_review')->count(); @endphp
+                @if($pendingDiy > 0)
+                    <span class="badge">{{ $pendingDiy }}</span>
+                @endif
+            </a>
             <div class="nav-section">CUSTOMERS</div>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="fas fa-users"></i> Users

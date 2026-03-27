@@ -60,6 +60,7 @@
                 </ul>
             </li>
             <li><a href="{{ route('tours.index', ['sort' => 'popular']) }}">Popular</a></li>
+            <li><a href="{{ route('diy.index') }}" class="{{ request()->routeIs('diy.*') ? 'active' : '' }}" style="color:#28A2DC;font-weight:600;">✨ Build My Tour</a></li>
         </ul>
 
         <div class="navbar-actions">

@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use App\Models\Booking;
+use App\Models\DIYTourSession;
 use App\Models\Review;
 use App\Models\Tour;
 use App\Models\User;
 use App\Policies\BookingPolicy;
+use App\Policies\DIYTourSessionPolicy;
 use App\Policies\ReviewPolicy;
 use App\Policies\TourPolicy;
 use App\Policies\UserPolicy;
@@ -15,10 +17,11 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 class AuthServiceProvider extends ServiceProvider
 {
     protected $policies = [
-        User::class => UserPolicy::class,
-        Booking::class => BookingPolicy::class,
-        Review::class => ReviewPolicy::class,
-        Tour::class => TourPolicy::class,
+        User::class           => UserPolicy::class,
+        Booking::class        => BookingPolicy::class,
+        Review::class         => ReviewPolicy::class,
+        Tour::class           => TourPolicy::class,
+        DIYTourSession::class => DIYTourSessionPolicy::class,
     ];
 
     public function boot(): void

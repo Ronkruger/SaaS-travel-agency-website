@@ -76,15 +76,22 @@ class TourController extends Controller
     // ── Edit / Update ──────────────────────────────────────────────────────
 
     public function edit(Tour $tour)
-    {
-        $this->authorize('update', $tour);
+    {        // Also allow editing soft-deleted tours (restore them implicitly when admin edits)
+        if (!$tour->exists) {
+            $tour = Tour::withTrashed()->where('slug', $tour->slug ?? request()->route('tour'))->firstOrFail();
+        }        $this->authorize('update', $tour);
         return view('admin.tours.edit', compact('tour'));
     }
 
     public function update(Request $request, Tour $tour)
     {
         $this->authorize('update', $tour);
-        
+
+        // If fetched via withTrashed() binding, restore it before updating
+        if ($tour->trashed()) {
+            $tour->restore();
+        }
+
         $data = $this->validateAndPrepare($request, $tour->id);
         $data['slug'] = $this->uniqueSlug($request, $tour);
         $data = $this->handleFileUploads($request, $data, $tour);
@@ -123,6 +130,8 @@ class TourController extends Controller
             'main_image'                   => [$ignoreId ? 'nullable' : 'nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
             'gallery_image_files.*'        => ['nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
             'related_image_files.*'        => ['nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
+            'full_stop_images.*'           => ['nullable'],
+            'full_stop_images.*.*'         => ['nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
             // Enhanced video validation - limit file types and add extension check
             'video_file'                   => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime,video/webm', 'mimes:mp4,mov,webm', 'max:102400'],
         ]);
@@ -219,6 +228,37 @@ class TourController extends Controller
             $data['related_images'] = $related;
         }
 
+        if (!empty($data['full_stops']) && is_array($data['full_stops'])) {
+            foreach ($data['full_stops'] as $idx => &$stop) {
+                $rowKey = isset($stop['_idx']) ? (string) $stop['_idx'] : (string) $idx;
+
+                // Existing images passed via hidden inputs (full_stops[i][images][])
+                if (!isset($stop['images']) || !is_array($stop['images'])) {
+                    // Backward-compat: legacy single image field
+                    $stop['images'] = !empty($stop['image']) ? [$stop['image']] : [];
+                }
+                $stop['images'] = array_values(array_filter($stop['images']));
+
+                // Upload new file(s): full_stop_images[rowKey][] (array)
+                $uploadedFiles = $request->file("full_stop_images.$rowKey");
+                if ($uploadedFiles) {
+                    if (!is_array($uploadedFiles)) {
+                        $uploadedFiles = [$uploadedFiles];
+                    }
+                    foreach ($uploadedFiles as $file) {
+                        if ($file && $file->isValid()) {
+                            $stop['images'][] = $file->storeOnCloudinary('tours/stops')->getSecurePath();
+                        }
+                    }
+                }
+
+                unset($stop['image'], $stop['_idx']);
+            }
+            unset($stop);
+
+            $data['full_stops'] = array_values($data['full_stops']);
+        }
+
         return $data;
     }
 
@@ -283,10 +323,27 @@ class TourController extends Controller
         $stops = [];
         foreach ($input as $stop) {
             if (empty($stop['city'])) continue;
+
+            // Support new images[] array and legacy image string
+            if (!empty($stop['images']) && is_array($stop['images'])) {
+                $images = array_values(array_filter(array_map('trim', $stop['images'])));
+            } elseif (!empty($stop['image'])) {
+                $images = [trim($stop['image'])];
+            } else {
+                $images = [];
+            }
+
             $stops[] = [
-                'city'    => trim($stop['city']),
-                'country' => trim($stop['country'] ?? ''),
-                'days'    => isset($stop['days']) && $stop['days'] !== '' ? (int) $stop['days'] : null,
+                '_idx'              => isset($stop['_idx']) ? (string) $stop['_idx'] : null,
+                'city'              => trim($stop['city']),
+                'country'           => trim($stop['country'] ?? ''),
+                'days'              => isset($stop['days']) && $stop['days'] !== '' ? (int) $stop['days'] : null,
+                'day_title'         => trim($stop['day_title'] ?? ''),
+                'description'       => trim($stop['description'] ?? ''),
+                'optional_activity' => trim($stop['optional_activity'] ?? ''),
+                'waypoints'         => trim($stop['waypoints'] ?? ''),
+                'travel_times'      => trim($stop['travel_times'] ?? ''),
+                'images'            => $images,
             ];
         }
         return $stops;

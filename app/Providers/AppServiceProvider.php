@@ -17,5 +17,8 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
+
+        // Raise input variable limit for large admin forms (tour stops, itinerary, etc.)
+        @ini_set('max_input_vars', 5000);
     }
 }

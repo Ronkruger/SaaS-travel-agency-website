@@ -7,10 +7,13 @@
 @endsection
 
 @push('styles')
+<link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css' rel='stylesheet' />
 <style>
 .tour-form-header{padding:.875rem 1.5rem}
-.tour-tabs-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:0}
+.tour-tabs-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tour-tab-btn{padding:.5rem 1rem;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;cursor:pointer;font-size:.875rem;color:#475569;font-weight:500;transition:all .2s}
+.tour-tab-btn{flex-shrink:0;white-space:nowrap}
 .tour-tab-btn:hover{background:#e2e8f0;color:#1e293b}
 .tour-tab-btn.active{background:var(--primary,#0e7490);color:#fff;border-color:var(--primary,#0e7490)}
 .tour-tab-panel{display:none}.tour-tab-panel.active{display:block}
@@ -22,7 +25,14 @@
 .existing-thumb{max-height:80px;border-radius:4px;border:1px solid #e2e8f0}
 .existing-thumb-wrap{display:flex;align-items:center;gap:.75rem;padding:.5rem;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;margin-bottom:.5rem}
 #tourFormSidebar{position:sticky;top:calc(var(--admin-header-height,70px) + 1rem)}
+.itinerary-days-scroll{max-height:360px;overflow-y:auto;padding-right:.35rem;border-radius:8px}
+.itinerary-days-scroll::-webkit-scrollbar{width:8px}
+.itinerary-days-scroll::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:999px}
+.stops-map-sticky{position:sticky;top:calc(var(--admin-header-height,70px) + 1rem);z-index:30}
+@media(min-width:992px){.itinerary-days-scroll{max-height:440px}}
+@media(min-width:1280px){.itinerary-days-scroll{max-height:520px}}
 @media(max-width:1200px){#tourFormSidebar{position:static}}
+@media(max-width:992px){.stops-map-sticky{position:static}}
 @media(max-width:768px){.form-row-3,.form-row-2{grid-template-columns:1fr}}
 /* ── Toggle label fix */
 .toggle-label{display:flex;align-items:center;gap:.625rem;cursor:pointer;font-weight:600;color:var(--gray-700);font-size:.9375rem}
@@ -305,13 +315,21 @@
 
         <!-- ── TAB 6: STOPS & GEOGRAPHY ──────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-stops">
-            <div class="card-header"><h4>Stops &amp; Geography</h4></div>
+            <div class="card-header"><h4>Route Map &amp; Day-by-Day Itinerary</h4></div>
             <div class="card-body">
 
-                <h5>Full Stops</h5>
-                <div id="fullStopsContainer"></div>
-                <button type="button" class="btn btn-outline btn-sm" onclick="addFullStop()">
-                    <i class="fas fa-plus"></i> Add Stop
+                {{-- Mapbox Route Map --}}
+                <div id="adminStopsMap"
+                     class="stops-map-sticky"
+                     style="height:420px;border-radius:10px;margin-bottom:1.5rem;background:#e8edf3;"
+                     data-mapbox-token="{{ config('ai.mapbox_token') }}"></div>
+
+                <h5>Itinerary Days <small class="text-muted">(in travel order)</small></h5>
+                <div class="itinerary-days-scroll">
+                    <div id="fullStopsContainer"></div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm mt-2" onclick="addFullStop()">
+                    <i class="fas fa-plus"></i> Add Day
                 </button>
 
                 <hr class="mt-4">
@@ -436,9 +454,6 @@
                         Featured on Homepage
                     </label>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block mt-3">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
                 <a href="{{ route('admin.tours.index') }}" class="btn btn-outline btn-block mt-2">Cancel</a>
             </div>
         </div>
@@ -449,13 +464,10 @@
                 <a href="{{ route('tours.show', $tour->slug) }}" target="_blank" class="btn btn-outline btn-block btn-sm">
                     <i class="fas fa-eye"></i> Preview Tour
                 </a>
-                <form method="POST" action="{{ route('admin.tours.destroy', $tour) }}" class="mt-2"
-                    onsubmit="return confirm('Delete this tour?')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-block btn-sm">
-                        <i class="fas fa-trash"></i> Delete Tour
-                    </button>
-                </form>
+                <button type="button" class="btn btn-danger btn-block btn-sm mt-2"
+                    onclick="if(confirm('Delete this tour? This cannot be undone.')) document.getElementById('deleteTourForm').submit()">
+                    <i class="fas fa-trash"></i> Delete Tour
+                </button>
             </div>
         </div>
     </div>
@@ -483,9 +495,17 @@
 </div>
 
 </form>
+
+{{-- Delete form is intentionally OUTSIDE the main form to prevent _method override --}}
+<form id="deleteTourForm" action="{{ route('admin.tours.destroy', $tour) }}" method="POST" style="display:none">
+    @csrf @method('DELETE')
+</form>
+
 @endsection
 
 @push('scripts')
+<script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js'></script>
 <script src="{{ asset('js/admin-tour-form.js') }}"></script>
 <script>
 // Tab switching
@@ -495,6 +515,10 @@ document.querySelectorAll('.tour-tab-btn').forEach(btn => {
         document.querySelectorAll('.tour-tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        // Init Mapbox map when Stops tab is opened
+        if (btn.dataset.tab === 'stops') {
+            setTimeout(initStopsMap, 50);
+        }
     });
 });
 
@@ -561,7 +585,14 @@ if (dpCheck) dpCheck.addEventListener('change', function() {
     addFullStop({
         city: @json($stop['city'] ?? ''),
         country: @json($stop['country'] ?? ''),
-        days: @json($stop['days'] ?? '')
+        days: @json($stop['days'] ?? ''),
+        day_title: @json($stop['day_title'] ?? ''),
+        description: @json($stop['description'] ?? ''),
+        optional_activity: @json($stop['optional_activity'] ?? ''),
+        waypoints: @json($stop['waypoints'] ?? ''),
+        travel_times: @json($stop['travel_times'] ?? ''),
+        image: @json($stop['image'] ?? ''),
+        images: @json($stop['images'] ?? [])
     });
     @endforeach
     @endif

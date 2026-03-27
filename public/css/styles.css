@@ -194,6 +194,29 @@ h4 { font-size: 1.25rem; }
 .alert-close { margin-left: auto; font-size: 1.25rem; line-height: 1; color: inherit; opacity: .6; }
 .alert-close:hover { opacity: 1; }
 
+/* --- Contact Sales Toast ---------------------- */
+.sales-copy-toast {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1100;
+    background: #0A2D74;
+    color: #fff;
+    border-radius: 10px;
+    padding: .65rem .85rem;
+    font-size: .875rem;
+    font-weight: 600;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .18s ease, transform .18s ease;
+    pointer-events: none;
+}
+.sales-copy-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* --- Forms ------------------------------------ */
 .form-group { display: flex; flex-direction: column; gap: .375rem; }
 .form-group label { font-weight: 600; font-size: .9375rem; color: var(--gray-700); }
@@ -233,18 +256,19 @@ h4 { font-size: 1.25rem; }
 
 /* --- Hero ------------------------------------- */
 .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding-top: 70px; overflow: hidden; }
-.hero-bg { position: absolute; inset: 0; background: url('../images/hero-bg.jpg') center/cover no-repeat; }
-.hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(10,45,116,.90) 0%, rgba(6,30,82,.88) 100%); }
-.hero-content { position: relative; color: var(--white); max-width: 750px; padding: 5rem 0; }
+.hero-bg { position: absolute; inset: 0; background: url('../images/hero.png') center/cover no-repeat; }
+.hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(10,45,116,.72) 0%, rgba(6,30,82,.68) 100%); }
+.hero-content { position: relative; color: var(--white); max-width: 750px; padding: 5rem 0; margin: 0 auto; text-align: center; }
 .hero-label { display: inline-block; background: rgba(255,255,255,.2); color: var(--white); padding: .375rem 1rem; border-radius: 50px; font-size: .875rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 1.5rem; }
-.hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.1; margin-bottom: 1.5rem; }
-.hero-title span { color: #28A2DC; }
-.hero-subtitle { font-size: 1.1875rem; opacity: .9; margin-bottom: 2.5rem; max-width: 550px; }
+.hero-title { line-height: 1; margin-bottom: 1.5rem; }
+.hero-title-block { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.6rem, 6.5vw, 4.75rem); text-transform: uppercase; color: #f5c107; letter-spacing: .03em; display: block; }
+.hero-title-script { font-family: var(--font-script); font-weight: 700; font-size: clamp(3.2rem, 8vw, 6rem); color: #ffffff; display: block; line-height: 1.1; margin-top: .1em; }
+.hero-subtitle { font-size: 1.1875rem; opacity: .9; margin-bottom: 2.5rem; max-width: 550px; margin-left: auto; margin-right: auto; }
 .hero-search { display: flex; gap: .75rem; background: var(--white); padding: .625rem; border-radius: 60px; box-shadow: var(--shadow-lg); flex-wrap: wrap; }
 .search-field { display: flex; align-items: center; gap: .5rem; flex: 1; min-width: 160px; padding: 0 .875rem; color: var(--gray-500); border-right: 1px solid var(--gray-300); }
 .search-field:last-of-type { border-right: none; }
 .search-field input, .search-field select { border: none; outline: none; width: 100%; font-size: .9375rem; color: var(--gray-900); background: none; }
-.hero-stats { display: flex; gap: 3rem; margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,.2); }
+.hero-stats { display: flex; gap: 3rem; margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,.2); justify-content: center; }
 .hero-stat { text-align: center; }
 .stat-num { display: block; font-size: 2rem; font-weight: 800; font-family: var(--font-display); }
 .stat-label { font-size: .875rem; opacity: .8; }
@@ -278,6 +302,8 @@ h4 { font-size: 1.25rem; }
 .tour-price { display: flex; align-items: baseline; gap: .375rem; flex-wrap: wrap; }
 .price-original { text-decoration: line-through; color: var(--gray-500); font-size: .875rem; }
 .price-current { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+.tour-price a.price-current { text-decoration: none; }
+.tour-price a.price-current:hover { text-decoration: underline; }
 .price-current.large { font-size: 1.625rem; }
 .tour-price small { color: var(--gray-500); font-size: .8125rem; }
 
@@ -1012,3 +1038,44 @@ h4 { font-size: 1.25rem; }
     .tours-grid--4 { grid-template-columns: repeat(2, 1fr); }
 }
 .badge-pm { display:inline-flex; align-items:center; gap:.35rem; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:6px; padding:.35rem .75rem; font-size:.8rem; font-weight:600; color:#374151; }
+
+/* ================================================
+   GLOBAL RESPONSIVE HARDENING
+   ================================================ */
+html, body { max-width: 100%; overflow-x: hidden; }
+iframe, video, canvas, svg { max-width: 100%; }
+table { width: 100%; }
+.table-wrap,
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.form-control,
+.btn { max-width: 100%; }
+
+@media (max-width: 767px) {
+    .card-header,
+    .card-body,
+    .section-header,
+    .page-header { min-width: 0; }
+    .tab-nav { -webkit-overflow-scrolling: touch; }
+}
+
+@media (max-width: 359px) {
+    .container { padding-left: .75rem; padding-right: .75rem; }
+}
+
+/* ── Compact phones: 414px and below ────────── */
+@media (max-width: 414px) {
+    .booking-form            { padding: 1rem; }
+    .booking-widget-header   { padding: 1rem; }
+    .booking-step            { padding: 1.25rem 1rem; }
+    .confirmation-card       { padding: 1.5rem .875rem; }
+    .confirmation-details    { padding: .875rem 1rem; }
+    .checkout-step           { padding: .625rem .875rem; font-size: .8125rem; }
+}
+
+/* ── Tiny phones: 320px ─────────────────────── */
+@media (max-width: 320px) {
+    .booking-step            { padding: 1rem; }
+    .checkout-steps          { flex-direction: column; align-items: stretch; }
+    .checkout-step-divider   { display: none; }
+    .step-header             { flex-wrap: wrap; }
+}

@@ -14,6 +14,9 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\DIYTourController;
+use App\Http\Controllers\DIYTourApiController;
+use App\Http\Controllers\Admin\DIYTourController as AdminDIYTourController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -105,6 +108,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:a
     Route::get('/tours/create', [AdminTourController::class, 'create'])->name('tours.create');
     Route::post('/tours', [AdminTourController::class, 'store'])->name('tours.store');
     Route::get('/tours/{tour}/edit', [AdminTourController::class, 'edit'])->name('tours.edit');
+    Route::get('/tours/{tour}', fn(\App\Models\Tour $tour) => redirect()->route('admin.tours.edit', $tour))->name('tours.show');
     Route::put('/tours/{tour}', [AdminTourController::class, 'update'])->name('tours.update');
     Route::delete('/tours/{tour}', [AdminTourController::class, 'destroy'])->name('tours.destroy');
     Route::post('/tours/{id}/restore', [AdminTourController::class, 'restore'])->name('tours.restore');
@@ -132,4 +136,47 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:a
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::post('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
     Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // DIY Tours (admin)  — outer group already has name('admin.') so these become admin.diy.*
+    Route::prefix('diy')->group(function () {
+        Route::get('/', [AdminDIYTourController::class, 'index'])->name('diy.index');
+        Route::get('/{diySession}', [AdminDIYTourController::class, 'show'])->name('diy.show');
+        Route::post('/{diySession}/quote', [AdminDIYTourController::class, 'generateQuote'])->name('diy.quote');
+        Route::patch('/{diySession}/status', [AdminDIYTourController::class, 'updateStatus'])->name('diy.status');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| DIY Tour Builder Routes (public + guest-friendly)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('diy')->name('diy.')->group(function () {
+    // Step 1: Preference wizard
+    Route::get('/', [DIYTourController::class, 'index'])->name('index');
+    // Step 2: Submit preferences → AI generates itinerary
+    Route::post('/', [DIYTourController::class, 'store'])->name('store')->middleware('throttle:sensitive');
+    // Step 3: Interactive builder
+    Route::get('/{token}/builder', [DIYTourController::class, 'builder'])->name('builder');
+    // Auto-save draft via AJAX
+    Route::post('/{token}/save', [DIYTourController::class, 'saveDraft'])->name('save');
+    // Request formal quote
+    Route::post('/{token}/quote', [DIYTourController::class, 'requestQuote'])->name('request-quote');
+    // Quote review page
+    Route::get('/{token}/quote', [DIYTourController::class, 'quote'])->name('quote');
+    // Invite collaborator (auth required)
+    Route::post('/{token}/invite', [DIYTourController::class, 'invite'])->name('invite')->middleware('auth');
+});
+
+/*
+|--------------------------------------------------------------------------
+| DIY Tour AJAX API (CSRF-protected, rate-limited)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('diy/api')->name('diy.api.')->middleware('throttle:sensitive')->group(function () {
+    Route::post('/suggestions', [DIYTourApiController::class, 'suggestions'])->name('suggestions');
+    Route::post('/optimize-route', [DIYTourApiController::class, 'optimizeRoute'])->name('optimize-route');
+    Route::post('/reachable-cities', [DIYTourApiController::class, 'reachableCities'])->name('reachable-cities');
+    Route::post('/calculate-pricing', [DIYTourApiController::class, 'calculatePricing'])->name('calculate-pricing');
+    Route::post('/validate', [DIYTourApiController::class, 'validateItinerary'])->name('validate');
 });

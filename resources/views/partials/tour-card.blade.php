@@ -1,4 +1,10 @@
 <div class="tour-card">
+    @php
+        $tourUrl = route('tours.show', $tour->slug);
+        $salesMessage = "Hi Discover Group! I am interested in this tour: {$tour->title} - {$tourUrl}";
+        $contactSalesUrl = 'https://www.facebook.com/messages/t/discovergrp';
+    @endphp
+
     <div class="tour-card-img">
         <img src="{{ cdn_url($tour->main_image, asset('images/tour-placeholder.jpg')) }}"
              alt="{{ $tour->title }}"
@@ -60,7 +66,11 @@
             @elseif($tour->regular_price_per_person)
                 <span class="price-current">₱{{ number_format($tour->regular_price_per_person, 2) }}</span>
             @else
-                <span class="price-current">Contact Us</span>
+                <a href="{{ $contactSalesUrl }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="price-current js-contact-sales"
+                   data-sales-message="{{ $salesMessage }}">Contact Sales</a>
             @endif
             @if($tour->regular_price_per_person)
                 <small>per person</small>
@@ -71,3 +81,63 @@
         </a>
     </div>
 </div>
+
+@once
+    @push('scripts')
+        <script>
+            function showSalesCopyToast(message) {
+                const existing = document.getElementById('salesCopyToast');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'salesCopyToast';
+                toast.className = 'sales-copy-toast';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                requestAnimationFrame(function () {
+                    toast.classList.add('is-visible');
+                });
+
+                setTimeout(function () {
+                    toast.classList.remove('is-visible');
+                    setTimeout(function () {
+                        if (toast.parentNode) toast.parentNode.removeChild(toast);
+                    }, 180);
+                }, 1800);
+            }
+
+            document.addEventListener('click', function (event) {
+                const trigger = event.target.closest('.js-contact-sales');
+                if (!trigger) return;
+
+                const message = trigger.getAttribute('data-sales-message');
+                if (!message) return;
+
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(message)
+                        .then(function () {
+                            showSalesCopyToast('Message copied. Paste it in Facebook chat.');
+                        })
+                        .catch(function () {
+                            showSalesCopyToast('Copy not allowed by browser. Please copy manually.');
+                        });
+                    return;
+                }
+
+                const input = document.createElement('textarea');
+                input.value = message;
+                input.setAttribute('readonly', 'readonly');
+                input.style.position = 'fixed';
+                input.style.opacity = '0';
+                input.style.pointerEvents = 'none';
+                document.body.appendChild(input);
+                input.focus();
+                input.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                document.body.removeChild(input);
+                showSalesCopyToast('Message copied. Paste it in Facebook chat.');
+            });
+        </script>
+    @endpush
+@endonce

@@ -7,10 +7,13 @@
 @endsection
 
 @push('styles')
+<link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css' rel='stylesheet' />
 <style>
 .tour-form-header{padding:.875rem 1.5rem}
-.tour-tabs-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:0}
+.tour-tabs-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tour-tab-btn{padding:.5rem 1rem;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;cursor:pointer;font-size:.875rem;color:#475569;font-weight:500;transition:all .2s}
+.tour-tab-btn{flex-shrink:0;white-space:nowrap}
 .tour-tab-btn:hover{background:#e2e8f0;color:#1e293b}
 .tour-tab-btn.active{background:var(--primary,#0e7490);color:#fff;border-color:var(--primary,#0e7490)}
 .tour-tab-panel{display:none}.tour-tab-panel.active{display:block}
@@ -20,7 +23,14 @@
 .form-row-2{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
 .d-flex{display:flex}.align-items-center{align-items:center}.gap-2{gap:.5rem}
 #tourFormSidebar{position:sticky;top:calc(var(--admin-header-height,70px) + 1rem)}
+.itinerary-days-scroll{max-height:360px;overflow-y:auto;padding-right:.35rem;border-radius:8px}
+.itinerary-days-scroll::-webkit-scrollbar{width:8px}
+.itinerary-days-scroll::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:999px}
+.stops-map-sticky{position:sticky;top:calc(var(--admin-header-height,70px) + 1rem);z-index:30}
+@media(min-width:992px){.itinerary-days-scroll{max-height:440px}}
+@media(min-width:1280px){.itinerary-days-scroll{max-height:520px}}
 @media(max-width:1200px){#tourFormSidebar{position:static}}
+@media(max-width:992px){.stops-map-sticky{position:static}}
 @media(max-width:768px){.form-row-3,.form-row-2{grid-template-columns:1fr}}
 /* ── Toggle label (publish sidebar) ─────── */
 .toggle-label{display:flex;align-items:center;gap:.625rem;cursor:pointer;font-weight:600;color:var(--gray-700);font-size:.9375rem}
@@ -45,6 +55,11 @@
 .ai-preview-item:last-child{border-bottom:none}
 .ai-preview-label{font-weight:700;color:#065f46;min-width:140px;flex-shrink:0}
 .ai-preview-val{color:#1e293b;word-break:break-word}
+@media(max-width:480px){
+    .ai-preview-item{flex-direction:column;gap:.2rem}
+    .ai-preview-label{min-width:0}
+    .tour-form-header{padding:.625rem 1rem}
+}
 </style>
 @endpush
 
@@ -314,13 +329,21 @@
 
         <!-- ── TAB 6: STOPS & GEOGRAPHY ──────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-stops">
-            <div class="card-header"><h4>Stops &amp; Geography</h4></div>
+            <div class="card-header"><h4>Route Map &amp; Day-by-Day Itinerary</h4></div>
             <div class="card-body">
 
-                <h5>Full Stops <small class="text-muted">(cities/locations visited in order)</small></h5>
-                <div id="fullStopsContainer"></div>
-                <button type="button" class="btn btn-outline btn-sm" onclick="addFullStop()">
-                    <i class="fas fa-plus"></i> Add Stop
+                {{-- Mapbox Route Map --}}
+                <div id="adminStopsMap"
+                     class="stops-map-sticky"
+                     style="height:420px;border-radius:10px;margin-bottom:1.5rem;background:#e8edf3;"
+                     data-mapbox-token="{{ config('ai.mapbox_token') }}"></div>
+
+                <h5>Itinerary Days <small class="text-muted">(in travel order)</small></h5>
+                <div class="itinerary-days-scroll">
+                    <div id="fullStopsContainer"></div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm mt-2" onclick="addFullStop()">
+                    <i class="fas fa-plus"></i> Add Day
                 </button>
 
                 <hr class="mt-4">
@@ -481,6 +504,8 @@
 @endsection
 
 @push('scripts')
+<script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js'></script>
 <script src="{{ asset('js/admin-tour-form.js') }}"></script>
 <script>
 // Tab switching
@@ -490,6 +515,10 @@ document.querySelectorAll('.tour-tab-btn').forEach(btn => {
         document.querySelectorAll('.tour-tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        // Init Mapbox map when Stops tab is opened
+        if (btn.dataset.tab === 'stops') {
+            setTimeout(initStopsMap, 50);
+        }
     });
 });
 

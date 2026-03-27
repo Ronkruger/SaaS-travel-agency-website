@@ -1,6 +1,115 @@
 @extends('layouts.app')
 @section('title', $tour->title)
 
+@push('styles')
+<link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap' rel='stylesheet'>
+<style>
+/* ── Tour Route Map ─────────────────────────────────────── */
+#tourStopsMapWrap{margin:0 -2rem 2rem -2rem;border-radius:0;overflow:hidden;background:#0f2d5c}
+#tab-destinations{overflow:visible}
+.tour-tabs{overflow:visible}
+.tour-stops-map-sticky{position:sticky;top:90px;z-index:10}
+#tourStopsMapWrap .map-heading{padding:1.05rem 1.25rem .75rem;display:flex;align-items:center;justify-content:space-between;gap:.9rem;flex-wrap:wrap}
+.map-heading-text{font-size:1.2rem;font-weight:800;color:#fff;letter-spacing:.02em}
+.map-visual-toggle{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.12);padding:.3rem;border-radius:999px}
+.map-visual-btn{border:none;border-radius:999px;padding:.4rem .8rem;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s ease;color:rgba(255,255,255,.9);background:transparent}
+.map-visual-btn.is-active{background:#fff;color:#0f2d5c;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.map-visual-btn.is-hidden{display:none}
+.map-visual-hint{font-size:.72rem;color:rgba(255,255,255,.78);font-weight:600;letter-spacing:.03em;white-space:nowrap}
+.map-visual-hint.is-hidden{display:none}
+#tourStopsMap{height:460px;width:100%;display:block;}
+.tour-map-canvas-wrap{position:relative}
+.tour-map-canvas-wrap #tourStopsMap{transition:opacity .35s ease}
+.tour-map-canvas-wrap .mapboxgl-control-container{transition:opacity .25s ease}
+.tour-map-canvas-wrap.map-photo-mode #tourStopsMap{opacity:0}
+.tour-map-canvas-wrap.map-photo-mode .mapboxgl-control-container{opacity:0;pointer-events:none}
+.tour-map-photo-overlay{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:4;overflow:hidden;box-shadow:inset 0 0 90px 18px rgba(0,0,0,.55)}
+.tour-map-photo-overlay img{width:100%;height:100%;object-fit:cover;filter:saturate(1.1) contrast(1.05) brightness(.92) drop-shadow(0 4px 24px rgba(0,0,0,.55));transform:scale(1);transition:transform .9s ease}
+/* Vignette: soft black shadow ring around image edges */
+.tour-map-photo-overlay::before{content:'';position:absolute;inset:0;z-index:6;background:radial-gradient(ellipse at center,transparent 42%,rgba(0,0,0,.62) 100%);pointer-events:none}
+.tour-map-photo-overlay::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,45,92,.62) 0%,rgba(15,45,92,.44) 38%,rgba(15,45,92,.5) 100%)}
+.tour-map-photo-overlay.is-visible{opacity:.74}
+.tour-map-canvas-wrap.map-photo-mode .tour-map-photo-overlay.is-visible{opacity:1}
+.tour-map-canvas-wrap.map-photo-mode .tour-map-photo-overlay::after{background:linear-gradient(180deg,rgba(15,45,92,.42) 0%,rgba(15,45,92,.12) 55%,rgba(15,45,92,.22) 100%)}
+.tour-map-photo-overlay.is-animating img{transform:scale(1.06)}
+.tour-map-photo-caption{position:absolute;left:1rem;top:1rem;z-index:7;background:rgba(15,45,92,.86);color:#fff;padding:.55rem .95rem;border-radius:8px;font-size:1rem;font-weight:800;font-family:'Poppins','Segoe UI',sans-serif;letter-spacing:.04em;text-transform:uppercase;max-width:calc(100% - 2rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.tour-map-photo-caption{position:absolute;left:1rem;top:1rem;z-index:7;background:rgba(15,45,92,.86);color:#fff;padding:.55rem .95rem;border-radius:8px;font-size:1rem;font-weight:800;font-family:'Poppins','Segoe UI',sans-serif;letter-spacing:.04em;text-transform:uppercase;max-width:calc(100% - 5.5rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+/* ── Overlay slideshow nav ──────────────────────────────── */
+.overlay-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:7;background:rgba(0,0,0,.46);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,transform .2s;opacity:0;pointer-events:none;padding:0;font-family:inherit}
+.overlay-nav:hover{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(1.12)}
+.overlay-nav-prev{left:.75rem}
+.overlay-nav-next{right:.75rem}
+.tour-map-photo-overlay.is-visible .overlay-nav:not(.is-hidden){opacity:1;pointer-events:auto}
+.overlay-dots{position:absolute;bottom:.7rem;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:.35rem;align-items:center}
+.overlay-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.48);cursor:pointer;transition:all .2s;border:none;padding:0}
+.overlay-dot.is-active{background:#fff;transform:scale(1.3)}
+.overlay-img-counter{position:absolute;top:1rem;right:1rem;z-index:7;background:rgba(0,0,0,.5);color:#fff;font-size:.72rem;font-weight:700;padding:.25rem .55rem;border-radius:20px;letter-spacing:.04em}
+.overlay-img-counter.is-hidden{display:none}
+
+/* ── Itinerary heading ──────────────────────────────────── */
+.itin-section-title{font-size:1rem;font-weight:700;color:#374151;letter-spacing:.05em;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.itin-section-title span{font-weight:400;font-size:.875rem;color:#9ca3af}
+
+/* ── City group header ──────────────────────────────────── */
+.itin-city-header{background:linear-gradient(135deg,#0f2d5c 0%,#1e4fa3 60%,#2563eb 100%);border-radius:10px 10px 0 0;padding:.875rem 1.25rem;display:flex;align-items:center;gap:.75rem;margin-top:1.75rem}
+.itin-city-header:first-child{margin-top:0}
+.itin-city-name{font-size:1rem;font-weight:800;color:#fff;letter-spacing:.12em;text-transform:uppercase;flex:1}
+.itin-city-country{font-size:.8rem;color:rgba(255,255,255,.75);font-weight:500}
+.itin-nights-badge{background:rgba(255,255,255,.18);color:#fff;font-size:.75rem;font-weight:700;padding:.2rem .65rem;border-radius:20px;white-space:nowrap;border:1px solid rgba(255,255,255,.3)}
+
+/* ── Day card ───────────────────────────────────────────── */
+.itin-day-card{display:flex;gap:1rem;padding:1.25rem 1.25rem 1.25rem 1rem;background:#fff;border:1px solid #e5e7eb;border-top:none;transition:background .15s}
+.itin-day-card:last-child{border-radius:0 0 10px 10px}
+.itin-day-card:hover{background:#f9fafb}
+.itin-day-num-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:.25rem;padding-top:.1rem}
+.itin-day-num{width:36px;height:36px;border-radius:50%;background:#1e4fa3;color:#fff;font-size:.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;letter-spacing:.04em}
+.itin-day-body{flex:1;min-width:0}
+.itin-day-title{font-size:.9375rem;font-weight:700;color:#111827;margin:0 0 .5rem;line-height:1.4;text-transform:uppercase;letter-spacing:.04em}
+.itin-day-desc{font-size:.9rem;color:#4b5563;line-height:1.7;margin:0 0 .75rem;white-space:pre-line}
+.itin-optional{background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:.5rem .875rem;font-size:.875rem;color:#92400e;display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.75rem}
+.itin-optional i{color:#d97706;flex-shrink:0;margin-top:.15rem}
+.itin-travel-times{display:flex;flex-direction:column;gap:.35rem}
+.itin-travel-time-line{font-size:.8125rem;color:#6b7280;display:flex;align-items:center;gap:.4rem}
+.itin-travel-time-line i{color:#9ca3af;font-size:.75rem}
+
+/* ── Route tab map heading ──────────────────────────────── */
+.route-map-heading{font-size:1.3rem;font-weight:800;color:#111827;margin-bottom:1.25rem}/* ── Active day card ────────────────────────────────────────── */
+.itin-day-card--active{background:#eff6ff!important;border-left:3px solid #2563eb!important}
+.itin-day-card--active .itin-day-num{background:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.2)}
+/* ── Waypoints strip ──────────────────────────────────────── */
+.itin-day-waypoints{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;margin:.5rem 0 .6rem}
+.itin-day-waypoint{background:#fffbeb;border:1px solid #fcd34d;color:#92400e;border-radius:20px;padding:.15rem .65rem;font-size:.78rem;font-weight:700}
+.itin-day-waypoints .wp-arrow{color:#d97706;font-size:.65rem;flex-shrink:0}
+.wp-dist-badge{font-size:.7rem;color:#b45309;font-weight:600;white-space:nowrap}
+@media(max-width:640px){
+    .tour-stops-map-sticky{position:static}
+    .map-heading-text{font-size:1rem}
+    .map-visual-btn{font-size:.7rem;padding:.35rem .65rem}
+    .map-visual-hint{font-size:.66rem}
+    .tour-map-photo-caption{font-size:.8rem;top:.7rem;left:.7rem;max-width:calc(100% - 1.4rem)}
+    #tourStopsMap{height:280px}
+    .itin-city-name{font-size:.875rem}
+}
+@media(max-width:480px){
+    #tourStopsMapWrap{margin:0 -1.25rem 2rem -1.25rem}
+    .itin-city-header{padding:.75rem 1rem}
+    .itin-day-card{padding:.875rem}
+    .tour-map-photo-caption{padding:.4rem .65rem;font-size:.75rem}
+}
+@media(max-width:375px){
+    #tourStopsMap{height:250px}
+    .map-heading{flex-direction:column;align-items:flex-start;gap:.4rem}
+    .map-heading-text{font-size:.875rem;line-height:1.3}
+    .itin-day-num{width:28px;height:28px;font-size:.68rem}
+    .itin-day-card{gap:.5rem}
+    .itin-nights-badge{font-size:.68rem}
+}
+</style>
+@endpush
+
 @section('content')
 <!-- Tour Hero -->
 <div class="tour-hero">
@@ -147,31 +256,145 @@
                     <!-- Destinations / Full Stops Tab -->
                     @if($tour->full_stops && count($tour->full_stops) > 0)
                     <div class="tab-content" id="tab-destinations">
-                        <h3>Tour Destinations</h3>
-                        <p class="text-muted" style="margin-bottom:1.5rem;">Cities and stops covered on this tour.</p>
-                        <div class="route-timeline">
-                            @foreach($tour->full_stops as $stop)
-                            <div class="route-stop {{ $loop->first ? 'route-stop--first' : '' }} {{ $loop->last ? 'route-stop--last' : '' }}">
-                                <div class="route-stop-icon">
-                                    <i class="{{ $loop->first ? 'fas fa-plane-departure' : ($loop->last ? 'fas fa-plane-arrival' : 'fas fa-map-marker-alt') }}"></i>
+                        {{-- Mapbox route map --}}
+                        <div id="tourStopsMapWrap" class="tour-stops-map-sticky">
+                            <div class="map-heading">
+                                <div class="map-heading-text">Route Map &amp; Day-by-Day Itinerary</div>
+                                <div class="map-visual-toggle" aria-label="Map visual mode switcher">
+                                    <button type="button" class="map-visual-btn is-active" id="mapVisualMapBtn" onclick="setMapVisualMode('map')">Map</button>
+                                    <button type="button" class="map-visual-btn is-hidden" id="mapVisualPhotoBtn" onclick="setMapVisualMode('photo')">Place Image</button>
                                 </div>
-                                <div class="route-stop-line"></div>
-                                <div class="route-stop-body">
-                                    <h4 class="route-stop-location">{{ $stop['city'] }}</h4>
-                                    @if(!empty($stop['country']))
-                                        <span class="route-stop-country">
-                                            <i class="fas fa-globe-asia"></i> {{ $stop['country'] }}
-                                        </span>
-                                    @endif
-                                    @if(!empty($stop['days']))
-                                        <span class="route-stop-duration">
-                                            <i class="fas fa-clock"></i> {{ $stop['days'] }} {{ Str::plural('day', $stop['days']) }}
-                                        </span>
-                                    @endif
+                                <span id="mapVisualHint" class="map-visual-hint">Select a day to enable Place Image</span>
+                            </div>
+                            <div class="tour-map-canvas-wrap">
+                                <div id="tourStopsMap"
+                                     data-mapbox-token="{{ config('ai.mapbox_token') }}"
+                                     data-stops="{{ json_encode($tour->full_stops) }}"></div>
+                                <div id="tourMapPhotoOverlay" class="tour-map-photo-overlay" aria-hidden="true">
+                                    <img id="tourMapPhotoOverlayImg" src="" alt="Place photo overlay">
+                                    <button id="tourMapPrevBtn" class="overlay-nav overlay-nav-prev is-hidden" onclick="overlayPrev()" aria-label="Previous image">&#8249;</button>
+                                    <button id="tourMapNextBtn" class="overlay-nav overlay-nav-next is-hidden" onclick="overlayNext()" aria-label="Next image">&#8250;</button>
+                                    <div id="tourMapPhotoDots" class="overlay-dots"></div>
+                                    <span id="tourMapImgCounter" class="overlay-img-counter is-hidden"></span>
+                                    <div id="tourMapPhotoOverlayTitle" class="tour-map-photo-caption"></div>
                                 </div>
                             </div>
-                            @endforeach
                         </div>
+
+                        <div class="itin-section-title">
+                            Itinerary Days <span>(in travel order)</span>
+                        </div>
+
+                        @php
+                            /* Group consecutive same-city stops */
+                            $itinGroups = [];
+                            $mapDefaultImage = '';
+                            if (!empty($tour->gallery_images[0])) {
+                                $mapDefaultImage = cdn_url($tour->gallery_images[0]);
+                            } elseif (!empty($tour->main_image)) {
+                                $mapDefaultImage = cdn_url($tour->main_image);
+                            }
+
+                            foreach ($tour->full_stops as $stop) {
+                                $city = $stop['city'] ?? '';
+                                if (empty($itinGroups) || end($itinGroups)['city'] !== $city) {
+                                    $itinGroups[] = ['city' => $city, 'country' => $stop['country'] ?? '', 'stops' => []];
+                                }
+                                $itinGroups[count($itinGroups)-1]['stops'][] = $stop;
+                            }
+                            $globalDay = 0;
+                        @endphp
+
+                        @foreach($itinGroups as $group)
+                            @php $groupNights = array_sum(array_column($group['stops'], 'days')); @endphp
+                            @php
+                                $groupImages = [];
+                                foreach ($group['stops'] as $groupStop) {
+                                    if (!empty($groupStop['images']) && is_array($groupStop['images'])) {
+                                        foreach ($groupStop['images'] as $gImg) { if ($gImg) $groupImages[] = $gImg; }
+                                    } elseif (!empty($groupStop['image'])) {
+                                        $groupImages[] = $groupStop['image'];
+                                    }
+                                }
+                                if (empty($groupImages) && $mapDefaultImage) { $groupImages = [$mapDefaultImage]; }
+                            @endphp
+                            <div class="itin-city-header"
+                                 data-city="{{ strtolower($group['city']) }}"
+                                 data-images="{{ json_encode($groupImages) }}"
+                                 data-place-title="{{ $group['city'] }}"
+                                 onclick="flyToCityHeader(this)"
+                                 style="cursor:pointer">
+                                <span class="itin-city-name">{{ $group['city'] }}</span>
+                                @if($group['country'])
+                                    <span class="itin-city-country">{{ $group['country'] }}</span>
+                                @endif
+                                @if($groupNights > 0)
+                                    <span class="itin-nights-badge">{{ $groupNights }} {{ Str::plural('night', $groupNights) }}</span>
+                                @endif
+                            </div>
+
+                            @foreach($group['stops'] as $stop)
+                                @php $globalDay++; @endphp
+                                @php
+                                    $dayImages = [];
+                                    if (!empty($stop['images']) && is_array($stop['images'])) {
+                                        $dayImages = array_values(array_filter($stop['images']));
+                                    } elseif (!empty($stop['image'])) {
+                                        $dayImages = [$stop['image']];
+                                    }
+                                    if (empty($dayImages)) {
+                                        $dayImages = !empty($groupImages) ? $groupImages : ($mapDefaultImage ? [$mapDefaultImage] : []);
+                                    }
+                                @endphp
+                                <div class="itin-day-card"
+                                     data-city="{{ strtolower($stop['city'] ?? '') }}"
+                                     data-waypoints="{{ $stop['waypoints'] ?? '' }}"
+                                     data-images="{{ json_encode($dayImages) }}"
+                                     data-place-title="{{ $stop['day_title'] ?? ($stop['city'] ?? '') }}"
+                                     onclick="flyToCity(this)"
+                                     style="cursor:pointer">
+                                    <div class="itin-day-num-wrap">
+                                        <div class="itin-day-num">{{ str_pad($globalDay, 2, '0', STR_PAD_LEFT) }}</div>
+                                    </div>
+                                    <div class="itin-day-body">
+                                        @if(!empty($stop['day_title']))
+                                            <h4 class="itin-day-title">{{ $stop['day_title'] }}</h4>
+                                        @endif
+                                        @if(!empty($stop['waypoints']))
+                                            @php $wps = array_filter(array_map('trim', explode(',', $stop['waypoints']))); @endphp
+                                            @if(count($wps) > 1)
+                                                <div class="itin-day-waypoints">
+                                                    @foreach(array_values($wps) as $wi => $wp)
+                                                        @if($wi > 0)<i class="fas fa-chevron-right wp-arrow"></i>@endif
+                                                        <span class="itin-day-waypoint">{{ $wp }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        @endif
+                                        @if(!empty($stop['description']))
+                                            <p class="itin-day-desc">{{ $stop['description'] }}</p>
+                                        @endif
+                                        @if(!empty($stop['optional_activity']))
+                                            <div class="itin-optional">
+                                                <i class="fas fa-star"></i>
+                                                <span>{{ $stop['optional_activity'] }}</span>
+                                            </div>
+                                        @endif
+                                        @if(!empty($stop['travel_times']))
+                                            <div class="itin-travel-times">
+                                                @foreach(explode("\n", $stop['travel_times']) as $tline)
+                                                    @if(trim($tline))
+                                                        <span class="itin-travel-time-line">
+                                                            <i class="fas fa-route"></i> {{ trim($tline) }}
+                                                        </span>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endforeach
                     </div>
                     @endif
 
@@ -452,6 +675,487 @@
 @endsection
 
 @push('scripts')
+<script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
+<script>
+// ── Tour Route Map — lazy init (tab is hidden on load) ───────────────────
+let _tourMapInstance = null;
+let _tourMapInited = false;
+const _tourCityMarkers = {}; // keyed by lowercase city name
+let _dayRouteMarkers = [];
+let _mapVisualMode = 'map';
+let _overlayState = { images: [], captions: [], title: '', currentIndex: 0 };
+let _hasSelectedItineraryDay = false;
+let _overlayAutoTimer = null;
+
+function initTourStopsMap() {
+    if (_tourMapInited) { if (_tourMapInstance) _tourMapInstance.resize(); return; }
+    const mapEl = document.getElementById('tourStopsMap');
+    if (!mapEl) return;
+    const token = mapEl.dataset.mapboxToken;
+    if (!token || typeof mapboxgl === 'undefined') return;
+
+    const stops = JSON.parse(mapEl.dataset.stops || '[]');
+    if (!stops.length) return;
+    _tourMapInited = true;
+
+    // Known city coords fallback (same as admin form)
+    const CITY_COORDS = {
+        'manila':{lat:14.5995,lng:120.9842},'paris':{lat:48.8566,lng:2.3522},
+        'zurich':{lat:47.3769,lng:8.5417},'milan':{lat:45.4642,lng:9.19},
+        'florence':{lat:43.7696,lng:11.2558},'rome':{lat:41.9028,lng:12.4964},
+        'london':{lat:51.5074,lng:-0.1278},'barcelona':{lat:41.3851,lng:2.1734},
+        'madrid':{lat:40.4168,lng:-3.7038},'amsterdam':{lat:52.3676,lng:4.9041},
+        'berlin':{lat:52.52,lng:13.405},'prague':{lat:50.0755,lng:14.4378},
+        'vienna':{lat:48.2082,lng:16.3738},'budapest':{lat:47.4979,lng:19.0402},
+        'athens':{lat:37.9838,lng:23.7275},'istanbul':{lat:41.0082,lng:28.9784},
+        'dubai':{lat:25.2048,lng:55.2708},'tokyo':{lat:35.6762,lng:139.6503},
+        'osaka':{lat:34.6937,lng:135.5023},'kyoto':{lat:35.0116,lng:135.7681},
+        'singapore':{lat:1.3521,lng:103.8198},'bangkok':{lat:13.7563,lng:100.5018},
+        'new york':{lat:40.7128,lng:-74.006},'los angeles':{lat:34.0522,lng:-118.2437},
+        'sydney':{lat:-33.8688,lng:151.2093},'melbourne':{lat:-37.8136,lng:144.9631},
+        'toronto':{lat:43.6532,lng:-79.3832},'vancouver':{lat:49.2827,lng:-123.1207},
+        'lisbon':{lat:38.7169,lng:-9.1399},'brussels':{lat:50.8503,lng:4.3517},
+        'geneva':{lat:46.2044,lng:6.1432},'nice':{lat:43.7102,lng:7.262},
+        'venice':{lat:45.4408,lng:12.3155},'naples':{lat:40.8518,lng:14.2681},
+        'munich':{lat:48.1351,lng:11.582},'frankfurt':{lat:50.1109,lng:8.6821},
+        'copenhagen':{lat:55.6761,lng:12.5683},'stockholm':{lat:59.3293,lng:18.0686},
+        'warsaw':{lat:52.2297,lng:21.0122},'krakow':{lat:50.0647,lng:19.945},
+        'cebu':{lat:10.3157,lng:123.8854},'boracay':{lat:11.9674,lng:121.9248},
+        'cairo':{lat:30.0444,lng:31.2357},'nairobi':{lat:-1.2921,lng:36.8219},
+        'buenos aires':{lat:-34.6037,lng:-58.3816},'rio de janeiro':{lat:-22.9068,lng:-43.1729},
+    };
+
+    // Deduplicate coords by city for map markers (use first occurrence index per city)
+    const uniqueCities = [];
+    const seenCities = new Set();
+    stops.forEach(s => {
+        const key = (s.city || '').toLowerCase().trim();
+        if (!seenCities.has(key)) { seenCities.add(key); uniqueCities.push(s); }
+    });
+
+    // Resolve coordinates — geocode unknowns via Mapbox
+    function resolveCoords(stop) {
+        const key = (stop.city || '').toLowerCase().trim();
+        if (CITY_COORDS[key]) return Promise.resolve(CITY_COORDS[key]);
+        // Mapbox geocoding fallback
+        const q = encodeURIComponent((stop.city || '') + (stop.country ? ', ' + stop.country : ''));
+        return fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${token}&limit=1`)
+            .then(r => r.json())
+            .then(data => {
+                const f = data.features && data.features[0];
+                if (!f) return null;
+                return { lng: f.center[0], lat: f.center[1] };
+            })
+            .catch(() => null);
+    }
+
+    mapboxgl.accessToken = token;
+    const map = new mapboxgl.Map({
+        container: 'tourStopsMap',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [20, 15],
+        zoom: 1.5
+    });
+    _tourMapInstance = map;
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    map.on('load', async function() {
+        const markerData = [];
+        // Build unique city marker list (deduplicated)
+        for (let i = 0; i < uniqueCities.length; i++) {
+            const c = await resolveCoords(uniqueCities[i]);
+            if (!c) continue;
+            markerData.push({ city: uniqueCities[i].city, lng: c.lng, lat: c.lat, idx: i });
+        }
+
+        // Place numbered markers and store by city key
+        markerData.forEach(m => {
+            const el = document.createElement('div');
+            el.style.cssText = 'width:30px;height:30px;border-radius:50%;background:#1e4fa3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;transition:transform .2s';
+            el.textContent = m.idx + 1;
+            const popup = new mapboxgl.Popup({ offset: 16, closeButton: false }).setHTML(`<strong style="font-size:.9rem">${m.city}</strong>`);
+            const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+                .setLngLat([m.lng, m.lat])
+                .setPopup(popup)
+                .addTo(map);
+            _tourCityMarkers[m.city.toLowerCase().trim()] = { marker, lng: m.lng, lat: m.lat, el };
+        });
+
+        // Draw route line
+        const coords = markerData.map(m => [m.lng, m.lat]);
+        if (coords.length > 1) {
+            map.addSource('tour-route', {
+                type: 'geojson',
+                data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } }
+            });
+            map.addLayer({
+                id: 'tour-route',
+                type: 'line',
+                source: 'tour-route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': '#2563eb', 'line-width': 3, 'line-dasharray': [2, 1.5] }
+            });
+        }
+
+        // Fit map to all markers
+        if (coords.length === 1) {
+            map.flyTo({ center: coords[0], zoom: 6 });
+        } else if (coords.length > 1) {
+            const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
+            map.fitBounds(bounds, { padding: 60, maxZoom: 8, duration: 0 });
+        }
+    });
+}
+
+function haversineKm(lng1, lat1, lng2, lat2) {
+    const R = 6371, toRad = x => x * Math.PI / 180;
+    const dLat = toRad(lat2-lat1), dLng = toRad(lng2-lng1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+function clearDayRoute() {
+    if (_tourMapInstance) {
+        try {
+            ['day-route-labels','day-route','day-route-glow'].forEach(id => { if (_tourMapInstance.getLayer(id)) _tourMapInstance.removeLayer(id); });
+            ['day-route-labels','day-route'].forEach(s => { if (_tourMapInstance.getSource(s)) _tourMapInstance.removeSource(s); });
+        } catch(e) {}
+    }
+    _dayRouteMarkers.forEach(m => m.remove());
+    _dayRouteMarkers = [];
+}
+
+function stopOverlayAutoplay() {
+    if (_overlayAutoTimer) {
+        clearInterval(_overlayAutoTimer);
+        _overlayAutoTimer = null;
+    }
+}
+
+function renderOverlayDots(total, active) {
+    const dotsWrap = document.getElementById('tourMapPhotoDots');
+    if (!dotsWrap) return;
+    if (total <= 1) {
+        dotsWrap.innerHTML = '';
+        return;
+    }
+    dotsWrap.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'overlay-dot' + (i === active ? ' is-active' : '');
+        b.setAttribute('aria-label', `Image ${i + 1}`);
+        b.onclick = () => overlayGoTo(i, true);
+        dotsWrap.appendChild(b);
+    }
+}
+
+function renderOverlayImage(restartAnimation = true) {
+    const overlay = document.getElementById('tourMapPhotoOverlay');
+    const img = document.getElementById('tourMapPhotoOverlayImg');
+    const caption = document.getElementById('tourMapPhotoOverlayTitle');
+    const prevBtn = document.getElementById('tourMapPrevBtn');
+    const nextBtn = document.getElementById('tourMapNextBtn');
+    const counter = document.getElementById('tourMapImgCounter');
+    if (!overlay || !img || !caption) return;
+
+    const total = _overlayState.images.length;
+    const hasImage = total > 0;
+
+    if (_mapVisualMode !== 'photo' || !hasImage) {
+        overlay.classList.remove('is-visible', 'is-animating');
+        img.src = '';
+        caption.textContent = '';
+        if (counter) { counter.textContent = ''; counter.classList.add('is-hidden'); }
+        if (prevBtn) prevBtn.classList.add('is-hidden');
+        if (nextBtn) nextBtn.classList.add('is-hidden');
+        renderOverlayDots(0, 0);
+        stopOverlayAutoplay();
+        syncMapVisualPresentation();
+        return;
+    }
+
+    _overlayState.currentIndex = Math.max(0, Math.min(_overlayState.currentIndex, total - 1));
+    const current = _overlayState.images[_overlayState.currentIndex];
+    const currentCaption = _overlayState.captions[_overlayState.currentIndex] || _overlayState.title || 'Selected place';
+
+    if (restartAnimation) {
+        overlay.classList.remove('is-animating');
+        void overlay.offsetWidth;
+    }
+
+    img.src = current;
+    caption.textContent = currentCaption;
+    overlay.classList.add('is-visible', 'is-animating');
+
+    const multi = total > 1;
+    if (prevBtn) prevBtn.classList.toggle('is-hidden', !multi);
+    if (nextBtn) nextBtn.classList.toggle('is-hidden', !multi);
+    renderOverlayDots(total, _overlayState.currentIndex);
+
+    if (counter) {
+        counter.classList.toggle('is-hidden', !multi);
+        counter.textContent = multi ? `${_overlayState.currentIndex + 1} / ${total}` : '';
+    }
+
+    stopOverlayAutoplay();
+    if (multi && _mapVisualMode === 'photo') {
+        _overlayAutoTimer = setInterval(() => overlayNext(false), 3800);
+    }
+
+    syncMapVisualPresentation();
+}
+
+function buildOverlayCaptions(images, captions, fallbackTitle) {
+    const cleanImages = Array.isArray(images) ? images : [];
+    const cleanCaptions = Array.isArray(captions)
+        ? captions.map(x => (x || '').trim()).filter(Boolean)
+        : [];
+
+    if (!cleanImages.length) return [];
+    if (!cleanCaptions.length) return cleanImages.map(() => fallbackTitle || 'Selected place');
+
+    return cleanImages.map((_, idx) => cleanCaptions[Math.min(idx, cleanCaptions.length - 1)] || fallbackTitle || 'Selected place');
+}
+
+function setMapPhotoOverlay(images, title, captions) {
+    const list = Array.isArray(images)
+        ? images.map(x => (x || '').trim()).filter(Boolean)
+        : ((images || '').trim() ? [(images || '').trim()] : []);
+
+    const prevFirst = _overlayState.images[0] || '';
+    const nextFirst = list[0] || '';
+
+    _overlayState.images = list;
+    _overlayState.captions = buildOverlayCaptions(list, captions, (title || 'Selected place').trim());
+    _overlayState.title = (title || 'Selected place').trim();
+    _overlayState.currentIndex = (prevFirst && prevFirst === nextFirst) ? _overlayState.currentIndex : 0;
+
+    renderOverlayImage(true);
+}
+
+function overlayGoTo(index, stopAuto = false) {
+    if (!_overlayState.images.length) return;
+    _overlayState.currentIndex = ((index % _overlayState.images.length) + _overlayState.images.length) % _overlayState.images.length;
+    if (stopAuto) stopOverlayAutoplay();
+    renderOverlayImage(true);
+}
+
+function overlayNext(stopAuto = true) {
+    overlayGoTo(_overlayState.currentIndex + 1, stopAuto);
+}
+
+function overlayPrev() {
+    overlayGoTo(_overlayState.currentIndex - 1, true);
+}
+
+function setMapVisualMode(mode) {
+    _mapVisualMode = mode === 'photo' ? 'photo' : 'map';
+
+    if (!_hasSelectedItineraryDay && _mapVisualMode === 'photo') {
+        _mapVisualMode = 'map';
+    }
+
+    const mapBtn = document.getElementById('mapVisualMapBtn');
+    const photoBtn = document.getElementById('mapVisualPhotoBtn');
+    if (mapBtn) mapBtn.classList.toggle('is-active', _mapVisualMode === 'map');
+    if (photoBtn) photoBtn.classList.toggle('is-active', _mapVisualMode === 'photo');
+
+    renderOverlayImage(false);
+}
+
+function syncMapVisualPresentation() {
+    const mapCanvasWrap = document.querySelector('.tour-map-canvas-wrap');
+    const photoBtn = document.getElementById('mapVisualPhotoBtn');
+    const mapBtn = document.getElementById('mapVisualMapBtn');
+    const hint = document.getElementById('mapVisualHint');
+
+    if (photoBtn) {
+        photoBtn.classList.toggle('is-hidden', !_hasSelectedItineraryDay);
+    }
+    if (hint) {
+        hint.classList.toggle('is-hidden', _hasSelectedItineraryDay);
+    }
+
+    if (!_hasSelectedItineraryDay) {
+        _mapVisualMode = 'map';
+        if (mapBtn) mapBtn.classList.add('is-active');
+        if (photoBtn) photoBtn.classList.remove('is-active');
+    }
+
+    if (!mapCanvasWrap) return;
+
+    const shouldShowPhoto = _mapVisualMode === 'photo' && _overlayState.images && _overlayState.images.length > 0;
+    mapCanvasWrap.classList.toggle('map-photo-mode', shouldShowPhoto);
+}
+
+// Geocode a place name with a bbox constraint ±4° around the base city
+async function geocodeWaypoint(name, token, baseLng, baseLat) {
+    const key = name.toLowerCase().trim();
+    if (_tourCityMarkers[key]) {
+        const { lng, lat } = _tourCityMarkers[key];
+        return { lng, lat };
+    }
+    try {
+        const q = encodeURIComponent(name);
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${token}&limit=1&types=place,locality,poi,address,neighborhood,region`;
+        if (baseLng != null && baseLat != null) {
+            const pad = 4;
+            url += `&bbox=${baseLng-pad},${baseLat-pad},${baseLng+pad},${baseLat+pad}`;
+        }
+        const d = await fetch(url).then(r => r.json());
+        const f = d.features && d.features[0];
+        return f ? { lng: f.center[0], lat: f.center[1] } : null;
+    } catch { return null; }
+}
+
+async function showDayRoute(waypoints, baseLng, baseLat, card) {
+    const map = _tourMapInstance;
+    const token = document.getElementById('tourStopsMap').dataset.mapboxToken;
+    clearDayRoute();
+    const coords = [];
+    const resolved = [];
+    for (const wp of waypoints) {
+        const c = await geocodeWaypoint(wp, token, baseLng, baseLat);
+        if (!c) continue;
+        coords.push([c.lng, c.lat]);
+        resolved.push({ name: wp, lng: c.lng, lat: c.lat });
+    }
+    if (coords.length < 1) return;
+
+    // Calculate km distances between consecutive waypoints
+    const distances = resolved.slice(1).map((wp, i) => haversineKm(resolved[i].lng, resolved[i].lat, wp.lng, wp.lat));
+
+    // Update the clicked card's waypoints strip with distance badges
+    if (card) {
+        const strip = card.querySelector('.itin-day-waypoints');
+        if (strip) {
+            let html = '';
+            resolved.forEach((wp, i) => {
+                if (i > 0) html += `<span class="wp-dist-badge">~${distances[i-1]}km</span><i class="fas fa-chevron-right wp-arrow"></i>`;
+                html += `<span class="itin-day-waypoint">${wp.name}</span>`;
+            });
+            strip.innerHTML = html;
+        }
+    }
+
+    // Draw amber day-route line
+    if (coords.length > 1) {
+        map.addSource('day-route', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates:coords } } });
+        map.addLayer({ id:'day-route-glow', type:'line', source:'day-route', layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#f59e0b','line-width':8,'line-opacity':0.25} });
+        map.addLayer({ id:'day-route', type:'line', source:'day-route', layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#f59e0b','line-width':3} });
+        // Distance labels at each segment midpoint
+        const labelFeatures = resolved.slice(1).map((wp, i) => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [(resolved[i].lng+wp.lng)/2, (resolved[i].lat+wp.lat)/2] },
+            properties: { label: `~${distances[i]} km` }
+        }));
+        map.addSource('day-route-labels', { type:'geojson', data:{ type:'FeatureCollection', features: labelFeatures } });
+        map.addLayer({ id:'day-route-labels', type:'symbol', source:'day-route-labels',
+            layout:{ 'text-field':['get','label'], 'text-size':11, 'text-anchor':'center', 'text-offset':[0,-1] },
+            paint:{ 'text-color':'#92400e', 'text-halo-color':'#fffbeb', 'text-halo-width':1.5 }
+        });
+    }
+
+    // Place lettered markers (A, B, C…)
+    resolved.forEach((wp, idx) => {
+        const el = document.createElement('div');
+        el.style.cssText = 'width:24px;height:24px;border-radius:50%;background:#d97706;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer';
+        el.textContent = String.fromCharCode(65 + idx);
+        const distLabel = idx > 0 ? `<br><small style="color:#b45309">~${distances[idx-1]} km from prev</small>` : '';
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+            .setLngLat([wp.lng, wp.lat])
+            .setPopup(new mapboxgl.Popup({ offset: 14, closeButton: false }).setHTML(`<strong style="font-size:.85rem">${wp.name}</strong>${distLabel}`))
+            .addTo(map);
+        _dayRouteMarkers.push(marker);
+    });
+
+    // Fit to all day waypoints
+    const bounds = coords.reduce((b,c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0],coords[0]));
+    map.fitBounds(bounds, { padding: 80, maxZoom: 10, duration: 900 });
+}
+
+function flyToCity(card) {
+    const city = (card.dataset.city || '').toLowerCase().trim();
+    const waypointsRaw = (card.dataset.waypoints || '').trim();
+    let imageList = [];
+    try {
+        imageList = JSON.parse(card.dataset.images || '[]');
+    } catch (e) {
+        imageList = [];
+    }
+    const placeTitle = (card.dataset.placeTitle || card.dataset.city || '').trim();
+    const waypointTitles = waypointsRaw
+        ? waypointsRaw.split(',').map(w => w.trim()).filter(Boolean)
+        : [];
+
+    _hasSelectedItineraryDay = true;
+    syncMapVisualPresentation();
+
+    setMapPhotoOverlay(imageList, placeTitle, waypointTitles);
+
+    // Highlight active card
+    document.querySelectorAll('.itin-day-card').forEach(c => c.classList.remove('itin-day-card--active'));
+    card.classList.add('itin-day-card--active');
+
+    // Scroll map into view
+    const mapWrap = document.getElementById('tourStopsMapWrap');
+    if (mapWrap) mapWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    if (!_tourMapInstance) return;
+
+    // If the day has waypoints — show within-day route
+    if (waypointsRaw) {
+        const waypoints = waypointTitles;
+        if (waypoints.length > 1) {
+            // Pass base city coords so geocoding uses a regional bbox
+            const base = _tourCityMarkers[city];
+            showDayRoute(waypoints, base ? base.lng : null, base ? base.lat : null, card);
+            return;
+        }
+    }
+
+    // No waypoints: clear any previous day route and fly to the city marker
+    clearDayRoute();
+    const m = _tourCityMarkers[city];
+    if (!m) return;
+
+    Object.values(_tourCityMarkers).forEach(({ marker }) => marker.getPopup()?.isOpen() && marker.togglePopup());
+    _tourMapInstance.flyTo({ center: [m.lng, m.lat], zoom: 7, duration: 900, essential: true });
+    setTimeout(() => {
+        if (!m.marker.getPopup().isOpen()) m.marker.togglePopup();
+        m.el.style.transform = 'scale(1.35)';
+        setTimeout(() => { m.el.style.transform = 'scale(1)'; }, 400);
+    }, 950);
+}
+
+function flyToCityHeader(header) {
+    const city = (header.dataset.city || '').toLowerCase().trim();
+    let imageList = [];
+    try {
+        imageList = JSON.parse(header.dataset.images || '[]');
+    } catch (e) {
+        imageList = [];
+    }
+    const title = (header.dataset.placeTitle || city || '').trim();
+
+    _hasSelectedItineraryDay = true;
+    syncMapVisualPresentation();
+
+    setMapPhotoOverlay(imageList, title, []);
+
+    if (!_tourMapInstance) return;
+
+    clearDayRoute();
+    const markerData = _tourCityMarkers[city];
+    if (!markerData) return;
+
+    _tourMapInstance.flyTo({ center: [markerData.lng, markerData.lat], zoom: 6.6, duration: 900, essential: true });
+    setTimeout(() => {
+        if (!markerData.marker.getPopup().isOpen()) markerData.marker.togglePopup();
+    }, 900);
+}
+</script>
 <script>
 const basePrice = {{ $tour->effective_price ?? 0 }};
 const childRate = 0.75;
@@ -463,6 +1167,10 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        // Initialize/resize the route map when Destinations tab is opened
+        if (btn.dataset.tab === 'destinations') {
+            setTimeout(initTourStopsMap, 50);
+        }
     });
 });
 

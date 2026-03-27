@@ -9,8 +9,11 @@
     <div class="container">
         <div class="hero-content">
             <span class="hero-label">Explore the World</span>
-            <h1 class="hero-title">Discover Amazing<br><span>Tour Experiences</span></h1>
-            <p class="hero-subtitle">Hand-crafted tours to breathtaking destinations. Book with confidence, travel with joy.</p>
+            <h1 class="hero-title">
+                <span class="hero-title-block">Discover Your</span>
+                <span class="hero-title-script">Journey</span>
+            </h1>
+            <p class="hero-subtitle">Unlock the magic of the world with our expertly crafted journeys. Immerse yourself in rich cultures and create unforgettable memories.</p>
 
             <!-- Search Bar -->
             <form action="{{ route('tours.index') }}" method="GET" class="hero-search">
@@ -54,6 +57,48 @@
     <!-- Scroll Indicator -->
     <div class="hero-scroll">
         <i class="fas fa-chevron-down"></i>
+    </div>
+</section>
+
+<!-- DIY / Package Tour Choice Section -->
+<section class="section section-diy-choice">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-label">How Would You Like to Travel?</span>
+            <h2>Choose Your Perfect Adventure</h2>
+        </div>
+        <div class="diy-choice-grid">
+            <div class="diy-choice-card package-card">
+                <div class="diy-choice-icon">📦</div>
+                <h3>Package Tours</h3>
+                <p>Pre-designed, expertly curated itineraries. Everything planned — just show up and enjoy.</p>
+                <ul class="diy-choice-features">
+                    <li>✓ From ₱150,000 per person</li>
+                    <li>✓ Guaranteed departures</li>
+                    <li>✓ Group &amp; private options</li>
+                </ul>
+                <a href="{{ route('tours.index') }}" class="btn btn-outline btn-block">Browse Tours</a>
+            </div>
+            <div class="diy-choice-card diy-card featured">
+                <div class="diy-ai-badge">✨ AI-Powered</div>
+                <div class="diy-choice-icon">🗺️</div>
+                <h3>Create Your Own Tour</h3>
+                <p>Tell our AI your dream trip. It designs a personalised itinerary you can fully customise.</p>
+                <ul class="diy-choice-features">
+                    <li>✓ 100% customisable</li>
+                    <li>✓ AI route optimisation</li>
+                    <li>✓ Real-time pricing</li>
+                    <li>✓ Interactive map builder</li>
+                </ul>
+                <a href="{{ route('diy.index') }}" class="btn btn-primary btn-block">
+                    Start Building <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="diy-quiz-cta text-center mt-4">
+            <span>💡 Not sure which is right for you?</span>
+            <a href="{{ route('diy.index') }}" class="diy-quiz-link">Take our 2-minute quiz to find your ideal tour style</a>
+        </div>
     </div>
 </section>
 
