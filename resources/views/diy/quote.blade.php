@@ -272,7 +272,7 @@ function shareTour() {
     if (navigator.share) {
         navigator.share({
             title: '{{ addslashes($itinerary->tour_name ?? "My Custom Tour") }}',
-            text: 'Check out my custom European tour itinerary!',
+            text: 'Check out my custom tour itinerary!',
             url: window.location.href
         });
     } else {

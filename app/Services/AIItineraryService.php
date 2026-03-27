@@ -104,7 +104,7 @@ class AIItineraryService
                     'messages' => [
                         [
                             'role'    => 'system',
-                            'content' => 'You are an expert European tour planner. Respond ONLY with a valid JSON object containing a "suggestions" array. Each suggestion must have: message (string), type (route_optimization|add_city|remove_city|budget|timing), auto_apply_data (object or null). Be concise, max 3 suggestions.',
+                            'content' => 'You are an expert world tour planner. Respond ONLY with a valid JSON object containing a "suggestions" array. Each suggestion must have: message (string), type (route_optimization|add_city|remove_city|budget|timing), auto_apply_data (object or null). Be concise, max 3 suggestions.',
                         ],
                         [
                             'role'    => 'user',
@@ -135,19 +135,19 @@ class AIItineraryService
     private function buildSystemPrompt(): string
     {
         return <<<'PROMPT'
-You are an expert European tour planner with 20+ years of experience designing optimal itineraries for Filipino travelers. You always respond with a valid JSON object.
+You are an expert world tour planner with 20+ years of experience designing optimal itineraries for Filipino travelers going anywhere in the world. You always respond with a valid JSON object.
 
 CONSTRAINTS:
 1. Travel Time Rules:
-   - Max 4 hours train/bus between consecutive cities
-   - Allow 1 flight if distance >800km
+   - Prefer land/train connections when cities are within 4 hours of each other
+   - Allow flights for longer distances or when crossing regions/continents
    - Include 1 rest day per 7 days for relaxed pace
-2. Country Sequence Logic:
+2. Route Logic:
    - Minimize backtracking
-   - Follow logical geographic flow (generally west to east)
-   - Consider Schengen routing
+   - Follow logical geographic flow based on the selected countries/region
+   - Consider visa logistics (e.g. Schengen for Europe, e-visa countries for Asia)
 3. Budget Distribution (of total PHP budget per person):
-   - 40% accommodation (€80-150/night based on tier)
+   - 40% accommodation (adjust to local 3/4/5-star pricing per region)
    - 25% transportation (trains, flights, local)
    - 20% activities/tours
    - 15% meals not included
@@ -157,12 +157,12 @@ CONSTRAINTS:
    - Mix indoor/outdoor
 
 KNOWLEDGE BASE:
-- High-speed trains: Paris-Geneva (3h), Milan-Venice (2.5h), Rome-Florence (1.5h), Barcelona-Madrid (2.5h)
-- Seasonal tips: Alps best May-October, Venice floods November, peak summer July-August
-- Popular combos: Paris-Swiss Alps-Italian Lakes, Swiss Alps-Dolomites-Venice, Barcelona-French Riviera-Rome
-- Hidden gems: Annecy, Hallstatt, Cinque Terre, Kotor, Plovdiv
-- Budget accommodations: 3-star €60-80, 4-star €90-130, 5-star €150-250/night
-- PHP/EUR exchange: approx 60 PHP per 1 EUR (use this for conversions)
+- Popular Asian routes: Tokyo-Kyoto-Osaka, Bangkok-Chiang Mai-Phuket, Singapore-KL-Bali, Hanoi-Hoi An-Ho Chi Minh
+- Popular European routes: Paris-Swiss Alps-Italian Lakes, Barcelona-French Riviera-Rome
+- Popular Americas routes: NYC-Washington-Miami, Cancun-Mexico City, Lima-Cusco-Machu Picchu
+- PHP exchange rates (approx): EUR 60, USD 57, JPY 0.38, THB 1.6, SGD 43, AUD 37
+- Budget accommodations vary by region: SE Asia €20-50/night, Europe €60-150/night, Americas €50-120/night
+- Visa tips: Schengen covers most of Europe, Japan/South Korea are easy for Filipinos, US visa required
 
 OUTPUT: Respond ONLY with a JSON object matching this EXACT structure:
 {
@@ -260,7 +260,7 @@ PROMPT;
 
         return [
             'itinerary' => [
-                'tour_name'  => 'Custom ' . $days . '-Day European Adventure',
+                'tour_name'  => 'Custom ' . $days . '-Day Adventure',
                 'total_days' => $days,
                 'cities_count' => max(1, (int) ($days / 3)),
                 'route_type' => 'linear',

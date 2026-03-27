@@ -11,7 +11,7 @@
     <div class="container">
         <div class="diy-hero-content">
             <div class="diy-hero-badge">✨ AI-Powered</div>
-            <h1>Design Your <span class="text-accent">Perfect</span> European Tour</h1>
+            <h1>Design Your <span class="text-accent">Perfect</span> Custom Tour</h1>
             <p class="diy-hero-sub">Answer a few quick questions and our AI will craft a personalised itinerary&nbsp;— then customise every detail.</p>
         </div>
     </div>
@@ -33,7 +33,7 @@
             <div class="wizard-step active" id="step1">
                 <div class="wizard-step-icon">📅</div>
                 <h2>How many days do you have?</h2>
-                <p class="wizard-step-hint">We recommend at least 7 days for a proper European experience.</p>
+                <p class="wizard-step-hint">We recommend at least 7 days for a proper travel experience.</p>
                 <div class="duration-grid">
                     @foreach([7, 10, 14] as $d)
                     <label class="duration-option">
@@ -71,12 +71,29 @@
 
                 <div class="countries-grid" id="countriesGrid">
                     @foreach([
+                        {{-- Europe --}}
                         ['France','🇫🇷'],['Switzerland','🇨🇭'],['Italy','🇮🇹'],
                         ['Germany','🇩🇪'],['Austria','🇦🇹'],['Spain','🇪🇸'],
                         ['Netherlands','🇳🇱'],['Portugal','🇵🇹'],['Greece','🇬🇷'],
                         ['Belgium','🇧🇪'],['Czech Republic','🇨🇿'],['Hungary','🇭🇺'],
                         ['Croatia','🇭🇷'],['Poland','🇵🇱'],['Denmark','🇩🇰'],
                         ['Sweden','🇸🇪'],['Ireland','🇮🇪'],['Slovakia','🇸🇰'],
+                        {{-- Asia --}}
+                        ['Japan','🇯🇵'],['South Korea','🇰🇷'],['Thailand','🇹🇭'],
+                        ['Vietnam','🇻🇳'],['Indonesia','🇮🇩'],['Philippines','🇵🇭'],
+                        ['Singapore','🇸🇬'],['Malaysia','🇲🇾'],['China','🇨🇳'],
+                        ['India','🇮🇳'],['Nepal','🇳🇵'],['Sri Lanka','🇱🇰'],
+                        ['Cambodia','🇰🇭'],['Myanmar','🇲🇲'],['Maldives','🇲🇻'],
+                        {{-- Middle East --}}
+                        ['UAE','🇦🇪'],['Turkey','🇹🇷'],['Jordan','🇯🇴'],
+                        ['Qatar','🇶🇦'],['Israel','🇮🇱'],['Oman','🇴🇲'],
+                        {{-- Americas --}}
+                        ['United States','🇺🇸'],['Canada','🇨🇦'],['Mexico','🇲🇽'],
+                        ['Brazil','🇧🇷'],['Argentina','🇦🇷'],['Peru','🇵🇪'],
+                        ['Colombia','🇨🇴'],['Chile','🇨🇱'],
+                        {{-- Africa & Oceania --}}
+                        ['Morocco','🇲🇦'],['South Africa','🇿🇦'],['Kenya','🇰🇪'],
+                        ['Egypt','🇪🇬'],['Australia','🇦🇺'],['New Zealand','🇳🇿'],
                     ] as [$country, $flag])
                     <label class="country-option">
                         <input type="checkbox" name="countries[]" value="{{ $country }}">
