@@ -571,23 +571,29 @@
                         <div class="departure-dates-list">
                             <h5><i class="fas fa-calendar"></i> Available Departures</h5>
                             @foreach($dates as $date)
-                                @if($date['isAvailable'] ?? true)
-                                    <div class="departure-date-row">
-                                        <span>
-                                            {{ \Carbon\Carbon::parse($date['start'])->format('M d') }}
-                                            &ndash;
-                                            {{ \Carbon\Carbon::parse($date['end'])->format('M d, Y') }}
-                                        </span>
-                                        @php
-                                            $remaining = ($date['maxCapacity'] ?? 0) - ($date['currentBookings'] ?? 0);
-                                        @endphp
-                                        @if(isset($date['maxCapacity']) && $remaining <= 5)
-                                            <span class="seats-badge seats-low">{{ $remaining }} left</span>
-                                        @elseif(isset($date['maxCapacity']))
-                                            <span class="seats-badge">{{ $remaining }} seats</span>
-                                        @endif
-                                    </div>
-                                @endif
+                                @php
+                                    $maxCap    = isset($date['maxCapacity']) && $date['maxCapacity'] !== '' ? (int) $date['maxCapacity'] : null;
+                                    $booked    = (int) ($date['currentBookings'] ?? 0);
+                                    $remaining = $maxCap !== null ? $maxCap - $booked : null;
+                                    $isFull    = ($date['isAvailable'] ?? true) === false
+                                                 || ($remaining !== null && $remaining <= 0);
+                                @endphp
+                                <div class="departure-date-row {{ $isFull ? 'departure-date-row--full' : '' }}">
+                                    <span class="dep-date-label">
+                                        {{ \Carbon\Carbon::parse($date['start'])->format('M d') }}
+                                        &ndash;
+                                        {{ \Carbon\Carbon::parse($date['end'])->format('M d, Y') }}
+                                    </span>
+                                    @if($isFull)
+                                        <span class="seats-badge seats-full">FULL</span>
+                                    @elseif($remaining !== null && $remaining <= 5)
+                                        <span class="seats-badge seats-low">{{ $remaining }} slot{{ $remaining == 1 ? '' : 's' }} left</span>
+                                    @elseif($remaining !== null)
+                                        <span class="seats-badge seats-open">{{ $remaining }} slots open</span>
+                                    @else
+                                        <span class="seats-badge seats-open">Available</span>
+                                    @endif
+                                </div>
                             @endforeach
                         </div>
                     @endif

@@ -8,6 +8,11 @@ let departureDateIdx = 0;
 function addDepartureDate(data) {
     data = data || {};
     const i = departureDateIdx++;
+    const maxCap   = data.maxCapacity  !== undefined ? data.maxCapacity  : '';
+    const booked   = data.currentBookings !== undefined ? data.currentBookings : 0;
+    const avail    = data.isAvailable !== false;
+    const remaining = (maxCap !== '' && maxCap !== null) ? (parseInt(maxCap) - parseInt(booked)) : null;
+    const isFull   = !avail || (remaining !== null && remaining <= 0);
     const html = `<div class="repeatable-row" id="dd_${i}">
         <button type="button" class="remove-row" onclick="removeRow('dd_${i}')"><i class="fas fa-times"></i></button>
         <div class="form-row-3">
@@ -20,28 +25,60 @@ function addDepartureDate(data) {
                 <input type="date" name="departure_dates[${i}][end]" class="form-control" value="${data.end||''}">
             </div>
             <div class="form-group">
-                <label>Price Override ($)</label>
-                <input type="number" name="departure_dates[${i}][price]" class="form-control" value="${data.price||''}" step="0.01" min="0" placeholder="Blank = default price">
+                <label>Price Override (₱) <small style="color:#6b7280;font-weight:400">— blank = use tour default</small></label>
+                <input type="number" name="departure_dates[${i}][price]" class="form-control" value="${data.price||''}" step="0.01" min="0" placeholder="Leave blank for default">
             </div>
         </div>
         <div class="form-row-3">
             <div class="form-group">
-                <label>Max Capacity</label>
-                <input type="number" name="departure_dates[${i}][maxCapacity]" class="form-control" value="${data.maxCapacity||''}" min="0">
+                <label>Total Slots <small style="color:#6b7280;font-weight:400">— total seats for this departure</small></label>
+                <input type="number" name="departure_dates[${i}][maxCapacity]" class="form-control"
+                       id="dd_max_${i}" value="${maxCap}" min="0" placeholder="e.g. 30"
+                       oninput="updateDepStatus(${i})">
             </div>
             <div class="form-group">
-                <label>Current Bookings</label>
-                <input type="number" name="departure_dates[${i}][currentBookings]" class="form-control" value="${data.currentBookings||0}" min="0">
+                <label>Slots Booked <small style="color:#6b7280;font-weight:400">— filled automatically on booking</small></label>
+                <input type="number" name="departure_dates[${i}][currentBookings]" class="form-control"
+                       id="dd_booked_${i}" value="${booked}" min="0"
+                       oninput="updateDepStatus(${i})">
             </div>
-            <div class="form-group d-flex align-items-center" style="padding-top:1.75rem">
-                <label style="cursor:pointer;display:flex;align-items:center;gap:.5rem">
-                    <input type="checkbox" name="departure_dates[${i}][isAvailable]" value="1" ${data.isAvailable !== false ? 'checked' : ''}>
-                    Available
+            <div class="form-group">
+                <label>Status</label>
+                <div id="dd_status_${i}" class="dep-status-pill ${isFull ? 'dep-status-full' : 'dep-status-open'}">
+                    ${isFull ? '⛔ FULL' : '✅ Available'}
+                </div>
+                <label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;margin-top:.5rem;font-size:.82rem;color:#6b7280">
+                    <input type="checkbox" name="departure_dates[${i}][isAvailable]" id="dd_avail_${i}" value="1" ${avail ? 'checked' : ''}
+                           onchange="updateDepStatus(${i})">
+                    Force mark available
                 </label>
             </div>
         </div>
     </div>`;
     document.getElementById('departureDatesContainer').insertAdjacentHTML('beforeend', html);
+}
+
+function updateDepStatus(i) {
+    const maxEl    = document.getElementById('dd_max_' + i);
+    const bookedEl = document.getElementById('dd_booked_' + i);
+    const availEl  = document.getElementById('dd_avail_' + i);
+    const pill     = document.getElementById('dd_status_' + i);
+    if (!pill) return;
+    const max    = maxEl && maxEl.value !== '' ? parseInt(maxEl.value) : null;
+    const booked = bookedEl ? parseInt(bookedEl.value || 0) : 0;
+    const forceAvail = availEl ? availEl.checked : true;
+    const remaining  = max !== null ? max - booked : null;
+    const isFull     = !forceAvail || (remaining !== null && remaining <= 0);
+    pill.className   = 'dep-status-pill ' + (isFull ? 'dep-status-full' : (remaining !== null && remaining <= 5 ? 'dep-status-low' : 'dep-status-open'));
+    if (isFull) {
+        pill.textContent = '⛔ FULL';
+    } else if (remaining !== null && remaining <= 5) {
+        pill.textContent = '⚠️ ' + remaining + ' slot' + (remaining === 1 ? '' : 's') + ' left';
+    } else if (remaining !== null) {
+        pill.textContent = '✅ ' + remaining + ' slots open';
+    } else {
+        pill.textContent = '✅ Available';
+    }
 }
 
 // ─── Itinerary Days ───────────────────────────────────────────────────────────

@@ -622,19 +622,24 @@ h4 { font-size: 1.25rem; }
     padding: .5rem 0;
     border-bottom: 1px solid var(--gray-100);
     font-size: .875rem;
+    transition: opacity .15s;
 }
 .departure-date-row:last-child { border-bottom: none; }
+.departure-date-row--full .dep-date-label { opacity: .45; text-decoration: line-through; }
 .seats-badge {
-    display: inline-block;
-    padding: .2rem .6rem;
+    display: inline-flex;
+    align-items: center;
+    padding: .2rem .65rem;
     border-radius: 50px;
-    font-size: .75rem;
+    font-size: .72rem;
     font-weight: 700;
+    white-space: nowrap;
     background: var(--primary-light);
     color: var(--primary);
-    white-space: nowrap;
 }
-.seats-badge.seats-low    { background: #fee2e2; color: var(--danger); }
+.seats-badge.seats-open { background: #d1fae5; color: #065f46; }
+.seats-badge.seats-low  { background: #fef3c7; color: #92400e; }
+.seats-badge.seats-full { background: #fee2e2; color: var(--danger); letter-spacing: .06em; }
 .booking-links            { padding: 1.25rem 1.5rem; border-top: 1px solid var(--gray-300); }
 .booking-links-label {
     font-size: .8125rem;

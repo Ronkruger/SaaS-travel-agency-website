@@ -38,6 +38,10 @@
 .toggle-label .toggle-slider{display:none}/* hide fancy slider when used as simple checkbox label */
 /* ── Sticky save bar ─────────────────────── */
 #tourStickyBar{position:fixed;bottom:0;left:var(--admin-sidebar-width,260px);right:0;background:#fff;border-top:2px solid var(--primary,#0e7490);padding:.875rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;z-index:90;box-shadow:0 -4px 16px rgba(0,0,0,.1)}
+.dep-status-pill{display:inline-flex;align-items:center;padding:.3rem .8rem;border-radius:50px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.dep-status-open{background:#d1fae5;color:#065f46}
+.dep-status-low{background:#fef3c7;color:#92400e}
+.dep-status-full{background:#fee2e2;color:#dc2626}
 #tourStickyBar .sticky-checks{display:flex;gap:1.5rem;align-items:center}
 #tourStickyBar .sticky-checks label{display:flex;align-items:center;gap:.4rem;font-size:.9rem;font-weight:600;color:var(--gray-700);cursor:pointer}
 #tourStickyBar .sticky-checks input[type=checkbox]{width:1rem;height:1rem;accent-color:var(--primary)}
