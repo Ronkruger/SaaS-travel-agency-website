@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
 Route::prefix('tours')->name('tours.')->group(function () {
     Route::get('/', [TourController::class, 'index'])->name('index');
     Route::get('/{slug}', [TourController::class, 'show'])->name('show');
+    Route::get('/{slug}/departures.json', [TourController::class, 'liveDepartures'])->name('departures.live');
 });
 
 /*
@@ -102,6 +103,10 @@ Route::middleware('auth')->group(function () {
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Live polling endpoints (JSON, no page refresh needed)
+    Route::get('/live/stats', [DashboardController::class, 'liveStats'])->name('live.stats');
+    Route::get('/live/bookings', [DashboardController::class, 'liveBookings'])->name('live.bookings');
 
     // Tours
     Route::get('/tours', [AdminTourController::class, 'index'])->name('tours.index');

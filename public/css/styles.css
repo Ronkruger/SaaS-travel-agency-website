@@ -640,6 +640,28 @@ h4 { font-size: 1.25rem; }
 .seats-badge.seats-open { background: #d1fae5; color: #065f46; }
 .seats-badge.seats-low  { background: #fef3c7; color: #92400e; }
 .seats-badge.seats-full { background: #fee2e2; color: var(--danger); letter-spacing: .06em; }
+
+/* ── Live indicator dot ─────────────────────────────────────────────────── */
+.live-dot {
+    display: inline-block;
+    width: .55rem;
+    height: .55rem;
+    border-radius: 50%;
+    background: #10b981;
+    margin-left: .4rem;
+    vertical-align: middle;
+    opacity: .6;
+    transition: opacity .3s;
+}
+.live-dot--active { opacity: 1; }
+
+/* ── Flash animation when a value updates ───────────────────────────────── */
+@keyframes statFlash {
+    0%   { background-color: transparent; }
+    30%  { background-color: rgba(251, 191, 36, .35); }
+    100% { background-color: transparent; }
+}
+.stat-flash { animation: statFlash .7s ease-out; }
 .booking-links            { padding: 1.25rem 1.5rem; border-top: 1px solid var(--gray-300); }
 .booking-links-label {
     font-size: .8125rem;

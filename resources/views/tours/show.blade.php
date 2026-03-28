@@ -568,8 +568,8 @@
                     <!-- Departure Dates -->
                     @php $dates = $tour->departure_dates ?? []; @endphp
                     @if(count($dates) > 0)
-                        <div class="departure-dates-list">
-                            <h5><i class="fas fa-calendar"></i> Available Departures</h5>
+                        <div class="departure-dates-list" id="departureDatesList" data-tour-slug="{{ $tour->slug }}">
+                            <h5><i class="fas fa-calendar"></i> Available Departures <span class="live-dot" id="depLiveDot" title="Updates automatically"></span></h5>
                             @foreach($dates as $date)
                                 @php
                                     $maxCap    = isset($date['maxCapacity']) && $date['maxCapacity'] !== '' ? (int) $date['maxCapacity'] : null;
@@ -578,7 +578,7 @@
                                     $isFull    = ($date['isAvailable'] ?? true) === false
                                                  || ($remaining !== null && $remaining <= 0);
                                 @endphp
-                                <div class="departure-date-row {{ $isFull ? 'departure-date-row--full' : '' }}">
+                                <div class="departure-date-row {{ $isFull ? 'departure-date-row--full' : '' }}" data-start="{{ $date['start'] }}">
                                     <span class="dep-date-label">
                                         {{ \Carbon\Carbon::parse($date['start'])->format('M d') }}
                                         &ndash;
@@ -1234,5 +1234,57 @@ document.querySelectorAll('.wishlist-toggle-btn').forEach(btn => {
         });
     });
 });
+</script>
+
+{{-- ── Live departure-slot polling ─────────────────────────────────────── --}}
+<script>
+(function () {
+    'use strict';
+
+    const list = document.getElementById('departureDatesList');
+    if (!list) return;
+
+    const slug = list.dataset.tourSlug;
+    if (!slug) return;
+
+    const POLL_URL   = '/tours/' + encodeURIComponent(slug) + '/departures.json';
+    const INTERVAL   = 30000; // 30 s
+    const dot        = document.getElementById('depLiveDot');
+
+    function flash(el) {
+        el.classList.remove('stat-flash');
+        void el.offsetWidth;
+        el.classList.add('stat-flash');
+    }
+
+    async function refresh() {
+        try {
+            const res = await fetch(POLL_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!res.ok) return;
+            const dates = await res.json();
+
+            let changed = false;
+            dates.forEach(d => {
+                const row = list.querySelector(`.departure-date-row[data-start="${CSS.escape(d.start)}"]`);
+                if (!row) return;
+
+                const badge = row.querySelector('.seats-badge');
+                if (!badge) return;
+
+                if (badge.textContent.trim() !== d.badgeText || !badge.classList.contains(d.badgeClass)) {
+                    badge.textContent = d.badgeText;
+                    badge.className   = 'seats-badge ' + d.badgeClass;
+                    row.classList.toggle('departure-date-row--full', d.isFull);
+                    flash(badge);
+                    changed = true;
+                }
+            });
+
+            if (changed && dot) flash(dot);
+        } catch (_) { /* network hiccup — ignore */ }
+    }
+
+    setInterval(refresh, INTERVAL);
+})();
 </script>
 @endpush

@@ -60,6 +60,7 @@
                 </ul>
             </li>
             <li><a href="<?php echo e(route('tours.index', ['sort' => 'popular'])); ?>">Popular</a></li>
+            <li><a href="<?php echo e(route('diy.index')); ?>" class="<?php echo e(request()->routeIs('diy.*') ? 'active' : ''); ?>" style="color:#28A2DC;font-weight:600;">✨ Build My Tour</a></li>
         </ul>
 
         <div class="navbar-actions">

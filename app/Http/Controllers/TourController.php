@@ -121,4 +121,43 @@ class TourController extends Controller
         $tours = auth()->user()->wishedTours()->paginate(12);
         return view('tours.wishlist', compact('tours'));
     }
+
+    /** Live-polling endpoint: current departure slot availability as JSON */
+    public function liveDepartures(string $slug)
+    {
+        $tour  = Tour::where('slug', $slug)->active()->firstOrFail();
+        $dates = $tour->departure_dates ?? [];
+
+        $result = [];
+        foreach ($dates as $date) {
+            $maxCap    = isset($date['maxCapacity']) && $date['maxCapacity'] !== '' ? (int) $date['maxCapacity'] : null;
+            $booked    = (int) ($date['currentBookings'] ?? 0);
+            $remaining = $maxCap !== null ? $maxCap - $booked : null;
+            $isFull    = ($date['isAvailable'] ?? true) === false
+                         || ($remaining !== null && $remaining <= 0);
+
+            if ($isFull) {
+                $badgeClass = 'seats-full';
+                $badgeText  = 'FULL';
+            } elseif ($remaining !== null && $remaining <= 5) {
+                $badgeClass = 'seats-low';
+                $badgeText  = $remaining . ' slot' . ($remaining === 1 ? '' : 's') . ' left';
+            } elseif ($remaining !== null) {
+                $badgeClass = 'seats-open';
+                $badgeText  = $remaining . ' slots open';
+            } else {
+                $badgeClass = 'seats-open';
+                $badgeText  = 'Available';
+            }
+
+            $result[] = [
+                'start'      => $date['start'],
+                'isFull'     => $isFull,
+                'badgeClass' => $badgeClass,
+                'badgeText'  => $badgeText,
+            ];
+        }
+
+        return response()->json($result);
+    }
 }
