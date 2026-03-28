@@ -70,7 +70,7 @@
                     <button type="button" class="continent-tab" data-continent="Asia"            onclick="selectContinent('Asia')">🌏 Asia</button>
                     <button type="button" class="continent-tab" data-continent="Middle East"     onclick="selectContinent('Middle East')">🕌 Middle East</button>
                     <button type="button" class="continent-tab" data-continent="Americas"        onclick="selectContinent('Americas')">🌎 Americas</button>
-                    <button type="button" class="continent-tab" data-continent="Africa & Oceania" onclick="selectContinent('Africa &amp; Oceania')">🌍 Africa &amp; Oceania</button>
+                    <button type="button" class="continent-tab" data-continent="Africa &amp; Oceania" onclick="selectContinent('Africa &amp; Oceania')">🌍 Africa &amp; Oceania</button>
                 </div>
                 <p id="continentHint" class="continent-hint">Choose a continent above to see the available countries.</p>
 
