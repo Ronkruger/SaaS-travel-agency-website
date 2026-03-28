@@ -138,6 +138,15 @@ class AIItineraryService
 You are an expert world tour planner with 20+ years of experience designing optimal itineraries for Filipino travelers going anywhere in the world. You always respond with a valid JSON object.
 
 CONSTRAINTS:
+0. MANDATORY DEPARTURE STRUCTURE (non-negotiable):
+   - Day 1 is ALWAYS the departure day from Manila, Philippines.
+     city="Manila", country="Philippines", overnight="In-flight".
+     Activity: "Depart Ninoy Aquino International Airport (NAIA) — Flight to [first destination city and airport code]".
+   - The LAST day is ALWAYS the return day back to Manila, Philippines.
+     city=[last destination city], country=[last destination country], overnight="In-flight".
+     Activity: "Depart [last city airport name and code] — Return flight to Manila Ninoy Aquino International Airport (NAIA)".
+   - ALL destination/sightseeing days are sandwiched between these two transit days.
+   - The total_days count INCLUDES these two transit days.
 1. Travel Time Rules:
    - Prefer land/train connections when cities are within 4 hours of each other
    - Allow flights for longer distances or when crossing regions/continents
@@ -288,7 +297,7 @@ PROMPT;
 
         $prompt .= "\nCRITICAL requirements:\n";
         $prompt .= "1. The itinerary MUST be exactly {$days} days long (fill every single day).\n";
-        $prompt .= "2. ONLY visit cities located in: {$countries}. Do NOT suggest cities in any other country or continent.\n";
+        $prompt .= "2. ONLY visit cities located in: {$countries}. Do NOT suggest cities in any other country or continent (except Manila, Philippines on Day 1 and the last day).\n";
         $prompt .= "3. Activities MUST match the travel style: {$styles}. E.g. if 'Food' is selected, include food markets, cooking classes, restaurant tours.\n";
         $prompt .= "4. Budget the trip for {$groupLabel} using the {$budgetLabel} tier.\n";
         $prompt .= "5. Follow the {$pace} pace rule: " . match ($pace) {
@@ -299,6 +308,8 @@ PROMPT;
         if (!empty($mustVisit)) {
             $prompt .= "6. MUST include these specific places in the day-by-day schedule: " . implode(', ', $mustVisit) . "\n";
         }
+        $prompt .= "7. Day 1 MUST be: city=\"Manila\", country=\"Philippines\", overnight=\"In-flight\", single activity = departure flight from NAIA Manila to the first destination city (name the exact destination airport code, e.g. CDG, NRT, BKK).\n";
+        $prompt .= "8. The last day (Day {$days}) MUST be: the return flight day from the final destination city back to Manila NAIA. Set overnight=\"In-flight\" and name the departure airport (e.g. \"Leonardo da Vinci–Fiumicino Airport (FCO)\").\n";
 
         return $prompt;
     }
@@ -417,12 +428,6 @@ PROMPT;
             }
         }
 
-        // --- Distribute days across cities ---
-        $base      = (int) floor($days / count($selected));
-        $remainder = $days - ($base * count($selected));
-        $cityDays  = array_fill(0, count($selected), $base);
-        $cityDays[0] += $remainder; // extra days go to first city
-
         // --- Activity templates by travel style ---
         $actTemplates = [
             'cultural' => [
@@ -462,19 +467,71 @@ PROMPT;
         $primaryActs   = $actTemplates[$primaryStyle];
         $secondaryActs = $secondStyle ? $actTemplates[$secondStyle] : [];
 
+        // --- Reserve 2 days for Manila departure + Manila return ---
+        // Destination days are sandwiched between those two transit days.
+        $destinationDays = max(1, $days - 2);
+
+        // Choose number of cities based on pace (using destination days budget)
+        $numCities = match ($pace) {
+            'relaxed' => max(1, min(2, (int) ceil($destinationDays / 4))),
+            'fast'    => max(3, min(8, (int) ceil($destinationDays / 2))),
+            default   => max(2, min(5, (int) ceil($destinationDays / 3))),
+        };
+        $numCities = min($numCities, count($selected));
+        $selected  = array_slice($selected, 0, $numCities);
+
+        // Redistribute destination days across (possibly trimmed) city list
+        $base      = (int) floor($destinationDays / count($selected));
+        $remainder = $destinationDays - ($base * count($selected));
+        $cityDays  = array_fill(0, count($selected), $base);
+        $cityDays[0] += $remainder;
+
         // --- Build day-by-day and transportation ---
         $dayByDay       = [];
         $transportation = [];
         $dayNum         = 1;
-        $prevCity       = null;
+
+        $firstCity    = $selected[0]['city'];
+        $lastCityInfo = end($selected);
+
+        // Day 1 — Departure from Manila (Philippines)
+        $dayByDay[] = [
+            'day'            => 1,
+            'city'           => 'Manila',
+            'country'        => 'Philippines',
+            'accommodation'  => 'In-flight',
+            'activities'     => [[
+                'time'             => '08:00',
+                'name'             => 'Depart Ninoy Aquino International Airport (NAIA) — Flight to ' . $firstCity,
+                'duration_hours'   => 12,
+                'category'         => 'cultural',
+                'included'         => true,
+                'cost_if_optional' => 0,
+            ]],
+            'meals_included' => ['in-flight meal'],
+            'free_time'      => 'During flight',
+            'overnight'      => 'In-flight',
+        ];
+        $transportation[] = [
+            'from'               => 'Manila (NAIA)',
+            'to'                 => $firstCity,
+            'day'                => 1,
+            'method'             => 'International Flight',
+            'duration_hours'     => 12,
+            'estimated_cost_php' => 25000,
+            'booking_notes'      => 'Book return flight early. Check if stopover is needed for your destination.',
+        ];
+
+        $dayNum = 2;
+        $prevCity = $firstCity;
 
         foreach ($selected as $ci => $cityInfo) {
             $cityName    = $cityInfo['city'];
             $countryName = $cityInfo['country'];
             $stayDays    = $cityDays[$ci];
 
-            // Transportation segment
-            if ($prevCity !== null) {
+            // Transportation between destination cities
+            if ($ci > 0) {
                 $transportation[] = [
                     'from'               => $prevCity,
                     'to'                 => $cityName,
@@ -492,17 +549,17 @@ PROMPT;
             ]);
 
             for ($d = 0; $d < $stayDays; $d++) {
-                $isFirstOverall = ($ci === 0 && $d === 0);
-                $isDeparture    = ($d === $stayDays - 1) && ($ci < count($selected) - 1);
+                $isArrival   = ($ci === 0 && $d === 0);
+                $isDeparture = ($d === $stayDays - 1) && ($ci < count($selected) - 1);
 
                 $activities = [];
 
-                if ($isFirstOverall) {
+                if ($isArrival) {
                     // Arrival day — lighter, afternoon only
                     $activities[] = ['time' => '14:00', 'name' => 'Arrive in ' . $cityName . ', hotel check-in & orientation walk', 'duration_hours' => 1.5, 'category' => 'cultural', 'included' => true, 'cost_if_optional' => 0];
                     $activities[] = $resolve(end($primaryActs));
                 } elseif ($isDeparture) {
-                    // Departure day — one morning activity then transfer
+                    // Inter-city departure day — one morning activity then transfer
                     $activities[] = $resolve($primaryActs[0]);
                     $nextCity = $selected[$ci + 1]['city'];
                     $activities[] = ['time' => '14:00', 'name' => 'Check-out & transfer to ' . $nextCity, 'duration_hours' => 0.5, 'category' => 'cultural', 'included' => true, 'cost_if_optional' => 0];
@@ -542,6 +599,36 @@ PROMPT;
                 $dayNum++;
             }
         }
+
+        // Last day — return flight to Manila (Philippines)
+        $returnCity    = $lastCityInfo['city'];
+        $returnCountry = $lastCityInfo['country'];
+        $dayByDay[] = [
+            'day'            => $days,
+            'city'           => $returnCity,
+            'country'        => $returnCountry,
+            'accommodation'  => 'In-flight',
+            'activities'     => [[
+                'time'             => '10:00',
+                'name'             => 'Check-out & transfer to airport — Return flight to Manila Ninoy Aquino International Airport (NAIA)',
+                'duration_hours'   => 14,
+                'category'         => 'cultural',
+                'included'         => true,
+                'cost_if_optional' => 0,
+            ]],
+            'meals_included' => ['in-flight meal'],
+            'free_time'      => 'During flight',
+            'overnight'      => 'In-flight',
+        ];
+        $transportation[] = [
+            'from'               => $returnCity,
+            'to'                 => 'Manila (NAIA)',
+            'day'                => $days,
+            'method'             => 'International Flight',
+            'duration_hours'     => 12,
+            'estimated_cost_php' => 0,
+            'booking_notes'      => 'Return flight included in outbound booking.',
+        ];
 
         // --- Tour name & budget values ---
         $budgetLabel  = match (true) {
