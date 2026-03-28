@@ -255,6 +255,116 @@
     font-size: .9rem;
     margin: .5rem 0 1.25rem;
 }
+
+/* ---- Tourist Spot Cards ---- */
+.spots-header { margin-bottom: .6rem; }
+.spots-heading {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--diy-dark);
+}
+.spots-subheading {
+    font-size: .82rem;
+    color: var(--diy-muted);
+}
+.spots-scroll {
+    display: flex;
+    gap: .6rem;
+    overflow-x: auto;
+    padding-bottom: .5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--diy-border) transparent;
+}
+.spots-scroll::-webkit-scrollbar { height: 4px; }
+.spots-scroll::-webkit-scrollbar-thumb { background: var(--diy-border); border-radius: 4px; }
+.spot-card {
+    flex: 0 0 145px;
+    border-radius: 10px;
+    border: 2px solid var(--diy-border);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    background: #fff;
+    transition: border-color .2s, transform .15s, box-shadow .2s;
+    user-select: none;
+}
+.spot-card:hover {
+    border-color: var(--diy-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(52,152,219,.15);
+}
+.spot-card.selected {
+    border-color: var(--diy-primary);
+    background: #eef6fd;
+}
+.spot-img-wrap {
+    width: 100%;
+    height: 95px;
+    background: var(--diy-border);
+    overflow: hidden;
+}
+.spot-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .35s;
+    display: block;
+}
+.spot-card:hover .spot-img-wrap img { transform: scale(1.07); }
+.spot-info {
+    padding: .4rem .5rem .45rem;
+}
+.spot-info strong {
+    display: block;
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--diy-dark);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.spot-info span {
+    font-size: .67rem;
+    color: var(--diy-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+.spot-check-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background: var(--diy-primary);
+    border-radius: 50%;
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(.6);
+    transition: opacity .2s, transform .2s;
+}
+.spot-card.selected .spot-check-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+.spots-note {
+    font-size: .8rem;
+    color: var(--diy-primary);
+    margin-top: .5rem;
+    font-weight: 600;
+}
+.spots-prefill-note {
+    font-size: .78rem;
+    display: block;
+}
 .country-search-icon {
     position: absolute;
     left: .9rem;

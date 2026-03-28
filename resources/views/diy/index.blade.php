@@ -122,6 +122,16 @@
                     </label>
                 </div>
                 <p id="noCountryResults" style="display:none; text-align:center; color:var(--diy-muted); padding:.5rem 0;">No countries match your search.</p>
+
+                {{-- Recommended tourist spots --}}
+                <div id="spotsSuggestions" style="display:none; margin-top:1.5rem">
+                    <div class="spots-header">
+                        <span class="spots-heading">✨ Popular Spots</span>
+                        <span class="spots-subheading"> — tap to add to your must-visit list</span>
+                    </div>
+                    <div class="spots-scroll" id="spotsGrid"></div>
+                    <p id="spotsNote" class="spots-note" style="display:none"></p>
+                </div>
             </div>
 
             {{-- Step 3: Travel style --}}
@@ -182,6 +192,9 @@
                 <div class="form-group">
                     <input type="text" name="must_visit" class="form-control" maxlength="500"
                            placeholder="e.g. Eiffel Tower, Swiss Alps, Venice, Santorini">
+                    <small class="spots-prefill-note" id="spotsPrefillNote" style="display:none; color:var(--diy-primary); margin-top:.35rem; display:none">
+                        ✨ Pre-filled from your spot selections — feel free to edit or add more.
+                    </small>
                 </div>
 
                 <div class="mt-4">
@@ -267,6 +280,339 @@
 
 @push('scripts')
 <script>
+// ============================================================
+// ============================================================
+// Tourist spots data
+// ============================================================
+const TOURIST_SPOTS = {
+    // EUROPE
+    'France':       [
+        { name: 'Eiffel Tower',          city: 'Paris',       img: '1511739001486-6bfe10ce785f' },
+        { name: 'Louvre Museum',         city: 'Paris',       img: '1499856408634-8c0195f2f4c6' },
+        { name: 'Palace of Versailles',  city: 'Versailles',  img: '1590682680695-43b964a3ae17' },
+        { name: 'Mont Saint-Michel',     city: 'Normandy',    img: '1540979388789-6cee28a1cdc9' },
+    ],
+    'Switzerland':  [
+        { name: 'Matterhorn',            city: 'Zermatt',     img: '1531366936337-7c912a4589a7' },
+        { name: 'Lake Geneva',           city: 'Geneva',      img: '1506905925346-21bda4d32df4' },
+        { name: 'Jungfrau',              city: 'Interlaken',  img: '1464822759023-fed622ff2c3b' },
+    ],
+    'Italy':        [
+        { name: 'Colosseum',             city: 'Rome',        img: '1552832230-c0197dd311b5' },
+        { name: 'Venice Canals',         city: 'Venice',      img: '1514890547357-a9ee288728b0' },
+        { name: 'Amalfi Coast',          city: 'Amalfi',      img: '1520637902986-42b5abdfee89' },
+        { name: 'Florence Cathedral',    city: 'Florence',    img: '1562571052-7b13de1a4a4c' },
+    ],
+    'Germany':      [
+        { name: 'Neuschwanstein Castle', city: 'Bavaria',     img: '1467269204594-9661b134dd2b' },
+        { name: 'Brandenburg Gate',      city: 'Berlin',      img: '1560969184-10fe8719e047' },
+        { name: 'Rhine Valley',          city: 'Rhineland',   img: '1537953773345-d172ccf13cf1' },
+    ],
+    'Austria':      [
+        { name: 'Hallstatt Village',     city: 'Hallstatt',   img: '1527168027773-0cc890c4f212' },
+        { name: 'Schönbrunn Palace',     city: 'Vienna',      img: '1570295999919-56ceb5ecca61' },
+        { name: 'Salzburg Old Town',     city: 'Salzburg',    img: '1526656556516-cde8fbe31f20' },
+    ],
+    'Spain':        [
+        { name: 'Sagrada Família',       city: 'Barcelona',   img: '1539037116277-4db20889f2d4' },
+        { name: 'Alhambra Palace',       city: 'Granada',     img: '1558618666-fcd25c85cd64' },
+        { name: 'Park Güell',            city: 'Barcelona',   img: '1511877325718-9d357e1adb50' },
+    ],
+    'Netherlands':  [
+        { name: 'Amsterdam Canals',      city: 'Amsterdam',   img: '1534351590666-13e3e96b5017' },
+        { name: 'Keukenhof Gardens',     city: 'Lisse',       img: '1465519400578-c30745f15a97' },
+        { name: 'Kinderdijk Windmills',  city: 'Kinderdijk',  img: '1558642452-9d2a7deb7f62' },
+    ],
+    'Portugal':     [
+        { name: 'Belém Tower',           city: 'Lisbon',      img: '1513622470522-26c3c8a854bc' },
+        { name: 'Palácio da Pena',       city: 'Sintra',      img: '1573990977791-1a3e5c1d58c5' },
+        { name: 'Douro Valley',          city: 'Porto',       img: '1539782034935-c9e484b3ea8e' },
+    ],
+    'Greece':       [
+        { name: 'Acropolis',             city: 'Athens',      img: '1555993539-1732b0258235' },
+        { name: 'Santorini',             city: 'Oia',         img: '1570077188670-e3a8d69ac5ff' },
+        { name: 'Meteora Monasteries',   city: 'Kalambaka',   img: '1563385862897-00cb4c6f8e34' },
+    ],
+    'Belgium':      [
+        { name: 'Grand Place',           city: 'Brussels',    img: '1558430665-6ddd08021db2' },
+        { name: 'Bruges Canals',         city: 'Bruges',      img: '1559181939-5cf09fce63da' },
+        { name: 'Atomium',               city: 'Brussels',    img: '1563387641695-4f744e8b050f' },
+    ],
+    'Czech Republic': [
+        { name: 'Charles Bridge',        city: 'Prague',      img: '1541849546-216549ae216d' },
+        { name: 'Prague Castle',         city: 'Prague',      img: '1592905884741-54e0fe9a1e0b' },
+        { name: 'Old Town Square',       city: 'Prague',      img: '1489562893-7a91f44ff4bd' },
+    ],
+    'Hungary':      [
+        { name: 'Parliament Building',   city: 'Budapest',    img: '1526044975702-e8ac21f0c60e' },
+        { name: "Fisherman's Bastion",   city: 'Budapest',    img: '1549049950-48d5887197a0' },
+        { name: 'Széchenyi Bath',        city: 'Budapest',    img: '1565073624497-7e91b8fec4a7' },
+    ],
+    'Croatia':      [
+        { name: 'Dubrovnik Old Town',    city: 'Dubrovnik',   img: '1541800025783-5ef9b11fdf7f' },
+        { name: 'Plitvice Lakes',        city: 'Plitvice',    img: '1523592121529-f6dde35f079e' },
+        { name: 'Hvar Island',           city: 'Hvar',        img: '1537936585454-eb7e664bbda3' },
+    ],
+    'Poland':       [
+        { name: 'Wawel Castle',          city: 'Kraków',      img: '1565006188261-91b89c54fcfa' },
+        { name: 'Wieliczka Salt Mine',   city: 'Kraków',      img: '1590418606746-018840f9ffe0' },
+        { name: 'Old Town Warsaw',       city: 'Warsaw',      img: '1583422409186-a09de4a98b97' },
+    ],
+    'Denmark':      [
+        { name: 'Nyhavn Harbour',        city: 'Copenhagen',  img: '1513622470522-26c3c8a854bc' },
+        { name: 'Tivoli Gardens',        city: 'Copenhagen',  img: '1584813470613-b3d2df72b427' },
+        { name: 'The Little Mermaid',    city: 'Copenhagen',  img: '1530521954074-e64f6810b32d' },
+    ],
+    'Sweden':       [
+        { name: 'Gamla Stan',            city: 'Stockholm',   img: '1509356843151-3e7d96241e11' },
+        { name: 'Northern Lights',       city: 'Lapland',     img: '1531366936337-7c912a4589a7' },
+        { name: 'ABBA Museum',           city: 'Stockholm',   img: '1578926288207-a90a5366b1a4' },
+    ],
+    'Ireland':      [
+        { name: 'Cliffs of Moher',       city: 'County Clare',img: '1564959130747-897fb406b9af' },
+        { name: "Giant's Causeway",      city: 'Antrim',      img: '1531761535209-83ce3a6a676c' },
+        { name: 'Trinity College',       city: 'Dublin',      img: '1549887534-1541e9326642' },
+    ],
+    'Slovakia':     [
+        { name: 'Bratislava Castle',     city: 'Bratislava',  img: '1582266255765-fa5cf1a1d501' },
+        { name: 'High Tatras',           city: 'Poprad',      img: '1464822759023-fed622ff2c3b' },
+    ],
+    // ASIA
+    'Japan':        [
+        { name: 'Mount Fuji',            city: 'Fujikawaguchiko', img: '1490806843957-31f4c9a91c65' },
+        { name: 'Fushimi Inari Shrine',  city: 'Kyoto',           img: '1528360983277-13d401cdc186' },
+        { name: 'Shibuya Crossing',      city: 'Tokyo',           img: '1540959733332-eab0ea2ee9d3' },
+        { name: 'Arashiyama Bamboo',     city: 'Kyoto',           img: '1542640244-7e672d6cef4e' },
+    ],
+    'South Korea':  [
+        { name: 'Gyeongbokgung Palace',  city: 'Seoul',       img: '1517154421773-0855e85ec7e6' },
+        { name: 'Bukchon Hanok Village', city: 'Seoul',       img: '1578662996442-48f60103fc96' },
+        { name: 'Jeju Seongsan',         city: 'Jeju',        img: '1547036967-23d11aacaee0' },
+    ],
+    'Thailand':     [
+        { name: 'Grand Palace',          city: 'Bangkok',     img: '1528181304800-259b08848526' },
+        { name: 'Phi Phi Islands',       city: 'Krabi',       img: '1519046904884-53103b34b206' },
+        { name: 'Wat Doi Suthep',        city: 'Chiang Mai',  img: '1555400185-b2e063bb5e6e' },
+    ],
+    'Vietnam':      [
+        { name: 'Ha Long Bay',           city: 'Quảng Ninh',  img: '1573843981267-be1999ff37cd' },
+        { name: 'Hoi An Old Town',       city: 'Hội An',      img: '1558618687-98e2b67ee3a7' },
+        { name: 'Sapa Rice Terraces',    city: 'Sapa',        img: '1516026672322-bc52d61a55d5' },
+    ],
+    'Indonesia':    [
+        { name: 'Bali Rice Terraces',    city: 'Ubud, Bali',  img: '1537996194471-e657df975ab4' },
+        { name: 'Borobudur Temple',      city: 'Magelang',    img: '1580393602453-97b7dec7da72' },
+        { name: 'Mount Bromo',           city: 'East Java',   img: '1518548419970-58e3b4079ab2' },
+    ],
+    'Philippines':  [
+        { name: 'El Nido, Palawan',      city: 'El Nido',     img: '1559494007-9f172d91b8a7' },
+        { name: 'Chocolate Hills',       city: 'Bohol',       img: '1539150808760-2e5df11fd3d5' },
+        { name: 'Intramuros',            city: 'Manila',      img: '1565006188261-91b89c54fcfa' },
+    ],
+    'Singapore':    [
+        { name: 'Marina Bay Sands',      city: 'Downtown Core',  img: '1525625293133-3803b08f67f1' },
+        { name: 'Gardens by the Bay',    city: 'Marina Bay',     img: '1501386761578-eac5c94b800a' },
+        { name: 'Sentosa Island',        city: 'Sentosa',        img: '1569878050761-c8ae14eb1ea0' },
+    ],
+    'Malaysia':     [
+        { name: 'Petronas Twin Towers',  city: 'Kuala Lumpur',img: '1556611832-cf2c2ed7e2be' },
+        { name: 'Penang Georgetown',     city: 'Penang',      img: '1533900298834-ad37a4d7bba6' },
+        { name: 'Langkawi Island',       city: 'Langkawi',    img: '1493752603190-0b75d86a1b78' },
+    ],
+    'China':        [
+        { name: 'Great Wall',            city: 'Beijing',     img: '1508804185872-173df2f45d5e' },
+        { name: 'Forbidden City',        city: 'Beijing',     img: '1537115938432-0b30bc53e8c9' },
+        { name: 'Zhangjiajie',           city: 'Hunan',       img: '1501685532562-aa6846b14a7e' },
+        { name: 'West Lake',             city: 'Hangzhou',    img: '1543190907-9f7d4d27c8c4' },
+    ],
+    'India':        [
+        { name: 'Taj Mahal',             city: 'Agra',        img: '1564507592333-c60657eea523' },
+        { name: 'Jaipur Pink City',      city: 'Jaipur',      img: '1477587458883-47145ed6736c' },
+        { name: 'Kerala Backwaters',     city: 'Alappuzha',   img: '1602216056096-3b40cc0c9944' },
+        { name: 'Golden Temple',         city: 'Amritsar',    img: '1588416499018-d8c621e7d2c2' },
+    ],
+    'Nepal':        [
+        { name: 'Everest Base Camp',     city: 'Khumbu',      img: '1516912481800-0788d7cd7c8a' },
+        { name: 'Phewa Lake',            city: 'Pokhara',     img: '1506905925346-21bda4d32df4' },
+        { name: 'Boudhanath Stupa',      city: 'Kathmandu',   img: '1583422409186-a09de4a98b97' },
+    ],
+    'Sri Lanka':    [
+        { name: 'Sigiriya Rock',         city: 'Dambulla',    img: '1588681664899-f142ff2dc9b1' },
+        { name: 'Nine Arch Bridge',      city: 'Ella',        img: '1566296302710-52eb2e97adce' },
+        { name: 'Temple of the Tooth',   city: 'Kandy',       img: '1583417319070-4a69db38a482' },
+    ],
+    'Cambodia':     [
+        { name: 'Angkor Wat',            city: 'Siem Reap',   img: '1508009603885-50cf7c579365' },
+        { name: 'Bayon Temple',          city: 'Siem Reap',   img: '1600456899121-68eda5b33cf7' },
+        { name: 'Royal Palace',          city: 'Phnom Penh',  img: '1597838816882-4435b1977fbe' },
+    ],
+    'Myanmar':      [
+        { name: 'Bagan Temples',         city: 'Bagan',       img: '1494548162494-384bba4ab999' },
+        { name: 'Inle Lake',             city: 'Nyaungshwe',  img: '1552465011-b4e21bf6e79a' },
+        { name: 'Shwedagon Pagoda',      city: 'Yangon',      img: '1531169509526-f8f1dfe08c56' },
+    ],
+    'Maldives':     [
+        { name: 'Overwater Bungalows',   city: 'North Malé Atoll', img: '1540202404-a2f29016b523' },
+        { name: 'Coral Reef Snorkelling',city: 'Ari Atoll',        img: '1559494007-9f172d91b8a7' },
+        { name: 'Bioluminescent Beach',  city: 'Vaadhoo Island',   img: '1573228486375-d1f5e3d0d2f7' },
+    ],
+    // MIDDLE EAST
+    'UAE':          [
+        { name: 'Burj Khalifa',          city: 'Dubai',       img: '1512453979798-5ea266f8880c' },
+        { name: 'Desert Safari',         city: 'Dubai',       img: '1451337516015-6b6e9a44a8a3' },
+        { name: 'Sheikh Zayed Mosque',   city: 'Abu Dhabi',   img: '1563201515-33d30a83b1ff' },
+    ],
+    'Turkey':       [
+        { name: 'Hagia Sophia',          city: 'Istanbul',    img: '1527838832700-5059252407fa' },
+        { name: 'Cappadocia Balloons',   city: 'Göreme',      img: '1565073624565-0c73a7834b3d' },
+        { name: 'Pamukkale',             city: 'Denizli',     img: '1578895949274-7756a0a3f77a' },
+    ],
+    'Jordan':       [
+        { name: 'Petra — Rose City',     city: 'Petra',       img: '1548786811-dd6e453ccca7' },
+        { name: 'Wadi Rum Desert',       city: 'Aqaba',       img: '1451337516015-6b6e9a44a8a3' },
+        { name: 'Dead Sea Float',        city: 'Dead Sea',    img: '1579532582937-16c108930bf6' },
+    ],
+    'Qatar':        [
+        { name: 'Museum of Islamic Art', city: 'Doha',        img: '1553913861-c0fddf2619ee' },
+        { name: 'The Pearl',             city: 'Doha',        img: '1525625293133-3803b08f67f1' },
+        { name: 'Souq Waqif',            city: 'Doha',        img: '1597212618440-806262de4f0e' },
+    ],
+    'Israel':       [
+        { name: 'Western Wall',          city: 'Jerusalem',   img: '1558452919-08ae4aea8e29' },
+        { name: 'Dead Sea',              city: 'Ein Bokek',   img: '1579532582937-16c108930bf6' },
+        { name: 'Masada Fortress',       city: 'Masada',      img: '1548786811-dd6e453ccca7' },
+    ],
+    'Oman':         [
+        { name: 'Sultan Qaboos Mosque',  city: 'Muscat',      img: '1563201515-33d30a83b1ff' },
+        { name: 'Wahiba Sands',          city: 'Al Sharqiyah',img: '1451337516015-6b6e9a44a8a3' },
+        { name: 'Wadi Shab',             city: 'Sur',         img: '1537953773345-d172ccf13cf1' },
+    ],
+    // AMERICAS
+    'United States':[
+        { name: 'Grand Canyon',          city: 'Arizona',     img: '1509316785289-025f5b846b35' },
+        { name: 'New York City',         city: 'New York',    img: '1496442226666-8d4d0e62e6e9' },
+        { name: 'Golden Gate Bridge',    city: 'San Francisco', img: '1501594907352-04cda38ebc29' },
+        { name: 'Yellowstone',           city: 'Wyoming',     img: '1464822759023-fed622ff2c3b' },
+    ],
+    'Canada':       [
+        { name: 'Banff National Park',   city: 'Alberta',     img: '1516912481800-0788d7cd7c8a' },
+        { name: 'Niagara Falls',         city: 'Ontario',     img: '1564339543225-21bb89e80f4b' },
+        { name: 'Old Quebec City',       city: 'Québec',      img: '1583422409186-a09de4a98b97' },
+    ],
+    'Mexico':       [
+        { name: 'Chichen Itza',          city: 'Yucatán',     img: '1568322425220-6b60fc3a8c5f' },
+        { name: 'Tulum Ruins',           city: 'Tulum',       img: '1543632968-9e5f4e0c9c6e' },
+        { name: 'Cenotes',               city: 'Yucatán',     img: '1554188248-986adbb73be4' },
+    ],
+    'Brazil':       [
+        { name: 'Christ the Redeemer',   city: 'Rio de Janeiro', img: '1544494083-7b7a71ed7a14' },
+        { name: 'Iguazu Falls',          city: 'Paraná',      img: '1547013406-5d8c89f2b898' },
+        { name: 'Amazon Rainforest',     city: 'Manaus',      img: '1586348943529-beaae6c28db9' },
+    ],
+    'Argentina':    [
+        { name: 'Perito Moreno Glacier', city: 'Patagonia',   img: '1519214605650-76b2f8f2ace2' },
+        { name: 'Buenos Aires',          city: 'Buenos Aires',img: '1589909202802-8f4aadce1849' },
+        { name: 'Iguazu Falls',          city: 'Misiones',    img: '1547013406-5d8c89f2b898' },
+    ],
+    'Peru':         [
+        { name: 'Machu Picchu',          city: 'Cusco Region',img: '1526392060635-9d6019884377' },
+        { name: 'Cusco Sacred Valley',   city: 'Cusco',       img: '1580522154071-c6ca47a859ad' },
+        { name: 'Lake Titicaca',         city: 'Puno',        img: '1537953773345-d172ccf13cf1' },
+    ],
+    'Colombia':     [
+        { name: 'Cartagena Old Town',    city: 'Cartagena',   img: '1583202893284-ef8e2499459c' },
+        { name: 'Coffee Region',         city: 'Manizales',   img: '1568702846714-dd40b1cc3c44' },
+        { name: 'Lost City',             city: 'Santa Marta', img: '1586348943529-beaae6c28db9' },
+    ],
+    'Chile':        [
+        { name: 'Torres del Paine',      city: 'Patagonia',   img: '1510766857978-c3de70c5b8ab' },
+        { name: 'Atacama Desert',        city: 'San Pedro',   img: '1451337516015-6b6e9a44a8a3' },
+        { name: 'Easter Island',         city: 'Rapa Nui',    img: '1586348943529-beaae6c28db9' },
+    ],
+    // AFRICA & OCEANIA
+    'Morocco':      [
+        { name: 'Djemaa el-Fna',         city: 'Marrakech',   img: '1597212618440-806262de4f0e' },
+        { name: 'Sahara Dunes',          city: 'Merzouga',    img: '1451337516015-6b6e9a44a8a3' },
+        { name: 'Fes Medina',            city: 'Fes',         img: '1553913861-c0fddf2619ee' },
+    ],
+    'South Africa': [
+        { name: 'Table Mountain',        city: 'Cape Town',   img: '1580060839134-75a5edca2e99' },
+        { name: 'Kruger Park Safari',    city: 'Limpopo',     img: '1549366021-58eeafc8f75a' },
+        { name: 'Cape of Good Hope',     city: 'Cape Point',  img: '1516026672322-bc52d61a55d5' },
+    ],
+    'Kenya':        [
+        { name: 'Maasai Mara Safari',    city: 'Narok',       img: '1549366021-58eeafc8f75a' },
+        { name: 'Mount Kenya',           city: 'Central Kenya',img: '1464822759023-fed622ff2c3b' },
+        { name: 'Amboseli Park',         city: 'Kajiado',     img: '1521651201144-634f700b36ef' },
+    ],
+    'Egypt':        [
+        { name: 'Pyramids of Giza',      city: 'Giza',        img: '1539768942893-daf53e448371' },
+        { name: 'Luxor Temple',          city: 'Luxor',       img: '1553913861-c0fddf2619ee' },
+        { name: 'Abu Simbel',            city: 'Aswan',       img: '1572252009286-96463070e51b' },
+    ],
+    'Australia':    [
+        { name: 'Sydney Opera House',    city: 'Sydney',      img: '1506973035872-a4ec16b8e8d9' },
+        { name: 'Great Barrier Reef',    city: 'Queensland',  img: '1559494007-9f172d91b8a7' },
+        { name: 'Uluru',                 city: 'N. Territory',img: '1523482580672-f109ba8cb9be' },
+        { name: 'Great Ocean Road',      city: 'Victoria',    img: '1545158535-c3f7168c28b6' },
+    ],
+    'New Zealand':  [
+        { name: 'Milford Sound',         city: 'Fiordland',   img: '1567215378620-71ab698e7e28' },
+        { name: 'Hobbiton',              city: 'Matamata',    img: '1507699622108-4be3abd695ad' },
+        { name: 'Tongariro Crossing',    city: 'Ruapehu',     img: '1453872302360-eed3c5f8ff66' },
+    ],
+};
+
+const selectedSpots = new Set();
+
+function renderSpots() {
+    const checked = [...document.querySelectorAll('input[name="countries[]"]:checked:not(#surpriseCheck)')].map(cb => cb.value);
+    const sugg = document.getElementById('spotsSuggestions');
+    if (!checked.length) { sugg.style.display = 'none'; return; }
+    const spots = [];
+    checked.forEach(country => { if (TOURIST_SPOTS[country]) spots.push(...TOURIST_SPOTS[country]); });
+    if (!spots.length) { sugg.style.display = 'none'; return; }
+    sugg.style.display = '';
+    document.getElementById('spotsGrid').innerHTML = spots.map(s => {
+        const sel = selectedSpots.has(s.name);
+        const imgUrl = `https://images.unsplash.com/photo-${s.img}?auto=format&fit=crop&w=400&q=80`;
+        return `<div class="spot-card${sel ? ' selected' : ''}" data-name="${s.name.replace(/"/g,'&quot;')}" onclick="toggleSpot(this)">
+            <div class="spot-img-wrap">
+                <img src="${imgUrl}" alt="${s.name}" loading="lazy" onerror="this.parentNode.style.background='#e8ecef';this.style.display='none'">
+            </div>
+            <div class="spot-info"><strong>${s.name}</strong><span>${s.city}</span></div>
+            <div class="spot-check-badge">✓</div>
+        </div>`;
+    }).join('');
+    updateSpotsNote();
+}
+
+function toggleSpot(card) {
+    const name = card.dataset.name;
+    if (selectedSpots.has(name)) { selectedSpots.delete(name); card.classList.remove('selected'); }
+    else { selectedSpots.add(name); card.classList.add('selected'); }
+    syncSpotsToMustVisit();
+    updateSpotsNote();
+}
+
+function updateSpotsNote() {
+    const n = document.getElementById('spotsNote');
+    if (selectedSpots.size > 0) {
+        n.style.display = '';
+        n.innerHTML = `<strong>${selectedSpots.size}</strong> spot${selectedSpots.size > 1 ? 's' : ''} selected — we'll add ${selectedSpots.size > 1 ? 'them' : 'it'} to your itinerary.`;
+    } else {
+        n.style.display = 'none';
+    }
+}
+
+function syncSpotsToMustVisit() {
+    const input = document.querySelector('input[name="must_visit"]');
+    const note = document.getElementById('spotsPrefillNote');
+    if (!input) return;
+    input.value = [...selectedSpots].join(', ');
+    if (note) note.style.display = selectedSpots.size > 0 ? '' : 'none';
+}
+
 // ============================================================
 // Wizard state
 // ============================================================
@@ -374,6 +720,7 @@ function selectContinent(name) {
     countrySearchInput.value = '';
     countrySearchClear.style.display = 'none';
     noCountryResults.style.display = 'none';
+    renderSpots();
 }
 
 countrySearchInput.addEventListener('input', function () {
@@ -405,11 +752,13 @@ countrySearchClear.addEventListener('click', function () {
 document.querySelectorAll('input[name="countries[]"]:not(#surpriseCheck)').forEach(cb => {
     cb.addEventListener('change', () => {
         if (cb.checked) document.getElementById('surpriseCheck').checked = false;
+        renderSpots();
     });
 });
 document.getElementById('surpriseCheck').addEventListener('change', function () {
     if (this.checked) {
         document.querySelectorAll('input[name="countries[]"]:not(#surpriseCheck)').forEach(cb => cb.checked = false);
+        document.getElementById('spotsSuggestions').style.display = 'none';
     }
 });
 
