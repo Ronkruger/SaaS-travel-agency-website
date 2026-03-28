@@ -861,8 +861,85 @@ iframe, video, canvas, svg, img { max-width: 100%; height: auto; }
     color: var(--diy-muted);
     margin: .5rem 0 0;
 }
+.cta-divider {
+    font-size: .75rem;
+    color: var(--diy-muted);
+    text-align: center;
+    margin: .6rem 0 .5rem;
+    position: relative;
+}
+.cta-divider::before, .cta-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--diy-border);
+}
+.cta-divider::before { left: 0; }
+.cta-divider::after  { right: 0; }
+.btn-facebook {
+    background: #1877f2;
+    color: #fff;
+    border: none;
+    font-size: .9rem;
+    font-weight: 700;
+    padding: .75rem 1rem;
+    border-radius: 10px;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    transition: background .18s, box-shadow .18s;
+}
+.btn-facebook:hover {
+    background: #166fe5;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(24,119,242,.35);
+    transform: translateY(-1px);
+}
 
-/* Timeline & Calendar */
+/* AI guide chips */
+.ai-guide-chips {
+    background: #f7fbff;
+    border: 1px solid #dce8f7;
+    border-radius: 10px;
+    padding: .65rem .75rem .55rem;
+    margin-bottom: .6rem;
+}
+.ai-guide-label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--diy-primary);
+    margin: 0 0 .45rem;
+}
+.ai-guide-label i { margin-right: .3rem; }
+.ai-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+}
+.ai-chip {
+    background: #fff;
+    border: 1px solid #c3d9f0;
+    border-radius: 20px;
+    padding: .3rem .7rem;
+    font-size: .76rem;
+    font-weight: 500;
+    color: #1a386e;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+    white-space: nowrap;
+}
+.ai-chip:hover      { background: #e8f3ff; border-color: var(--diy-primary); }
+.ai-chip--active    { background: var(--diy-primary); color: #fff; border-color: var(--diy-primary); }
+.ai-message--welcome {
+    background: linear-gradient(135deg,#eaf4ff,#f0fff4);
+    border-left: 3px solid #28A2DC;
+    font-size: .84rem;
+    line-height: 1.5;
+}
+
+
 .timeline-view, .calendar-view { padding: 1rem; overflow-y: auto; flex: 1; display: none; }
 .timeline { display: flex; flex-direction: column; gap: .5rem; }
 .timeline-city-header { font-weight: 700; font-size: 1rem; margin-top: .75rem; color: var(--diy-dark); display: flex; align-items: center; gap: .5rem; }

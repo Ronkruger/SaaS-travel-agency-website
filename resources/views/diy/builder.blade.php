@@ -99,10 +99,45 @@
             <div class="builder-section ai-assistant-section">
                 <div class="section-header">
                     <span class="section-icon">🤖</span>
-                    <h3>AI Assistant</h3>
+                    <h3>AI Tour Guide</h3>
                 </div>
+
+                {{-- Guide tips chips --}}
+                <div class="ai-guide-chips" id="aiGuideChips">
+                    <p class="ai-guide-label"><i class="fas fa-lightbulb"></i> Quick prompts to get started:</p>
+                    <div class="ai-chips-row">
+                        <button class="ai-chip" onclick="useChip(this, 'Suggest the best cities to visit based on my itinerary')">
+                            🏙️ Suggest cities
+                        </button>
+                        <button class="ai-chip" onclick="useChip(this, 'How can I reduce the total cost of my tour?')">
+                            💰 Reduce cost
+                        </button>
+                        <button class="ai-chip" onclick="useChip(this, 'What activities are recommended for this route?')">
+                            🎯 Recommend activities
+                        </button>
+                        <button class="ai-chip" onclick="useChip(this, 'What is the best travel order for my cities?')">
+                            🗺️ Optimize route
+                        </button>
+                        <button class="ai-chip" onclick="useChip(this, 'Add a free day for rest and exploration')">
+                            😴 Add rest day
+                        </button>
+                        <button class="ai-chip" onclick="useChip(this, 'Is my itinerary good for a family trip?')">
+                            👨‍👩‍👧 Family-friendly?
+                        </button>
+                        <button class="ai-chip" onclick="useChip(this, 'Suggest a romantic city to add to my tour')">
+                            💑 Romantic add-on
+                        </button>
+                        <button class="ai-chip" onclick="useChip(this, 'What should I pack for this trip?')">
+                            🎒 Packing tips
+                        </button>
+                    </div>
+                </div>
+
                 <div id="aiMessages" class="ai-messages-list">
-                    <div class="ai-message">Ask me anything about your tour!</div>
+                    <div class="ai-message ai-message--welcome">
+                        👋 <strong>Hi! I'm your AI Tour Guide.</strong><br>
+                        I can help you add cities, optimize your route, suggest activities, and answer any questions about your tour. Try the quick prompts above or type anything below!
+                    </div>
                 </div>
                 <div class="ai-input-row">
                     <input type="text" id="aiInput" class="form-control form-control-sm"
@@ -188,6 +223,12 @@
                     <i class="fas fa-file-invoice-dollar"></i>&nbsp; Get My Official Quote →
                 </a>
                 <p class="cta-sub">Our team reviews &amp; confirms within 24 hrs — no payment needed yet.</p>
+                <div class="cta-divider">or</div>
+                <a href="https://www.facebook.com/discovergrp" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-facebook btn-full">
+                    <i class="fab fa-facebook"></i>&nbsp; Contact Sales for Guidance
+                </a>
+                <p class="cta-sub">Chat with our travel experts on Facebook for tips &amp; personalized advice.</p>
             </div>
 
         </div>{{-- .builder-controls-panel --}}
@@ -267,4 +308,13 @@
 @push('scripts')
 <script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
 <script src="{{ asset('js/diy-builder.js') }}"></script>
+<script>
+window.useChip = function (btn, text) {
+    document.getElementById('aiInput').value = text;
+    // visually mark selected chip
+    document.querySelectorAll('.ai-chip').forEach(function (c) { c.classList.remove('ai-chip--active'); });
+    btn.classList.add('ai-chip--active');
+    window.askAI();
+};
+</script>
 @endpush
