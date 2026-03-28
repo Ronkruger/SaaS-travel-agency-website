@@ -245,42 +245,343 @@ PROMPT;
 
     private function buildUserPrompt(array $preferences): string
     {
-        return 'Generate a personalized tour itinerary for these user preferences: ' . json_encode($preferences, JSON_UNESCAPED_UNICODE);
+        $days      = (int) ($preferences['duration_days'] ?? 7);
+        $countries = implode(', ', (array) ($preferences['countries'] ?? ['France']));
+        $styles    = implode(', ', array_map('ucfirst', (array) ($preferences['travel_style'] ?? ['balanced'])));
+        $budget    = $preferences['budget_range'] ?? '140000-200000';
+        $pace      = $preferences['pace'] ?? 'moderate';
+        $groupSize = (int) ($preferences['group_size'] ?? 2);
+        $month     = $preferences['travel_month'] ?? 'any time of year';
+        $mustVisit = array_filter((array) ($preferences['must_visit'] ?? []));
+
+        $budgetLabel = match (true) {
+            str_starts_with($budget, '80000')  || str_starts_with($budget, '100000')
+                => 'Budget — ₱80,000–₱140,000/person (3-star hotels, public transport, self-guided)',
+            str_starts_with($budget, '140000') || str_starts_with($budget, '150000')
+                => 'Standard — ₱140,000–₱200,000/person (4-star hotels, first-class trains, shared guide)',
+            str_starts_with($budget, '200000') || str_starts_with($budget, '250000')
+                => 'Premium — ₱200,000–₱280,000/person (4–5-star hotels, private transport, dedicated guide)',
+            default
+                => 'Luxury — ₱280,000+/person (5-star, private transfers, exclusive experiences)',
+        };
+
+        $paceLabel = match ($pace) {
+            'relaxed' => 'Relaxed — spend more time in fewer cities (2–3 cities max), unhurried daily schedule',
+            'fast'    => 'Fast-paced — see as many highlights as possible (6+ cities), packed daily schedule',
+            default   => 'Moderate — balanced mix of cities and downtime (4–5 cities)',
+        };
+
+        $groupLabel = $groupSize === 1 ? '1 person (solo traveler)' : $groupSize . ' people';
+
+        $prompt  = "Create a PERSONALISED {$days}-day tour itinerary for a Filipino traveler with the following EXACT preferences:\n\n";
+        $prompt .= "COUNTRIES TO VISIT: {$countries}\n";
+        $prompt .= "TRAVEL STYLE: {$styles}\n";
+        $prompt .= "BUDGET: {$budgetLabel}\n";
+        $prompt .= "TRAVEL PACE: {$paceLabel}\n";
+        $prompt .= "GROUP SIZE: {$groupLabel}\n";
+        $prompt .= "TRAVEL MONTH: {$month}\n";
+
+        if (!empty($mustVisit)) {
+            $prompt .= "MUST-INCLUDE PLACES (non-negotiable — build the itinerary around these): " . implode(', ', $mustVisit) . "\n";
+        }
+
+        $prompt .= "\nCRITICAL requirements:\n";
+        $prompt .= "1. The itinerary MUST be exactly {$days} days long (fill every single day).\n";
+        $prompt .= "2. ONLY visit cities located in: {$countries}. Do NOT suggest cities in other countries.\n";
+        $prompt .= "3. Activities MUST match the travel style: {$styles}. E.g. if 'Food' is selected, include food markets, cooking classes, restaurant tours.\n";
+        $prompt .= "4. Budget the trip for {$groupLabel} using the {$budgetLabel} tier.\n";
+        $prompt .= "5. Follow the {$pace} pace rule: " . match ($pace) {
+            'relaxed' => '2–3 cities only, minimum 3 nights per city.',
+            'fast'    => '6+ cities, 1–2 nights per city.',
+            default   => '4–5 cities, 2–3 nights per city.',
+        } . "\n";
+        if (!empty($mustVisit)) {
+            $prompt .= "6. MUST include these specific places in the day-by-day schedule: " . implode(', ', $mustVisit) . "\n";
+        }
+
+        return $prompt;
     }
 
     /**
-     * Returns a basic fallback itinerary when the AI is unavailable,
-     * so the UI is always functional for demo/dev purposes.
+     * Returns a meaningful fallback itinerary built directly from the user's
+     * preferences when the AI is unavailable. Produces a real day-by-day
+     * schedule so the builder is never empty.
      */
     private function fallbackItinerary(array $preferences): array
     {
         $days      = (int) ($preferences['duration_days'] ?? 7);
         $countries = (array) ($preferences['countries'] ?? ['France']);
-        $budget    = (int) str_replace([',', ' '], '', explode('-', $preferences['budget_range'] ?? '150000-200000')[0] ?? '150000');
+        $styles    = (array) ($preferences['travel_style'] ?? ['balanced']);
+        $pace      = $preferences['pace'] ?? 'moderate';
+        $budget    = $preferences['budget_range'] ?? '140000-200000';
+        $groupSize = (int) ($preferences['group_size'] ?? 2);
+        $mustVisit = array_values(array_filter((array) ($preferences['must_visit'] ?? [])));
+
+        // --- Hotel tier from budget ---
+        $hotelTier = match (true) {
+            str_starts_with($budget, '80000')  || str_starts_with($budget, '100000') => '3-star',
+            str_starts_with($budget, '200000') || str_starts_with($budget, '250000')
+                || str_starts_with($budget, '280000') || $budget === '280000+'       => '5-star',
+            default                                                                   => '4-star',
+        };
+
+        // --- City database keyed by country ---
+        $citiesByCountry = [
+            'France'         => ['Paris', 'Lyon', 'Nice', 'Marseille'],
+            'Switzerland'    => ['Zurich', 'Lucerne', 'Geneva', 'Interlaken', 'Bern'],
+            'Italy'          => ['Rome', 'Florence', 'Venice', 'Milan', 'Naples'],
+            'Spain'          => ['Barcelona', 'Madrid', 'Seville', 'Granada'],
+            'Portugal'       => ['Lisbon', 'Porto'],
+            'Germany'        => ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne'],
+            'Austria'        => ['Vienna', 'Salzburg', 'Innsbruck'],
+            'Netherlands'    => ['Amsterdam'],
+            'Belgium'        => ['Brussels', 'Bruges'],
+            'Czech Republic' => ['Prague'],
+            'Hungary'        => ['Budapest'],
+            'Croatia'        => ['Dubrovnik', 'Split'],
+            'Greece'         => ['Athens', 'Santorini', 'Mykonos'],
+            'Poland'         => ['Krakow', 'Warsaw'],
+            'Denmark'        => ['Copenhagen'],
+            'Sweden'         => ['Stockholm'],
+            'Norway'         => ['Oslo', 'Bergen'],
+            'Ireland'        => ['Dublin'],
+            'Slovakia'       => ['Bratislava'],
+            'Japan'          => ['Tokyo', 'Kyoto', 'Osaka', 'Hiroshima'],
+            'South Korea'    => ['Seoul', 'Busan'],
+            'Thailand'       => ['Bangkok', 'Chiang Mai', 'Phuket'],
+            'Vietnam'        => ['Hanoi', 'Hoi An', 'Ho Chi Minh'],
+            'Indonesia'      => ['Bali', 'Jakarta', 'Yogyakarta'],
+            'Philippines'    => ['Manila', 'Cebu', 'Palawan'],
+            'Singapore'      => ['Singapore'],
+            'Malaysia'       => ['Kuala Lumpur', 'Penang', 'Langkawi'],
+            'Cambodia'       => ['Siem Reap', 'Phnom Penh'],
+            'UAE'            => ['Dubai', 'Abu Dhabi'],
+            'Turkey'         => ['Istanbul', 'Cappadocia', 'Antalya'],
+            'Jordan'         => ['Amman', 'Petra'],
+            'India'          => ['Delhi', 'Mumbai', 'Jaipur', 'Agra'],
+            'Nepal'          => ['Kathmandu', 'Pokhara'],
+            'Sri Lanka'      => ['Colombo', 'Kandy', 'Ella'],
+            'China'          => ['Beijing', 'Shanghai'],
+            'United States'  => ['New York', 'Los Angeles', 'Miami', 'Las Vegas', 'Chicago'],
+            'Canada'         => ['Toronto', 'Vancouver', 'Montreal'],
+            'Mexico'         => ['Mexico City', 'Cancun', 'Oaxaca'],
+            'Brazil'         => ['Rio de Janeiro', 'São Paulo'],
+            'Peru'           => ['Lima', 'Cusco'],
+            'Argentina'      => ['Buenos Aires'],
+            'Colombia'       => ['Bogota', 'Medellin', 'Cartagena'],
+            'Chile'          => ['Santiago', 'Patagonia'],
+            'Australia'      => ['Sydney', 'Melbourne', 'Cairns'],
+            'New Zealand'    => ['Auckland', 'Queenstown', 'Christchurch'],
+            'Morocco'        => ['Marrakech', 'Fes', 'Casablanca'],
+            'South Africa'   => ['Cape Town', 'Johannesburg'],
+            'Kenya'          => ['Nairobi', 'Mombasa'],
+            'Egypt'          => ['Cairo', 'Luxor', 'Aswan'],
+            'Surprise me'    => ['Paris', 'Tokyo', 'Rome'],
+        ];
+
+        // --- Collect candidate cities ---
+        $candidateCities = [];
+        foreach ($countries as $country) {
+            foreach (($citiesByCountry[$country] ?? []) as $city) {
+                $candidateCities[] = ['city' => $city, 'country' => $country];
+            }
+        }
+        if (empty($candidateCities)) {
+            $candidateCities = [['city' => 'Paris', 'country' => 'France']];
+        }
+
+        // --- Choose number of cities based on pace ---
+        $numCities = match ($pace) {
+            'relaxed' => max(1, min(2, (int) ceil($days / 4))),
+            'fast'    => max(3, min(8, (int) ceil($days / 2))),
+            default   => max(2, min(5, (int) ceil($days / 3))),
+        };
+        $numCities = min($numCities, count($candidateCities));
+
+        // --- Pick cities (must-visit first, then fill) ---
+        $selected = [];
+        foreach ($mustVisit as $mv) {
+            foreach ($candidateCities as $c) {
+                if (stripos($c['city'], $mv) !== false || stripos($mv, $c['city']) !== false) {
+                    if (!in_array($c, $selected, true)) {
+                        $selected[] = $c;
+                    }
+                }
+            }
+        }
+        foreach ($candidateCities as $c) {
+            if (count($selected) >= $numCities) break;
+            if (!in_array($c, $selected, true)) {
+                $selected[] = $c;
+            }
+        }
+
+        // --- Distribute days across cities ---
+        $base      = (int) floor($days / count($selected));
+        $remainder = $days - ($base * count($selected));
+        $cityDays  = array_fill(0, count($selected), $base);
+        $cityDays[0] += $remainder; // extra days go to first city
+
+        // --- Activity templates by travel style ---
+        $actTemplates = [
+            'cultural' => [
+                ['time' => '09:00', 'name_tpl' => 'Historic Old Town Walking Tour in {city}',  'duration_hours' => 2.5, 'category' => 'cultural', 'included' => true,  'cost_if_optional' => 0],
+                ['time' => '14:00', 'name_tpl' => '{city} National Museum & Heritage Sites',   'duration_hours' => 2.0, 'category' => 'cultural', 'included' => false, 'cost_if_optional' => 800],
+                ['time' => '17:30', 'name_tpl' => 'Cathedral & Monuments Visit in {city}',     'duration_hours' => 1.5, 'category' => 'cultural', 'included' => true,  'cost_if_optional' => 0],
+            ],
+            'nature' => [
+                ['time' => '08:00', 'name_tpl' => 'Scenic Nature Hike near {city}',            'duration_hours' => 3.0, 'category' => 'nature', 'included' => true,  'cost_if_optional' => 0],
+                ['time' => '13:00', 'name_tpl' => 'Boat or Lake Tour around {city}',           'duration_hours' => 2.0, 'category' => 'nature', 'included' => false, 'cost_if_optional' => 1200],
+                ['time' => '17:00', 'name_tpl' => 'Sunset at Scenic Viewpoint near {city}',   'duration_hours' => 1.5, 'category' => 'nature', 'included' => true,  'cost_if_optional' => 0],
+            ],
+            'food' => [
+                ['time' => '10:00', 'name_tpl' => '{city} Local Market Food Tour',             'duration_hours' => 2.0, 'category' => 'food', 'included' => true,  'cost_if_optional' => 0],
+                ['time' => '13:00', 'name_tpl' => 'Hands-On Cooking Class with Local Chef',   'duration_hours' => 2.5, 'category' => 'food', 'included' => false, 'cost_if_optional' => 2500],
+                ['time' => '19:00', 'name_tpl' => 'Dinner at Top-Rated Traditional Restaurant','duration_hours' => 2.0, 'category' => 'food', 'included' => false, 'cost_if_optional' => 1500],
+            ],
+            'romantic' => [
+                ['time' => '10:00', 'name_tpl' => 'Leisurely Stroll Through {city} Old Quarter','duration_hours' => 2.0, 'category' => 'romantic', 'included' => true,  'cost_if_optional' => 0],
+                ['time' => '14:00', 'name_tpl' => 'Boat / Gondola Ride in {city}',             'duration_hours' => 1.5, 'category' => 'romantic', 'included' => false, 'cost_if_optional' => 1800],
+                ['time' => '19:00', 'name_tpl' => 'Sunset Dinner with Panoramic {city} Views', 'duration_hours' => 2.5, 'category' => 'romantic', 'included' => false, 'cost_if_optional' => 2000],
+            ],
+            'shopping' => [
+                ['time' => '10:00', 'name_tpl' => '{city} Shopping District & Boutiques Tour', 'duration_hours' => 3.0, 'category' => 'shopping', 'included' => true,  'cost_if_optional' => 0],
+                ['time' => '15:00', 'name_tpl' => '{city} Designer Outlets & Local Crafts',    'duration_hours' => 2.5, 'category' => 'shopping', 'included' => false, 'cost_if_optional' => 0],
+            ],
+            'balanced' => [
+                ['time' => '09:00', 'name_tpl' => 'Morning City Sightseeing Tour of {city}',   'duration_hours' => 2.5, 'category' => 'cultural', 'included' => true,  'cost_if_optional' => 0],
+                ['time' => '13:00', 'name_tpl' => '{city} Food Market & Local Lunch',          'duration_hours' => 1.5, 'category' => 'food',     'included' => true,  'cost_if_optional' => 0],
+                ['time' => '16:00', 'name_tpl' => 'Scenic Walk & Photography in {city}',       'duration_hours' => 1.5, 'category' => 'nature',   'included' => true,  'cost_if_optional' => 0],
+            ],
+        ];
+
+        // Primary and secondary style activity lists
+        $primaryStyle  = in_array($styles[0], array_keys($actTemplates)) ? $styles[0] : 'balanced';
+        $secondStyle   = count($styles) > 1 && isset($actTemplates[$styles[1]]) ? $styles[1] : null;
+        $primaryActs   = $actTemplates[$primaryStyle];
+        $secondaryActs = $secondStyle ? $actTemplates[$secondStyle] : [];
+
+        // --- Build day-by-day and transportation ---
+        $dayByDay       = [];
+        $transportation = [];
+        $dayNum         = 1;
+        $prevCity       = null;
+
+        foreach ($selected as $ci => $cityInfo) {
+            $cityName    = $cityInfo['city'];
+            $countryName = $cityInfo['country'];
+            $stayDays    = $cityDays[$ci];
+
+            // Transportation segment
+            if ($prevCity !== null) {
+                $transportation[] = [
+                    'from'               => $prevCity,
+                    'to'                 => $cityName,
+                    'day'                => $dayNum,
+                    'method'             => 'Train / Flight',
+                    'duration_hours'     => 2.5,
+                    'estimated_cost_php' => 6000,
+                    'booking_notes'      => 'Book in advance for best rates. Check rail pass options if travelling Europe.',
+                ];
+            }
+            $prevCity = $cityName;
+
+            $resolve = fn(array $act) => array_merge($act, [
+                'name' => str_replace('{city}', $cityName, $act['name_tpl']),
+            ]);
+
+            for ($d = 0; $d < $stayDays; $d++) {
+                $isFirstOverall = ($ci === 0 && $d === 0);
+                $isDeparture    = ($d === $stayDays - 1) && ($ci < count($selected) - 1);
+
+                $activities = [];
+
+                if ($isFirstOverall) {
+                    // Arrival day — lighter, afternoon only
+                    $activities[] = ['time' => '14:00', 'name' => 'Arrive in ' . $cityName . ', hotel check-in & orientation walk', 'duration_hours' => 1.5, 'category' => 'cultural', 'included' => true, 'cost_if_optional' => 0];
+                    $activities[] = $resolve(end($primaryActs));
+                } elseif ($isDeparture) {
+                    // Departure day — one morning activity then transfer
+                    $activities[] = $resolve($primaryActs[0]);
+                    $nextCity = $selected[$ci + 1]['city'];
+                    $activities[] = ['time' => '14:00', 'name' => 'Check-out & transfer to ' . $nextCity, 'duration_hours' => 0.5, 'category' => 'cultural', 'included' => true, 'cost_if_optional' => 0];
+                } else {
+                    // Full day — primary style activities
+                    foreach ($primaryActs as $act) {
+                        $activities[] = $resolve($act);
+                    }
+                    // Alternate days: mix in secondary style
+                    if ($secondaryActs && $d % 2 === 1) {
+                        $activities[] = $resolve($secondaryActs[0]);
+                    }
+                }
+
+                // Inject must-visit on day 2 of first city
+                if ($ci === 0 && $d === 1 && !empty($mustVisit)) {
+                    array_unshift($activities, [
+                        'time'             => '09:00',
+                        'name'             => 'Visit ' . $mustVisit[0],
+                        'duration_hours'   => 2.5,
+                        'category'         => 'must_visit',
+                        'included'         => true,
+                        'cost_if_optional' => 0,
+                    ]);
+                }
+
+                $dayByDay[] = [
+                    'day'            => $dayNum,
+                    'city'           => $cityName,
+                    'country'        => $countryName,
+                    'accommodation'  => $hotelTier . ' hotel in ' . $cityName,
+                    'activities'     => array_values($activities),
+                    'meals_included' => ['breakfast'],
+                    'free_time'      => '12:30–13:30, 20:00 onwards',
+                    'overnight'      => $cityName,
+                ];
+                $dayNum++;
+            }
+        }
+
+        // --- Tour name & budget values ---
+        $budgetLabel  = match (true) {
+            str_starts_with($budget, '80000')  || str_starts_with($budget, '100000') => 'Budget',
+            str_starts_with($budget, '200000') || str_starts_with($budget, '250000')
+                || str_starts_with($budget, '280000') || $budget === '280000+'       => 'Premium',
+            default                                                                   => 'Standard',
+        };
+        $countryLabel = count($countries) === 1
+            ? $countries[0]
+            : implode(' & ', array_slice($countries, 0, 2));
+        $tourName     = $days . '-Day ' . $budgetLabel . ' ' . $countryLabel . ' Tour';
+
+        $budgetFloor = (int) str_replace([',', ' ', '+'], '', explode('-', $budget)[0] ?? '140000');
+
+        $styleLabel   = implode(', ', $styles);
+        $countryLabel2 = implode(', ', $countries);
 
         return [
             'itinerary' => [
-                'tour_name'  => 'Custom ' . $days . '-Day Adventure',
-                'total_days' => $days,
-                'cities_count' => max(1, (int) ($days / 3)),
-                'route_type' => 'linear',
+                'tour_name'                => $tourName,
+                'total_days'               => $days,
+                'cities_count'             => count($selected),
+                'route_type'               => 'linear',
                 'estimated_cost_breakdown' => [
-                    'base_package'   => $budget,
-                    'optional_tours' => (int) ($budget * 0.15),
-                    'total_max'      => (int) ($budget * 1.15),
+                    'base_package'   => $budgetFloor,
+                    'optional_tours' => (int) ($budgetFloor * 0.15),
+                    'total_max'      => (int) ($budgetFloor * 1.15),
                     'currency'       => 'PHP',
                 ],
-                'day_by_day'   => [],
-                'transportation' => [],
+                'day_by_day'               => $dayByDay,
+                'transportation'           => $transportation,
                 'suggested_optional_tours' => [],
-                'customization_options' => [
+                'customization_options'    => [
                     'can_extend_days'        => true,
-                    'can_swap_cities'        => [],
+                    'can_swap_cities'        => array_column($selected, 'city'),
                     'can_adjust_pace'        => true,
                     'upgradeable_to_premium' => true,
                 ],
             ],
-            'ai_explanation' => 'AI service is currently unavailable. A basic itinerary shell has been created — you can build it manually using the editor below.',
+            'ai_explanation' => 'AI service is currently unavailable. We\'ve generated your ' . $days . '-day itinerary based on your preferences: ' . $countryLabel2 . ' · ' . $styleLabel . ' style · ' . $pace . ' pace. You can customise every city, activity and detail in the builder below.',
         ];
     }
 }

@@ -84,11 +84,14 @@ class DIYTourController extends Controller
             return $s;
         });
 
+        // Pass only the clean preference fields to AI (no internal metadata)
+        $aiPreferences = array_diff_key($validated, array_flip(['session_id', 'timestamp', '_estimated_cost']));
+
         // Generate initial itinerary via AI (wrapped in try/catch — non-fatal)
         $itineraryData = [];
         $aiExplanation = '';
         try {
-            $aiResult      = $this->ai->generateItinerary($validated);
+            $aiResult      = $this->ai->generateItinerary($aiPreferences);
             $itineraryData = $aiResult['itinerary']     ?? [];
             $aiExplanation = $aiResult['ai_explanation'] ?? '';
         } catch (\RuntimeException $e) {
