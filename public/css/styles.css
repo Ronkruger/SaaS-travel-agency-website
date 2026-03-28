@@ -477,8 +477,12 @@ h4 { font-size: 1.25rem; }
 .star-rating-input .fa-star:hover, .star-rating-input .fa-star.text-yellow { color: #f59e0b; }
 .booking-widget { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-300); overflow: hidden; position: sticky; top: 90px; }
 .booking-widget-header { padding: 1.5rem; background: var(--gradient-primary); color: var(--white); }
-.booking-price { display: flex; align-items: baseline; gap: .5rem; }
-.discount-badge { display: inline-block; background: var(--danger); color: var(--white); padding: .25rem .625rem; border-radius: 50px; font-size: .875rem; font-weight: 700; margin-top: .5rem; }
+.booking-price { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+/* Price text must be visible on the dark navy header — use yellow/gold */
+.booking-widget-header .price-current { color: #f59e0b; text-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.booking-widget-header .price-original { color: rgba(255,255,255,.55); text-decoration: line-through; font-size: .9rem; }
+.booking-widget-header small { color: rgba(255,255,255,.8); font-size: .8rem; }
+.discount-badge { display: inline-block; background: #f59e0b; color: #1a1a1a; padding: .25rem .625rem; border-radius: 50px; font-size: .875rem; font-weight: 800; margin-top: .5rem; letter-spacing: .02em; }
 .booking-form { padding: 1.5rem; }
 .guests-selector { display: flex; flex-direction: column; gap: .875rem; padding: 1rem 0; border: 1px solid var(--gray-300); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; }
 .guest-row { display: flex; justify-content: space-between; align-items: center; }
