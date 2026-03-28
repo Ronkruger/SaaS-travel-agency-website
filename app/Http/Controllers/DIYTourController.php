@@ -52,6 +52,7 @@ class DIYTourController extends Controller
             'group_size'          => 'required|integer|min:1|max:50',
             'travel_month'        => 'nullable|string|max:20',
             'flexible_dates'      => 'nullable|boolean',
+            'continent'           => 'nullable|string|max:50',
         ]);
 
         // Sanitize must_visit — strip HTML to prevent XSS in AI prompt injection

@@ -61,9 +61,20 @@
             <div class="wizard-step" id="step2">
                 <div class="wizard-step-icon">🌍</div>
                 <h2>Which countries interest you?</h2>
-                <p class="wizard-step-hint">Select all that apply — we'll build the optimal route.</p>
+                <p class="wizard-step-hint">First pick a continent, then choose your countries.</p>
 
-                <div class="country-search-wrap">
+                {{-- Continent selector --}}
+                <input type="hidden" name="continent" id="selectedContinent" value="">
+                <div class="continent-tabs">
+                    <button type="button" class="continent-tab" data-continent="Europe"          onclick="selectContinent('Europe')">🇪🇺 Europe</button>
+                    <button type="button" class="continent-tab" data-continent="Asia"            onclick="selectContinent('Asia')">🌏 Asia</button>
+                    <button type="button" class="continent-tab" data-continent="Middle East"     onclick="selectContinent('Middle East')">🕌 Middle East</button>
+                    <button type="button" class="continent-tab" data-continent="Americas"        onclick="selectContinent('Americas')">🌎 Americas</button>
+                    <button type="button" class="continent-tab" data-continent="Africa & Oceania" onclick="selectContinent('Africa &amp; Oceania')">🌍 Africa &amp; Oceania</button>
+                </div>
+                <p id="continentHint" class="continent-hint">Choose a continent above to see the available countries.</p>
+
+                <div class="country-search-wrap" id="countrySearchWrap" style="display:none">
                     <i class="fas fa-search country-search-icon"></i>
                     <input type="text" id="countrySearch" class="country-search-input" placeholder="Search countries…" autocomplete="off">
                     <button type="button" id="countrySearchClear" class="country-search-clear" style="display:none" aria-label="Clear search">✕</button>
@@ -72,30 +83,30 @@
                 <div class="countries-grid" id="countriesGrid">
                     @foreach([
                         {{-- Europe --}}
-                        ['France','🇫🇷'],['Switzerland','🇨🇭'],['Italy','🇮🇹'],
-                        ['Germany','🇩🇪'],['Austria','🇦🇹'],['Spain','🇪🇸'],
-                        ['Netherlands','🇳🇱'],['Portugal','🇵🇹'],['Greece','🇬🇷'],
-                        ['Belgium','🇧🇪'],['Czech Republic','🇨🇿'],['Hungary','🇭🇺'],
-                        ['Croatia','🇭🇷'],['Poland','🇵🇱'],['Denmark','🇩🇰'],
-                        ['Sweden','🇸🇪'],['Ireland','🇮🇪'],['Slovakia','🇸🇰'],
+                        ['France','🇫🇷','Europe'],['Switzerland','🇨🇭','Europe'],['Italy','🇮🇹','Europe'],
+                        ['Germany','🇩🇪','Europe'],['Austria','🇦🇹','Europe'],['Spain','🇪🇸','Europe'],
+                        ['Netherlands','🇳🇱','Europe'],['Portugal','🇵🇹','Europe'],['Greece','🇬🇷','Europe'],
+                        ['Belgium','🇧🇪','Europe'],['Czech Republic','🇨🇿','Europe'],['Hungary','🇭🇺','Europe'],
+                        ['Croatia','🇭🇷','Europe'],['Poland','🇵🇱','Europe'],['Denmark','🇩🇰','Europe'],
+                        ['Sweden','🇸🇪','Europe'],['Ireland','🇮🇪','Europe'],['Slovakia','🇸🇰','Europe'],
                         {{-- Asia --}}
-                        ['Japan','🇯🇵'],['South Korea','🇰🇷'],['Thailand','🇹🇭'],
-                        ['Vietnam','🇻🇳'],['Indonesia','🇮🇩'],['Philippines','🇵🇭'],
-                        ['Singapore','🇸🇬'],['Malaysia','🇲🇾'],['China','🇨🇳'],
-                        ['India','🇮🇳'],['Nepal','🇳🇵'],['Sri Lanka','🇱🇰'],
-                        ['Cambodia','🇰🇭'],['Myanmar','🇲🇲'],['Maldives','🇲🇻'],
+                        ['Japan','🇯🇵','Asia'],['South Korea','🇰🇷','Asia'],['Thailand','🇹🇭','Asia'],
+                        ['Vietnam','🇻🇳','Asia'],['Indonesia','🇮🇩','Asia'],['Philippines','🇵🇭','Asia'],
+                        ['Singapore','🇸🇬','Asia'],['Malaysia','🇲🇾','Asia'],['China','🇨🇳','Asia'],
+                        ['India','🇮🇳','Asia'],['Nepal','🇳🇵','Asia'],['Sri Lanka','🇱🇰','Asia'],
+                        ['Cambodia','🇰🇭','Asia'],['Myanmar','🇲🇲','Asia'],['Maldives','🇲🇻','Asia'],
                         {{-- Middle East --}}
-                        ['UAE','🇦🇪'],['Turkey','🇹🇷'],['Jordan','🇯🇴'],
-                        ['Qatar','🇶🇦'],['Israel','🇮🇱'],['Oman','🇴🇲'],
+                        ['UAE','🇦🇪','Middle East'],['Turkey','🇹🇷','Middle East'],['Jordan','🇯🇴','Middle East'],
+                        ['Qatar','🇶🇦','Middle East'],['Israel','🇮🇱','Middle East'],['Oman','🇴🇲','Middle East'],
                         {{-- Americas --}}
-                        ['United States','🇺🇸'],['Canada','🇨🇦'],['Mexico','🇲🇽'],
-                        ['Brazil','🇧🇷'],['Argentina','🇦🇷'],['Peru','🇵🇪'],
-                        ['Colombia','🇨🇴'],['Chile','🇨🇱'],
+                        ['United States','🇺🇸','Americas'],['Canada','🇨🇦','Americas'],['Mexico','🇲🇽','Americas'],
+                        ['Brazil','🇧🇷','Americas'],['Argentina','🇦🇷','Americas'],['Peru','🇵🇪','Americas'],
+                        ['Colombia','🇨🇴','Americas'],['Chile','🇨🇱','Americas'],
                         {{-- Africa & Oceania --}}
-                        ['Morocco','🇲🇦'],['South Africa','🇿🇦'],['Kenya','🇰🇪'],
-                        ['Egypt','🇪🇬'],['Australia','🇦🇺'],['New Zealand','🇳🇿'],
-                    ] as [$country, $flag])
-                    <label class="country-option">
+                        ['Morocco','🇲🇦','Africa & Oceania'],['South Africa','🇿🇦','Africa & Oceania'],['Kenya','🇰🇪','Africa & Oceania'],
+                        ['Egypt','🇪🇬','Africa & Oceania'],['Australia','🇦🇺','Africa & Oceania'],['New Zealand','🇳🇿','Africa & Oceania'],
+                    ] as [$country, $flag, $continent])
+                    <label class="country-option" data-continent="{{ $continent }}" style="display:none">
                         <input type="checkbox" name="countries[]" value="{{ $country }}">
                         <span class="country-card">
                             <span class="country-flag">{{ $flag }}</span>
@@ -261,6 +272,7 @@
 // ============================================================
 const TOTAL_STEPS = 6;
 let currentStep = 1;
+let currentContinent = null;
 
 function showStep(n) {
     document.querySelectorAll('.wizard-step').forEach((s) => s.classList.remove('active'));
@@ -292,8 +304,12 @@ function validateCurrentStep() {
         }
     }
     if (currentStep === 2) {
+        const surpriseChecked = document.getElementById('surpriseCheck').checked;
+        if (!surpriseChecked && !currentContinent) {
+            alert('Please select a continent first.'); return false;
+        }
         const checked = document.querySelectorAll('input[name="countries[]"]:checked');
-        if (!checked.length) { alert('Please select at least one country.'); return false; }
+        if (!checked.length) { alert('Please select at least one country (or choose "Surprise me!").'); return false; }
     }
     if (currentStep === 3) {
         const checked = document.querySelectorAll('input[name="travel_style[]"]:checked');
@@ -334,13 +350,41 @@ const countrySearchInput = document.getElementById('countrySearch');
 const countrySearchClear = document.getElementById('countrySearchClear');
 const noCountryResults   = document.getElementById('noCountryResults');
 
+// Continent selector
+function selectContinent(name) {
+    currentContinent = name;
+    document.getElementById('selectedContinent').value = name;
+    // Update pill active state
+    document.querySelectorAll('.continent-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.continent === name);
+    });
+    // Hide hint, show search
+    document.getElementById('continentHint').style.display = 'none';
+    document.getElementById('countrySearchWrap').style.display = '';
+    // Uncheck countries not in this continent
+    document.querySelectorAll('input[name="countries[]"]:not(#surpriseCheck)').forEach(cb => {
+        const label = cb.closest('.country-option');
+        if (label && label.dataset.continent !== name) cb.checked = false;
+    });
+    // Show only countries in this continent
+    document.querySelectorAll('#countriesGrid .country-option:not(.surprise-option)').forEach(label => {
+        label.style.display = label.dataset.continent === name ? '' : 'none';
+    });
+    // Reset search input
+    countrySearchInput.value = '';
+    countrySearchClear.style.display = 'none';
+    noCountryResults.style.display = 'none';
+}
+
 countrySearchInput.addEventListener('input', function () {
     const q = this.value.trim().toLowerCase();
     countrySearchClear.style.display = q ? '' : 'none';
     let visibleCount = 0;
     document.querySelectorAll('#countriesGrid .country-option:not(.surprise-option)').forEach(label => {
+        const inContinent = !currentContinent || label.dataset.continent === currentContinent;
+        if (!inContinent) { label.style.display = 'none'; return; }
         const name  = label.querySelector('.country-name').textContent.toLowerCase();
-        const match = name.includes(q);
+        const match = !q || name.includes(q);
         label.style.display = match ? '' : 'none';
         if (match) visibleCount++;
     });
@@ -350,7 +394,9 @@ countrySearchInput.addEventListener('input', function () {
 countrySearchClear.addEventListener('click', function () {
     countrySearchInput.value = '';
     this.style.display = 'none';
-    document.querySelectorAll('#countriesGrid .country-option:not(.surprise-option)').forEach(l => l.style.display = '');
+    document.querySelectorAll('#countriesGrid .country-option:not(.surprise-option)').forEach(l => {
+        l.style.display = (!currentContinent || l.dataset.continent === currentContinent) ? '' : 'none';
+    });
     noCountryResults.style.display = 'none';
     countrySearchInput.focus();
 });

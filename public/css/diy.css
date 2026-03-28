@@ -220,6 +220,41 @@
     position: relative;
     margin-bottom: 1rem;
 }
+
+/* Continent selector tabs */
+.continent-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1rem;
+}
+.continent-tab {
+    padding: .45rem 1rem;
+    border: 2px solid var(--diy-border);
+    border-radius: 50px;
+    background: transparent;
+    cursor: pointer;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--diy-muted);
+    transition: border-color .2s, color .2s, background .2s;
+    white-space: nowrap;
+}
+.continent-tab:hover {
+    border-color: var(--diy-accent);
+    color: var(--diy-accent);
+}
+.continent-tab.active {
+    background: var(--diy-accent);
+    border-color: var(--diy-accent);
+    color: #fff;
+}
+.continent-hint {
+    text-align: center;
+    color: var(--diy-muted);
+    font-size: .9rem;
+    margin: .5rem 0 1.25rem;
+}
 .country-search-icon {
     position: absolute;
     left: .9rem;

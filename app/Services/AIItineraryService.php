@@ -274,6 +274,7 @@ PROMPT;
         $groupLabel = $groupSize === 1 ? '1 person (solo traveler)' : $groupSize . ' people';
 
         $prompt  = "Create a PERSONALISED {$days}-day tour itinerary for a Filipino traveler with the following EXACT preferences:\n\n";
+        $prompt .= "CONTINENT: " . ($preferences['continent'] ?? 'Not specified') . "\n";
         $prompt .= "COUNTRIES TO VISIT: {$countries}\n";
         $prompt .= "TRAVEL STYLE: {$styles}\n";
         $prompt .= "BUDGET: {$budgetLabel}\n";
@@ -287,7 +288,7 @@ PROMPT;
 
         $prompt .= "\nCRITICAL requirements:\n";
         $prompt .= "1. The itinerary MUST be exactly {$days} days long (fill every single day).\n";
-        $prompt .= "2. ONLY visit cities located in: {$countries}. Do NOT suggest cities in other countries.\n";
+        $prompt .= "2. ONLY visit cities located in: {$countries}. Do NOT suggest cities in any other country or continent.\n";
         $prompt .= "3. Activities MUST match the travel style: {$styles}. E.g. if 'Food' is selected, include food markets, cooking classes, restaurant tours.\n";
         $prompt .= "4. Budget the trip for {$groupLabel} using the {$budgetLabel} tier.\n";
         $prompt .= "5. Follow the {$pace} pace rule: " . match ($pace) {
