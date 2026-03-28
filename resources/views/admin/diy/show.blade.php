@@ -16,8 +16,36 @@
             <small class="text-muted">Session #{{ $diySession->id }} · Token: {{ substr($diySession->session_token, 0, 16) }}…</small>
         </div>
         <div class="header-actions">
+            {{-- Approve / Reject --}}
+            @if($diySession->admin_status === 'pending')
+            <form action="{{ route('admin.diy.approve', $diySession) }}" method="POST" class="d-inline">
+                @csrf
+                <button class="btn btn-success btn-sm">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+            </form>
+            <form action="{{ route('admin.diy.reject', $diySession) }}" method="POST" class="d-inline ms-1">
+                @csrf
+                <button class="btn btn-danger btn-sm" onclick="return confirm('Reject this DIY tour request?')">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            </form>
+            @elseif($diySession->admin_status === 'approved')
+            <span class="badge bg-success px-3 py-2"><i class="fas fa-check-circle"></i> Approved</span>
+            <form action="{{ route('admin.diy.reject', $diySession) }}" method="POST" class="d-inline ms-1">
+                @csrf
+                <button class="btn btn-outline-danger btn-sm" onclick="return confirm('Reject this DIY tour request?')">Reject</button>
+            </form>
+            @else
+            <span class="badge bg-danger px-3 py-2"><i class="fas fa-times-circle"></i> Rejected</span>
+            <form action="{{ route('admin.diy.approve', $diySession) }}" method="POST" class="d-inline ms-1">
+                @csrf
+                <button class="btn btn-outline-success btn-sm">Re-Approve</button>
+            </form>
+            @endif
+
             {{-- Status update --}}
-            <form action="{{ route('admin.diy.status', $diySession) }}" method="POST" class="d-inline">
+            <form action="{{ route('admin.diy.status', $diySession) }}" method="POST" class="d-inline ms-2">
                 @csrf @method('PATCH')
                 <select name="status" class="form-control form-control-sm d-inline w-auto" onchange="this.form.submit()">
                     @foreach(['draft','pending_review','quoted','booked'] as $s)

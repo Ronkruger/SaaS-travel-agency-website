@@ -94,4 +94,20 @@ class DIYTourController extends Controller
 
         return back()->with('success', 'Status updated.');
     }
+
+    // -------------------------------------------------------------------------
+    // Approve / Reject
+    // -------------------------------------------------------------------------
+
+    public function approve(DIYTourSession $diySession)
+    {
+        $diySession->update(['admin_status' => 'approved']);
+        return back()->with('success', 'DIY tour request approved.');
+    }
+
+    public function reject(DIYTourSession $diySession)
+    {
+        $diySession->update(['admin_status' => 'rejected']);
+        return back()->with('success', 'DIY tour request rejected.');
+    }
 }

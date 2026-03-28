@@ -94,6 +94,7 @@ Route::middleware('auth')->group(function () {
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::get('/diy/my-tours', [DIYTourController::class, 'myTours'])->name('diy.my-tours');
 });
 
 /*
@@ -148,6 +149,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:a
         Route::get('/{diySession}', [AdminDIYTourController::class, 'show'])->name('diy.show');
         Route::post('/{diySession}/quote', [AdminDIYTourController::class, 'generateQuote'])->name('diy.quote');
         Route::patch('/{diySession}/status', [AdminDIYTourController::class, 'updateStatus'])->name('diy.status');
+        Route::post('/{diySession}/approve', [AdminDIYTourController::class, 'approve'])->name('diy.approve');
+        Route::post('/{diySession}/reject', [AdminDIYTourController::class, 'reject'])->name('diy.reject');
     });
 });
 

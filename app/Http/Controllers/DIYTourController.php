@@ -35,6 +35,20 @@ class DIYTourController extends Controller
     }
 
     // -------------------------------------------------------------------------
+    // My DIY Tours — list authenticated user's sessions
+    // -------------------------------------------------------------------------
+
+    public function myTours()
+    {
+        $sessions = DIYTourSession::with('latestItinerary')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->paginate(15);
+
+        return view('diy.my-tours', compact('sessions'));
+    }
+
+    // -------------------------------------------------------------------------
     // Step 2 — Store session + call AI
     // -------------------------------------------------------------------------
 

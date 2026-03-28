@@ -19,6 +19,7 @@ class DIYTourSession extends Model
         'user_id',
         'session_token',
         'status',
+        'admin_status',
         'expires_at',
     ];
 

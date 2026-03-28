@@ -75,6 +75,7 @@
                         <a href="{{ route('profile') }}"><i class="fas fa-user"></i> My Profile</a>
                         <a href="{{ route('booking.index') }}"><i class="fas fa-calendar-check"></i> My Bookings</a>
                         <a href="{{ route('wishlist') }}"><i class="fas fa-heart"></i> Wishlist</a>
+                        <a href="{{ route('diy.my-tours') }}"><i class="fas fa-magic"></i> My DIY Tours</a>
                         @if(auth()->user()->isAdmin())
                             <div class="divider"></div>
                             <a href="{{ route('admin.dashboard') }}" class="admin-link"><i class="fas fa-cog"></i> Admin Panel</a>
