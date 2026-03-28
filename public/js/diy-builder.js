@@ -294,6 +294,15 @@
 
     function renderTimelineView() {
         const days = itinerary.day_by_day || [];
+        if (!days.length) {
+            document.getElementById('timelineContent').innerHTML =
+                '<div style="text-align:center;padding:2rem;color:#7f8c8d;">' +
+                '<div style="font-size:2.5rem;margin-bottom:.5rem;">📋</div>' +
+                '<p style="font-weight:600;">No itinerary yet.</p>' +
+                '<p style="font-size:.88rem;">Add cities on the right panel and your day-by-day schedule will appear here.</p>' +
+                '</div>';
+            return;
+        }
         let html = '<div class="timeline">';
         let lastCity = '';
         days.forEach(function (day) {
@@ -302,9 +311,14 @@
                 html += '<div class="timeline-city-header"><i class="fas fa-map-marker-alt"></i> <strong>' + day.city + '</strong>, ' + day.country + '</div>';
             }
             html += '<div class="timeline-day"><span class="timeline-day-num">Day ' + day.day + '</span>';
-            (day.activities || []).forEach(function (act) {
-                html += '<span class="timeline-activity ' + (act.included ? 'included' : 'optional') + '">' + act.time + ' · ' + act.name + '</span>';
-            });
+            const acts = day.activities || [];
+            if (acts.length) {
+                acts.forEach(function (act) {
+                    html += '<span class="timeline-activity ' + (act.included ? 'included' : 'optional') + '">' + act.time + ' · ' + act.name + '</span>';
+                });
+            } else {
+                html += '<span class="timeline-activity" style="color:#aaa;font-style:italic;">Free day — explore ' + day.city + '</span>';
+            }
             html += '</div>';
         });
         html += '</div>';
@@ -313,14 +327,28 @@
 
     function renderCalendarView() {
         const days = itinerary.day_by_day || [];
+        if (!days.length) {
+            document.getElementById('calendarContent').innerHTML =
+                '<div style="text-align:center;padding:2rem;color:#7f8c8d;">' +
+                '<div style="font-size:2.5rem;margin-bottom:.5rem;">📅</div>' +
+                '<p style="font-weight:600;">No itinerary yet.</p>' +
+                '<p style="font-size:.88rem;">Add cities on the right panel and your calendar will appear here.</p>' +
+                '</div>';
+            return;
+        }
         let html = '<div class="calendar-grid">';
         days.forEach(function (day) {
             html += '<div class="calendar-day-cell">';
             html += '<div class="cal-day-num">Day ' + day.day + '</div>';
             html += '<div class="cal-city">' + (day.city || '') + '</div>';
-            (day.activities || []).slice(0, 2).forEach(function (act) {
-                html += '<div class="cal-activity">' + act.name + '</div>';
-            });
+            const acts = day.activities || [];
+            if (acts.length) {
+                acts.slice(0, 2).forEach(function (act) {
+                    html += '<div class="cal-activity">' + act.name + '</div>';
+                });
+            } else {
+                html += '<div class="cal-activity" style="color:#aaa;font-style:italic;">Free day</div>';
+            }
             html += '</div>';
         });
         html += '</div>';

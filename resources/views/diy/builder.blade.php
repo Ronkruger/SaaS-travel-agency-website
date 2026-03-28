@@ -49,19 +49,35 @@
     </div>
     @endif
 
+    {{-- Quick-start guide strip --}}
+    <div class="builder-guide-strip" id="builderGuide">
+        <div class="guide-steps">
+            <span class="guide-step"><span class="guide-num">1</span> Review your cities &amp; route on the map</span>
+            <span class="guide-arrow">→</span>
+            <span class="guide-step"><span class="guide-num">2</span> Add or remove cities using the panel on the right</span>
+            <span class="guide-arrow">→</span>
+            <span class="guide-step"><span class="guide-num">3</span> Check the cost breakdown below the cities list</span>
+            <span class="guide-arrow">→</span>
+            <span class="guide-step guide-step-cta"><span class="guide-num">4</span> Click <strong>Get My Official Quote</strong> when satisfied!</span>
+        </div>
+        <button class="guide-close" onclick="document.getElementById('builderGuide').remove()" aria-label="Dismiss guide">✕</button>
+    </div>
+
     {{-- Main split layout --}}
     <div class="builder-main">
 
         {{-- LEFT: Interactive Map (60%) --}}
         <div class="builder-map-panel" id="builderMapPanel">
-            <div id="diyMap" class="diy-map-container"></div>
 
-            {{-- Map view toggles --}}
+            {{-- Map view toggles — at TOP so they're always visible --}}
             <div class="map-view-tabs">
+                <span class="map-view-label">View as:</span>
                 <button class="map-tab active" data-view="map" onclick="setMapView('map', this)">🗺️ Map</button>
-                <button class="map-tab" data-view="timeline" onclick="setMapView('timeline', this)">📋 Timeline</button>
+                <button class="map-tab" data-view="timeline" onclick="setMapView('timeline', this)">📋 Day-by-Day</button>
                 <button class="map-tab" data-view="calendar" onclick="setMapView('calendar', this)">📅 Calendar</button>
             </div>
+
+            <div id="diyMap" class="diy-map-container"></div>
 
             {{-- Timeline view (hidden by default) --}}
             <div id="timelineView" class="timeline-view" style="display:none">
@@ -76,6 +92,8 @@
 
         {{-- RIGHT: Controls (40%) --}}
         <div class="builder-controls-panel">
+
+            <div class="builder-sections-scroll">
 
             {{-- AI Assistant --}}
             <div class="builder-section ai-assistant-section">
@@ -157,6 +175,19 @@
                 <div id="validationBody" style="display:none">
                     <div id="validationResults"></div>
                 </div>
+            </div>{{-- .builder-section validation --}}
+
+            </div>{{-- .builder-sections-scroll --}}
+
+            {{-- Sticky "Get My Quote" CTA — always visible at the bottom --}}
+            <div class="builder-cta-strip">
+                <p class="cta-title">✅ Happy with your itinerary?</p>
+                <a href="{{ route('diy.request-quote', $session->session_token) }}"
+                   onclick="return confirmQuote(event)"
+                   class="btn btn-primary btn-full builder-cta-btn">
+                    <i class="fas fa-file-invoice-dollar"></i>&nbsp; Get My Official Quote →
+                </a>
+                <p class="cta-sub">Our team reviews &amp; confirms within 24 hrs — no payment needed yet.</p>
             </div>
 
         </div>{{-- .builder-controls-panel --}}
