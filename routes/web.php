@@ -94,7 +94,12 @@ Route::middleware('auth')->group(function () {
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    // DIY Tours — user-facing list, trash, delete, restore
     Route::get('/diy/my-tours', [DIYTourController::class, 'myTours'])->name('diy.my-tours');
+    Route::get('/diy/trash', [DIYTourController::class, 'myTrash'])->name('diy.trash');
+    Route::delete('/diy/{token}/delete', [DIYTourController::class, 'softDelete'])->name('diy.delete');
+    Route::post('/diy/{token}/restore', [DIYTourController::class, 'restoreSession'])->name('diy.restore');
+    Route::delete('/diy/{token}/force-delete', [DIYTourController::class, 'forceDeleteSession'])->name('diy.force-delete');
 });
 
 /*

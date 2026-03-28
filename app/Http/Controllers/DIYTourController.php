@@ -49,6 +49,68 @@ class DIYTourController extends Controller
     }
 
     // -------------------------------------------------------------------------
+    // My Trash — show soft-deleted sessions
+    // -------------------------------------------------------------------------
+
+    public function myTrash()
+    {
+        $sessions = DIYTourSession::onlyTrashed()
+            ->with('latestItinerary')
+            ->where('user_id', Auth::id())
+            ->latest('deleted_at')
+            ->paginate(15);
+
+        return view('diy.my-trash', compact('sessions'));
+    }
+
+    // -------------------------------------------------------------------------
+    // Move to Trash (soft delete)
+    // -------------------------------------------------------------------------
+
+    public function softDelete(string $token)
+    {
+        $session = DIYTourSession::where('session_token', $token)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $session->delete();
+
+        return redirect()->route('diy.my-tours')->with('success', 'Tour moved to trash.');
+    }
+
+    // -------------------------------------------------------------------------
+    // Restore from Trash
+    // -------------------------------------------------------------------------
+
+    public function restoreSession(string $token)
+    {
+        $session = DIYTourSession::onlyTrashed()
+            ->where('session_token', $token)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $session->restore();
+
+        return redirect()->route('diy.my-tours')->with('success', 'Tour restored successfully.');
+    }
+
+    // -------------------------------------------------------------------------
+    // Permanently Delete
+    // -------------------------------------------------------------------------
+
+    public function forceDeleteSession(string $token)
+    {
+        $session = DIYTourSession::onlyTrashed()
+            ->where('session_token', $token)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $session->forceDelete();
+
+        return redirect()->route('diy.trash')->with('success', 'Tour permanently deleted.');
+    }
+
+    // -------------------------------------------------------------------------
     // Step 2 — Store session + call AI
     // -------------------------------------------------------------------------
 
