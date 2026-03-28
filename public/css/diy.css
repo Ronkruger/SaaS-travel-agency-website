@@ -198,7 +198,13 @@
     text-align: center;
     cursor: pointer;
     transition: all .2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .15rem;
 }
+.duration-card strong { font-size: 2rem; font-weight: 800; color: var(--diy-primary); display: block; line-height: 1.1; }
+.duration-card small  { font-size: .8rem; color: var(--diy-muted); display: block; }
 .duration-card .days-num   { font-size: 2rem; font-weight: 800; color: var(--diy-primary); }
 .duration-card .days-label { font-size: .8rem; color: var(--diy-muted); }
 .duration-option input:checked ~ .duration-card {

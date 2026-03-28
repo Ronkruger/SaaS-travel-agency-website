@@ -46,7 +46,7 @@
                     <label class="duration-option">
                         <input type="radio" name="duration_option" value="custom" id="durationCustomRadio">
                         <span class="duration-card">
-                            <strong>Custom</strong><small>enter days</small>
+                            <strong>Custom</strong><small>I'll enter days</small>
                         </span>
                     </label>
                 </div>
