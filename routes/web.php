@@ -18,6 +18,9 @@ use App\Http\Controllers\DIYTourController;
 use App\Http\Controllers\DIYTourApiController;
 use App\Http\Controllers\Admin\DIYTourController as AdminDIYTourController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\Auth\AdminAuthController;
+use App\Http\Controllers\Admin\Auth\AdminAuth0Controller;
+use App\Http\Controllers\Admin\Auth\AdminOnboardingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -107,10 +110,39 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Admin Auth Routes (separate from customer auth)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->name('admin.')->group(function () {
+
+    // Guest-only: login & register pages
+    Route::middleware('guest.admin')->prefix('auth')->name('auth.')->group(function () {
+        Route::get('/login',    [AdminAuthController::class, 'showLogin'])->name('login');
+        Route::post('/login',   [AdminAuthController::class, 'login'])->name('login.post');
+        Route::get('/register', [AdminAuthController::class, 'showRegister'])->name('register');
+        Route::post('/register',[AdminAuthController::class, 'register'])->name('register.post');
+
+        // Auth0 SSO for admin
+        Route::get('/auth0',          [AdminAuth0Controller::class, 'redirect'])->name('auth0.redirect');
+        Route::get('/auth0/callback', [AdminAuth0Controller::class, 'callback'])->name('auth0.callback');
+    });
+
+    // Authenticated admin routes (auth.admin middleware also handles onboarding gate)
+    Route::middleware(['auth.admin', 'throttle:admin'])->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+        // Onboarding (excluded from onboard-check inside middleware)
+        Route::get('/onboarding',  [AdminOnboardingController::class, 'show'])->name('onboarding');
+        Route::post('/onboarding', [AdminOnboardingController::class, 'save'])->name('onboarding.save');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Live polling endpoints (JSON, no page refresh needed)

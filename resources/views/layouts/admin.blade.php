@@ -71,7 +71,7 @@
             <a href="{{ route('home') }}" target="_blank">
                 <i class="fas fa-external-link-alt"></i> View Site
             </a>
-            <form action="{{ route('logout') }}" method="POST">
+            <form action="{{ route('admin.logout') }}" method="POST">
                 @csrf
                 <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </form>
@@ -88,8 +88,21 @@
                 @yield('breadcrumb')
             </div>
             <div class="header-user">
-                <span>{{ auth()->user()->name }}</span>
-                <i class="fas fa-user-circle fa-lg"></i>
+                <div style="text-align:right">
+                    <div style="font-weight:700;font-size:.9375rem">{{ auth()->user()->name }}</div>
+                    @if(auth()->user()->is_onboarded)
+                    <div style="font-size:.75rem;color:var(--gray-500);margin-top:.1rem">
+                        {{ auth()->user()->department_label }} &mdash; {{ auth()->user()->position }}
+                    </div>
+                    @endif
+                </div>
+                @if(auth()->user()->avatar)
+                    <img src="{{ auth()->user()->avatar }}" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--gray-300)">
+                @else
+                    <div style="width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.9rem">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+                @endif
             </div>
         </header>
 
