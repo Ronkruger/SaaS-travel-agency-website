@@ -80,30 +80,36 @@ class BookingController extends Controller
         ]);
 
         $schedule = $booking->installment_schedule ?? [];
+        $found = false;
 
-        foreach ($schedule as &$item) {
-            if ((int) $item['term'] === $term) {
-                $item['status']  = $validated['status'];
-                $item['paid_at'] = $validated['status'] === 'paid' ? now()->toDateString() : null;
+        foreach ($schedule as $index => $item) {
+            if ((int) ($item['term'] ?? -1) === $term) {
+                $schedule[$index]['status']  = $validated['status'];
+                $schedule[$index]['paid_at'] = $validated['status'] === 'paid'
+                    ? now()->toDateString()
+                    : null;
+                $found = true;
                 break;
             }
         }
-        unset($item);
 
-        // Recalculate overall payment_status
-        $total    = count($schedule);
+        if (!$found) {
+            return back()->with('error', 'Term ' . $term . ' not found in schedule.');
+        }
+
         $paidCount = collect($schedule)->where('status', 'paid')->count();
+        $total     = count($schedule);
 
         $paymentStatus = match(true) {
-            $paidCount === 0       => 'unpaid',
-            $paidCount < $total    => 'partial',
-            default                => 'paid',
+            $paidCount === 0    => 'unpaid',
+            $paidCount < $total => 'partial',
+            default             => 'paid',
         };
 
-        $booking->update([
-            'installment_schedule' => $schedule,
-            'payment_status'       => $paymentStatus,
-        ]);
+        // Directly reassign attribute so Eloquent detects the change and saves correctly
+        $booking->installment_schedule = array_values($schedule);
+        $booking->payment_status       = $paymentStatus;
+        $booking->save();
 
         return back()->with('success', 'Term ' . $term . ' marked as ' . $validated['status'] . '.');
     }
