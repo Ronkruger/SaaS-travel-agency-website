@@ -33,11 +33,17 @@
             </div>
         </div>
 
-        @if($booking->payment_method === 'cash')
+        @if(in_array($booking->payment_method, ['cash', 'installment']))
         {{-- ── CASH PAYMENT MANAGEMENT ────────────────────────────── --}}
         <div class="card mb-4" style="border:2px solid #86efac">
             <div class="card-header" style="background:#f0fdf4">
-                <h4 style="color:#166534"><i class="fas fa-money-bill-wave"></i> Cash / Office Payment</h4>
+                <h4 style="color:#166534">
+                    @if($booking->payment_method === 'installment')
+                        <i class="fas fa-calendar-alt"></i> Installment / Payment Terms
+                    @else
+                        <i class="fas fa-money-bill-wave"></i> Cash / Office Payment
+                    @endif
+                </h4>
             </div>
             <div class="card-body">
 
@@ -146,7 +152,12 @@
                         <span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span>
                     </div>
                     <div class="detail-item"><span>Payment Method</span>
-                        <strong>{{ $booking->payment_method === 'cash' ? '🏢 Cash / Office' : '💳 Xendit Online' }}</strong>
+                        <strong>
+                            @if($booking->payment_method === 'installment') 📅 Installment
+                            @elseif($booking->payment_method === 'cash') 🏢 Cash / Office
+                            @else 💳 Xendit Online
+                            @endif
+                        </strong>
                     </div>
                     <div class="detail-item"><span>Payment Status</span>
                         <span class="payment-badge payment-{{ $booking->payment_status }}">{{ ucfirst($booking->payment_status) }}</span>

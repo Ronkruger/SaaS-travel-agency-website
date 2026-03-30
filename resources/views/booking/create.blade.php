@@ -150,29 +150,39 @@
                         </div>
 
                         <div style="display:flex;flex-direction:column;gap:.75rem">
-                            {{-- Option A: Pay Online via Xendit --}}
-                            <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #d1d5db;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmXenditLabel">
+
+                            {{-- Option A: Online via Xendit --}}
+                            <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #1e3a5f;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmXenditLabel">
                                 <input type="radio" name="payment_method" value="xendit" checked
                                     style="margin-top:.2rem;accent-color:#1e3a5f" onchange="onPaymentMethodChange()">
                                 <div>
-                                    <strong><i class="fas fa-credit-card" style="color:#1e3a5f"></i> Pay Online via Xendit</strong>
+                                    <strong><i class="fas fa-credit-card" style="color:#1e3a5f"></i> Online Payment</strong>
                                     <div class="text-muted" style="font-size:.85rem;margin-top:.2rem">
-                                        Credit/debit card, GCash, GrabPay, Maya, bank transfer — full payment now.
+                                        Credit/debit card, GCash, GrabPay, Maya — full payment now via Xendit.
                                     </div>
                                 </div>
                             </label>
 
-                            @if($tour->installment_months && $tour->monthly_installment_amount)
-                            {{-- Option B: Cash / Installment --}}
-                            <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #d1d5db;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmCashLabel">
+                            {{-- Option B: Full Cash at Office --}}
+                            <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #d1d5db;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmCashFullLabel">
                                 <input type="radio" name="payment_method" value="cash"
-                                    style="margin-top:.2rem;accent-color:#1e3a5f" onchange="onPaymentMethodChange()">
+                                    style="margin-top:.2rem;accent-color:#16a34a" onchange="onPaymentMethodChange()">
                                 <div>
-                                    <strong><i class="fas fa-money-bill-wave" style="color:#16a34a"></i> Cash / Installment</strong>
+                                    <strong><i class="fas fa-money-bill-wave" style="color:#16a34a"></i> Full Cash — Office / Bank Transfer</strong>
                                     <div class="text-muted" style="font-size:.85rem;margin-top:.2rem">
-                                        Pay via bank transfer or in-person.
-                                        ₱{{ number_format($tour->monthly_installment_amount, 2) }}/month
-                                        — up to {{ $tour->installment_months }} month{{ $tour->installment_months > 1 ? 's' : '' }}.
+                                        Pay the full amount in person or via bank transfer. Our team will contact you with details.
+                                    </div>
+                                </div>
+                            </label>
+
+                            {{-- Option C: Installment --}}
+                            <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #d1d5db;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmInstallmentLabel">
+                                <input type="radio" name="payment_method" value="installment"
+                                    style="margin-top:.2rem;accent-color:#7c3aed" onchange="onPaymentMethodChange()">
+                                <div>
+                                    <strong><i class="fas fa-calendar-alt" style="color:#7c3aed"></i> Payment Terms / Installment</strong>
+                                    <div class="text-muted" style="font-size:.85rem;margin-top:.2rem">
+                                        Pay in monthly installments — up to 15 months.
                                         @if($tour->fixed_downpayment_amount)
                                             Down payment: ₱{{ number_format($tour->fixed_downpayment_amount, 2) }}.
                                         @endif
@@ -180,27 +190,32 @@
                                 </div>
                             </label>
 
-                            {{-- Installment Options (shown only when cash selected) --}}
-                            <div id="installmentOptions" style="display:none;padding:1.125rem;background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem">
-                                <div class="form-group" style="margin-bottom:.875rem">
+                        </div>
+
+                        {{-- Installment sub-options (shown when installment selected) --}}
+                        <div id="installmentOptions" style="display:none;margin-top:.75rem;padding:1.125rem;background:#faf5ff;border:1px solid #d8b4fe;border-radius:.75rem">
+
+                            <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+                                <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
                                     <label style="font-weight:600">Number of Monthly Terms</label>
-                                    <select name="installment_months" id="installmentMonthsSel" class="form-control" onchange="renderInstallmentSchedule()" style="max-width:200px">
-                                        @for($i = 1; $i <= $tour->installment_months; $i++)
-                                            <option value="{{ $i }}">{{ $i }} month{{ $i > 1 ? 's' : '' }}</option>
+                                    <select name="installment_months" id="installmentMonthsSel" class="form-control"
+                                        onchange="renderInstallmentSchedule()">
+                                        @for($i = 1; $i <= 15; $i++)
+                                            <option value="{{ $i }}"
+                                                {{ $i == ($tour->installment_months ?? 10) ? 'selected' : '' }}>
+                                                {{ $i }} month{{ $i > 1 ? 's' : '' }}
+                                            </option>
                                         @endfor
                                     </select>
                                 </div>
-
-                                <div id="installmentSchedulePreview" style="font-size:.875rem">
-                                    {{-- Filled by JS --}}
-                                </div>
                             </div>
-                            @endif
+
+                            <div id="installmentSchedulePreview" style="font-size:.875rem"></div>
                         </div>
                     </div>
 
-                    {{-- Hidden field for installment months when xendit selected --}}
-                    <input type="hidden" name="installment_months" id="installmentMonthsHidden" value="">
+                    {{-- Hidden: installment_months is submitted only for installment method --}}
+                    <input type="hidden" name="installment_months" id="installmentMonthsHidden" value="" disabled>
 
                     <!-- Terms Agreement -->
                     <div class="booking-step">
@@ -333,80 +348,101 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ── Payment Method ──────────────────────────────────────────────────────────
-const MONTHLY_AMOUNT = {{ $tour->monthly_installment_amount ?? 0 }};
+const FIXED_MONTHLY  = {{ $tour->monthly_installment_amount ?? 0 }};
 const DOWNPAYMENT    = {{ $tour->fixed_downpayment_amount ?? 0 }};
 
 function onPaymentMethodChange() {
     const method = document.querySelector('input[name="payment_method"]:checked')?.value || 'xendit';
-    const cashBox = document.getElementById('installmentOptions');
-    const xenditLabel = document.getElementById('pmXenditLabel');
-    const cashLabel   = document.getElementById('pmCashLabel');
-    const btnText     = document.getElementById('proceedBtnText');
-    const hiddenMonths = document.getElementById('installmentMonthsHidden');
-    const selMonths    = document.getElementById('installmentMonthsSel');
 
-    if (method === 'cash' && cashBox) {
-        cashBox.style.display = '';
-        if (xenditLabel) xenditLabel.style.borderColor = '#d1d5db';
-        if (cashLabel)   cashLabel.style.borderColor   = '#16a34a';
-        if (btnText) btnText.textContent = 'Confirm Booking (Cash/Installment)';
-        if (hiddenMonths) hiddenMonths.disabled = true;
-        renderInstallmentSchedule();
-    } else {
-        if (cashBox) cashBox.style.display = 'none';
+    const xenditLabel      = document.getElementById('pmXenditLabel');
+    const cashFullLabel    = document.getElementById('pmCashFullLabel');
+    const installmentLabel = document.getElementById('pmInstallmentLabel');
+    const installmentBox   = document.getElementById('installmentOptions');
+    const hiddenMonths     = document.getElementById('installmentMonthsHidden');
+    const btnText          = document.getElementById('proceedBtnText');
+
+    // Reset all borders
+    [xenditLabel, cashFullLabel, installmentLabel].forEach(el => {
+        if (el) el.style.borderColor = '#d1d5db';
+    });
+
+    if (method === 'xendit') {
         if (xenditLabel) xenditLabel.style.borderColor = '#1e3a5f';
-        if (cashLabel)   cashLabel.style.borderColor   = '#d1d5db';
+        if (installmentBox) installmentBox.style.display = 'none';
+        if (hiddenMonths) hiddenMonths.disabled = true;
         if (btnText) btnText.textContent = 'Proceed to Payment';
+    } else if (method === 'cash') {
+        if (cashFullLabel) cashFullLabel.style.borderColor = '#16a34a';
+        if (installmentBox) installmentBox.style.display = 'none';
+        if (hiddenMonths) hiddenMonths.disabled = true;
+        if (btnText) btnText.textContent = 'Confirm Booking (Cash)';
+    } else if (method === 'installment') {
+        if (installmentLabel) installmentLabel.style.borderColor = '#7c3aed';
+        if (installmentBox) installmentBox.style.display = '';
         if (hiddenMonths) hiddenMonths.disabled = false;
+        if (btnText) btnText.textContent = 'Confirm Booking (Installment)';
+        renderInstallmentSchedule();
     }
 }
 
+function getGrandTotal() {
+    const adults   = parseInt(document.getElementById('adults').value) || 1;
+    const children = parseInt(document.getElementById('children').value) || 0;
+    const childTotal = children * currentPrice * childRate;
+    const subtotal   = adults * currentPrice + childTotal;
+    const tax        = (adults + children) * TRAVEL_TAX;
+    return subtotal + tax;
+}
+
 function renderInstallmentSchedule() {
-    const preview = document.getElementById('installmentSchedulePreview');
-    const sel     = document.getElementById('installmentMonthsSel');
+    const preview  = document.getElementById('installmentSchedulePreview');
+    const sel      = document.getElementById('installmentMonthsSel');
+    const hiddenM  = document.getElementById('installmentMonthsHidden');
     if (!preview || !sel) return;
 
-    const months   = parseInt(sel.value);
-    const tourDate = document.getElementById('tourDate')?.value;
-    const baseDate = tourDate ? new Date(tourDate) : new Date();
+    const months     = parseInt(sel.value);
+    if (hiddenM) hiddenM.value = months;
 
-    // Compute start: today + 30 days for first instalment
-    const today = new Date();
+    const grandTotal = getGrandTotal();
+    // Use fixed monthly amount from tour if set, otherwise divide total by months
+    const monthly    = FIXED_MONTHLY > 0 ? FIXED_MONTHLY : Math.ceil(grandTotal / months);
+    const today      = new Date();
+
     let rows = '';
-
-    // Downpayment row (if set)
     if (DOWNPAYMENT > 0) {
         const dp = new Date(today);
         dp.setDate(dp.getDate() + 7);
-        rows += `<tr style="background:#dcfce7"><td><strong>Down Payment</strong></td><td>${fmtDate(dp)}</td><td><strong>₱${fmt(DOWNPAYMENT)}</strong></td><td><span style="background:#fef9c3;color:#854d0e;padding:.1rem .45rem;border-radius:.25rem;font-size:.8rem">Pending</span></td></tr>`;
+        rows += `<tr style="background:#faf5ff"><td><strong>Down Payment</strong></td><td>${fmtDate(dp)}</td><td><strong>₱${fmt(DOWNPAYMENT)}</strong></td><td><span style="background:#fef9c3;color:#854d0e;padding:.1rem .45rem;border-radius:.25rem;font-size:.78rem">Pending</span></td></tr>`;
     }
-
     for (let i = 1; i <= months; i++) {
         const d = new Date(today);
         d.setMonth(d.getMonth() + i);
-        rows += `<tr><td>Month ${i}</td><td>${fmtDate(d)}</td><td>₱${fmt(MONTHLY_AMOUNT)}</td><td><span style="background:#e5e7eb;color:#374151;padding:.1rem .45rem;border-radius:.25rem;font-size:.8rem">Pending</span></td></tr>`;
+        rows += `<tr><td>Month ${i}</td><td>${fmtDate(d)}</td><td>₱${fmt(monthly)}</td><td><span style="background:#e5e7eb;color:#374151;padding:.1rem .45rem;border-radius:.25rem;font-size:.78rem">Pending</span></td></tr>`;
     }
 
-    const total = DOWNPAYMENT + (MONTHLY_AMOUNT * months);
+    const scheduleTotal = DOWNPAYMENT + (monthly * months);
     preview.innerHTML = `
-        <p style="margin-bottom:.5rem;font-weight:600;color:#15803d">Payment Schedule Preview</p>
+        <p style="margin-bottom:.5rem;font-weight:600;color:#7c3aed">
+            ₱${fmt(monthly)}/month × ${months} months
+            ${DOWNPAYMENT > 0 ? ' + down payment' : ''}
+        </p>
         <table style="width:100%;border-collapse:collapse;font-size:.83rem">
-            <thead><tr style="border-bottom:1px solid #86efac;color:#166534">
+            <thead><tr style="border-bottom:1px solid #d8b4fe;color:#6d28d9">
                 <th style="text-align:left;padding:.3rem .5rem">Term</th>
                 <th style="text-align:left;padding:.3rem .5rem">Due Date</th>
                 <th style="text-align:left;padding:.3rem .5rem">Amount</th>
                 <th style="text-align:left;padding:.3rem .5rem">Status</th>
             </tr></thead>
             <tbody>${rows}</tbody>
-            <tfoot><tr style="border-top:1px solid #86efac;font-weight:700;color:#166534">
+            <tfoot><tr style="border-top:1px solid #d8b4fe;font-weight:700;color:#6d28d9">
                 <td colspan="2" style="padding:.4rem .5rem">Total via installment</td>
-                <td style="padding:.4rem .5rem">₱${fmt(total)}</td>
+                <td style="padding:.4rem .5rem">₱${fmt(scheduleTotal)}</td>
                 <td></td>
             </tr></tfoot>
         </table>
         <p style="margin-top:.5rem;font-size:.8rem;color:#6b7280">
             <i class="fas fa-info-circle"></i>
-            Dates are approximate. Our team will send payment reminders before each due date.
+            Our team will send payment reminders and bank details before each due date.
         </p>`;
 }
 

@@ -18,7 +18,7 @@ return new class extends Migration
 
         // Add installment tracking to bookings
         Schema::table('bookings', function (Blueprint $table) {
-            $table->enum('payment_method', ['xendit', 'cash'])->default('xendit')->after('payment_status');
+            $table->enum('payment_method', ['xendit', 'cash', 'installment'])->default('xendit')->after('payment_status');
             $table->unsignedTinyInteger('installment_months')->nullable()->after('payment_method');
             $table->decimal('downpayment_amount', 10, 2)->nullable()->after('installment_months');
             $table->json('installment_schedule')->nullable()->after('downpayment_amount');

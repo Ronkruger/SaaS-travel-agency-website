@@ -28,8 +28,9 @@
             </select>
             <select name="payment_method" class="form-control">
                 <option value="">All Methods</option>
-                <option value="xendit" {{ request('payment_method') === 'xendit' ? 'selected' : '' }}>💳 Online (Xendit)</option>
-                <option value="cash"   {{ request('payment_method') === 'cash'   ? 'selected' : '' }}>🏢 Cash / Office</option>
+                <option value="xendit"       {{ request('payment_method') === 'xendit'       ? 'selected' : '' }}>💳 Online (Xendit)</option>
+                <option value="cash"         {{ request('payment_method') === 'cash'         ? 'selected' : '' }}>🏢 Cash / Office</option>
+                <option value="installment"  {{ request('payment_method') === 'installment'  ? 'selected' : '' }}>📅 Installment</option>
             </select>
             <button type="submit" class="btn btn-outline"><i class="fas fa-search"></i> Filter</button>
             <a href="{{ route('admin.bookings.index') }}" class="btn btn-ghost">Clear</a>
@@ -70,6 +71,8 @@
                             <span class="payment-badge payment-{{ $booking->payment_status }}">{{ ucfirst($booking->payment_status) }}</span>
                             @if($booking->payment_method === 'cash')
                                 <br><small style="color:#16a34a;font-size:.75rem">🏢 Cash</small>
+                            @elseif($booking->payment_method === 'installment')
+                                <br><small style="color:#7c3aed;font-size:.75rem">📅 Installment</small>
                             @endif
                         </td>
                         <td>

@@ -26,7 +26,7 @@ class BookingController extends Controller
             }
         }
         if ($method = $request->input('payment_method')) {
-            if (in_array($method, ['xendit', 'cash'])) {
+            if (in_array($method, ['xendit', 'cash', 'installment'])) {
                 $query->where('payment_method', $method);
             }
         }

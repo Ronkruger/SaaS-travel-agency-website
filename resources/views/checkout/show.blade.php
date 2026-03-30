@@ -24,11 +24,17 @@
             <!-- Payment Form -->
             <div class="checkout-form">
 
-                @if($booking->payment_method === 'cash')
+                @if(in_array($booking->payment_method, ['cash', 'installment']))
                 {{-- ── CASH / INSTALLMENT VIEW ────────────────────────────── --}}
                 <div class="card mb-4">
-                    <div class="card-header">
-                        <h4><i class="fas fa-money-bill-wave" style="color:#16a34a"></i> Cash / Installment Payment</h4>
+                    <div class="card-header" style="background:#f0fdf4">
+                        <h4>
+                            @if($booking->payment_method === 'installment')
+                                <i class="fas fa-calendar-alt" style="color:#7c3aed"></i> Installment Payment Schedule
+                            @else
+                                <i class="fas fa-money-bill-wave" style="color:#16a34a"></i> Full Cash Payment
+                            @endif
+                        </h4>
                     </div>
                     <div class="card-body">
 

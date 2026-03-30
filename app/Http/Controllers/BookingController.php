@@ -52,7 +52,7 @@ class BookingController extends Controller
             'contact_phone'     => ['required', 'string', 'max:20'],
             'special_requests'  => ['nullable', 'string', 'max:1000'],
             'traveler_details'  => ['nullable', 'array'],
-            'payment_method'    => ['required', 'in:xendit,cash'],
+            'payment_method'    => ['required', 'in:xendit,cash,installment'],
             'installment_months'=> ['nullable', 'integer', 'min:1', 'max:15'],
         ]);
 
@@ -96,18 +96,24 @@ class BookingController extends Controller
 
         DB::beginTransaction();
         try {
-            // Build installment schedule for cash payments
+            // Build installment schedule for installment payments
             $paymentMethod      = $validated['payment_method'];
             $installmentMonths  = null;
             $downpaymentAmount  = null;
             $installmentSchedule = null;
 
-            if ($paymentMethod === 'cash' && $tour->installment_months && $tour->monthly_installment_amount) {
+            if ($paymentMethod === 'installment') {
                 $installmentMonths = min(
-                    (int) ($validated['installment_months'] ?? $tour->installment_months),
-                    $tour->installment_months
+                    (int) ($validated['installment_months'] ?? ($tour->installment_months ?? 10)),
+                    15
                 );
                 $downpaymentAmount = $tour->fixed_downpayment_amount ?? 0;
+
+                // Use fixed monthly amount from tour if set, otherwise divide total/months
+                $monthlyAmount = $tour->monthly_installment_amount > 0
+                    ? (float) $tour->monthly_installment_amount
+                    : (float) ceil($totalAmount / $installmentMonths);
+
                 $schedule = [];
                 $today = now();
 
@@ -126,7 +132,7 @@ class BookingController extends Controller
                         'type'     => 'installment',
                         'term'     => $i,
                         'due_date' => $today->copy()->addMonths($i)->toDateString(),
-                        'amount'   => (float) $tour->monthly_installment_amount,
+                        'amount'   => $monthlyAmount,
                         'status'   => 'pending',
                     ];
                 }
