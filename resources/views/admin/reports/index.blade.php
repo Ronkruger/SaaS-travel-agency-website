@@ -7,6 +7,19 @@
         <h1><i class="fas fa-chart-bar"></i> Monthly Performance Report</h1>
         <p class="text-muted">Sales, bookings, and revenue analytics</p>
     </div>
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+        <a href="{{ route('admin.reports.export-csv', ['year' => $year, 'month' => $month]) }}"
+           class="btn btn-sm"
+           style="background:#16a34a;color:#fff;padding:.45rem 1rem;font-size:.85rem;border-radius:.5rem;text-decoration:none">
+            <i class="fas fa-file-csv"></i> Export CSV
+        </a>
+        <a href="{{ route('admin.reports.print', ['year' => $year, 'month' => $month]) }}"
+           target="_blank"
+           class="btn btn-sm"
+           style="background:#64748b;color:#fff;padding:.45rem 1rem;font-size:.85rem;border-radius:.5rem;text-decoration:none">
+            <i class="fas fa-print"></i> Print / PDF
+        </a>
+    </div>
 </div>
 
 {{-- Month / Year Filter --}}

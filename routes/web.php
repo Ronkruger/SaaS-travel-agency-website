@@ -165,6 +165,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:a
 
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export-csv', [ReportController::class, 'exportCsv'])->name('reports.export-csv');
+    Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');
 });
 
 /*
