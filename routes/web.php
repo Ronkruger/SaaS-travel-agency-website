@@ -120,7 +120,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/login',    [AdminAuthController::class, 'showLogin'])->name('login');
         Route::post('/login',   [AdminAuthController::class, 'login'])->name('login.post');
         Route::get('/register', [AdminAuthController::class, 'showRegister'])->name('register');
-        Route::post('/register',[AdminAuthController::class, 'register'])->name('register.post');
+        // Registration is Auth0-only; POST is intentionally not exposed
 
         // Auth0 SSO for admin
         Route::get('/auth0',          [AdminAuth0Controller::class, 'redirect'])->name('auth0.redirect');

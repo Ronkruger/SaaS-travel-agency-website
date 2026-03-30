@@ -252,6 +252,11 @@
 
             <div class="auth-divider">or sign in with email</div>
 
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:.75rem 1rem;margin-bottom:1.25rem;display:flex;gap:.625rem;align-items:center;font-size:.8125rem;color:#92400e">
+                <i class="fas fa-lock" style="flex-shrink:0"></i>
+                Email &amp; password sign-in is reserved for the <strong>system administrator</strong> only. Employees should use Auth0.
+            </div>
+
             <form method="POST" action="{{ route('admin.auth.login.post') }}">
                 @csrf
 

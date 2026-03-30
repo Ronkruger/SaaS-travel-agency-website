@@ -221,85 +221,26 @@
     <div class="auth-form-side">
         <div class="auth-card">
             <div class="auth-card-head">
-                <h3>Create Employee Account</h3>
-                <p>Step 1 of 2 — Account details</p>
+                <h3>Employee Registration</h3>
+                <p>All DiscoverGRP employee accounts are created through Auth0 SSO.</p>
             </div>
 
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        <strong>Please fix the following errors:</strong>
-                        <ul>
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+            {{-- Auth0-only notice box --}}
+            <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:1.125rem 1.25rem;margin-bottom:1.5rem;display:flex;gap:.75rem;align-items:flex-start">
+                <i class="fas fa-shield-alt" style="color:#0284c7;margin-top:.15rem;flex-shrink:0"></i>
+                <div style="font-size:.9rem;color:#0369a1">
+                    <strong style="display:block;margin-bottom:.25rem">Secure Employee Access via Auth0</strong>
+                    Click the button below to create your employee account using your work credentials. You'll be asked to choose your department &amp; position after signing up.
                 </div>
-            @endif
+            </div>
 
-            {{-- Auth0 Register --}}
-            <a href="{{ route('admin.auth.auth0.redirect') }}?mode=register" class="btn-auth0">
-                <div class="auth0-badge">
+            <a href="{{ route('admin.auth.auth0.redirect') }}?mode=register" class="btn-auth0" style="border:2px solid #0284c7;background:#f0f9ff;color:#0369a1;padding:.875rem 1.25rem;font-size:1rem">
+                <div class="auth0-badge" style="width:26px;height:26px">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.2 6.4L17 0H7L4.8 6.4 12 11.2l7.2-4.8zM4.8 6.4L2.6 13.2l4.6 3.4L4.8 6.4zM7 24l3.4-4.4H7L4.8 13 2.6 13.2 7 24zm10-0l4.4-10.8-2.2-.2L16.6 19.6H13L16.6 24h.4zm1.2-17.6l-2.4 10-6-3.4-6 3.4-2.4-10"/></svg>
                 </div>
-                Sign up with Auth0
+                <span>Create Employee Account with Auth0</span>
+                <i class="fas fa-arrow-right" style="margin-left:auto"></i>
             </a>
-
-            <div class="auth-divider">or register with email</div>
-
-            <form method="POST" action="{{ route('admin.auth.register.post') }}">
-                @csrf
-
-                <div class="form-group">
-                    <label for="name">Full Name</label>
-                    <input
-                        id="name" type="text" name="name" class="form-control{{ $errors->has('name') ? ' is-invalid' : '' }}"
-                        value="{{ old('name') }}" required autofocus autocomplete="name"
-                        placeholder="Juan dela Cruz"
-                    >
-                    @error('name')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Work Email Address</label>
-                    <input
-                        id="email" type="email" name="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}"
-                        value="{{ old('email') }}" required autocomplete="email"
-                        placeholder="you@discovergrp.com"
-                    >
-                    @error('email')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input
-                        id="password" type="password" name="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}"
-                        required autocomplete="new-password" placeholder="••••••••"
-                    >
-                    <span class="password-hint"><i class="fas fa-info-circle"></i> Min 8 characters, upper &amp; lowercase, and a number</span>
-                    @error('password')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label for="password_confirmation">Confirm Password</label>
-                    <input
-                        id="password_confirmation" type="password" name="password_confirmation"
-                        class="form-control" required autocomplete="new-password" placeholder="••••••••"
-                    >
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Create Account &amp; Continue
-                </button>
-            </form>
 
             <div class="auth-footer">
                 Already have an account? <a href="{{ route('admin.auth.login') }}">Sign in</a>
