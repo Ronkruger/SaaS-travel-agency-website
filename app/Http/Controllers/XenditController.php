@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Mail\BookingConfirmationMail;
 use App\Services\SecurityLogger;
 use App\Services\XenditWebhookValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Xendit\Configuration;
 use Xendit\Invoice\InvoiceApi;
 use Xendit\Invoice\CreateInvoiceRequest;
@@ -194,6 +196,16 @@ class XenditController extends Controller
                         'payment_status'       => $allPaid ? 'paid' : 'partial',
                     ]);
                 });
+
+                // Send confirmation email outside the transaction
+                try {
+                    $termLabel = $termNumber === 0 ? 'Down Payment' : 'Month ' . $termNumber;
+                    $booking->refresh()->load('tour');
+                    Mail::to($booking->contact_email)
+                        ->send(new BookingConfirmationMail($booking, $termLabel, true));
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send installment confirmation email: ' . $e->getMessage());
+                }
             } elseif ($status === 'EXPIRED' || $status === 'FAILED') {
                 // No status change needed — term stays pending
                 Log::info('Installment term payment expired/failed', [
@@ -250,6 +262,15 @@ class XenditController extends Controller
 
                 $booking->tour()->increment('total_bookings');
             });
+
+            // Send booking confirmation email outside the transaction
+            try {
+                $booking->refresh()->load('tour');
+                Mail::to($booking->contact_email)
+                    ->send(new BookingConfirmationMail($booking));
+            } catch (\Throwable $e) {
+                Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
+            }
         } elseif ($status === 'EXPIRED' || $status === 'FAILED') {
             $booking->update(['payment_status' => 'unpaid']);
         }
