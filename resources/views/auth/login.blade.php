@@ -48,7 +48,7 @@
                 <label class="form-check">
                     <input type="checkbox" name="remember"> Remember me
                 </label>
-                <a href="#" class="forgot-link">Forgot password?</a>
+                <a href="{{ route('password.request') }}" class="forgot-link">Forgot password?</a>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">

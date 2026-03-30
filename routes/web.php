@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\Auth\AdminAuth0Controller;
 use App\Http\Controllers\Admin\Auth\AdminOnboardingController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,6 +60,14 @@ Route::middleware(['guest', 'throttle:auth'])->group(function () {
     // Auth0 OAuth
     Route::get('/auth/auth0', [Auth0Controller::class, 'redirect'])->name('auth0.redirect');
     Route::get('/auth/auth0/callback', [Auth0Controller::class, 'callback'])->name('auth0.callback');
+
+    // Password reset via OTP
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showRequest'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp'])->name('password.email');
+    Route::get('/verify-otp', [ForgotPasswordController::class, 'showVerify'])->name('password.verify');
+    Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])->name('password.verify.post');
+    Route::get('/reset-password', [ForgotPasswordController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
