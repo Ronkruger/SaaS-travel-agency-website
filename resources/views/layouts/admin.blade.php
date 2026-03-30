@@ -63,6 +63,10 @@
                     <span class="badge">{{ $pendingReviews }}</span>
                 @endif
             </a>
+            <div class="nav-section">REPORTS</div>
+            <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <i class="fas fa-chart-bar"></i> Monthly Report
+            </a>
             <div class="nav-section">ACCOUNT</div>
             <a href="{{ route('home') }}" target="_blank">
                 <i class="fas fa-external-link-alt"></i> View Site

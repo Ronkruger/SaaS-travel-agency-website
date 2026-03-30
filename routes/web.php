@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\DIYTourController;
 use App\Http\Controllers\DIYTourApiController;
 use App\Http\Controllers\Admin\DIYTourController as AdminDIYTourController;
+use App\Http\Controllers\Admin\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -159,6 +160,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'throttle:a
         Route::post('/{diySession}/approve', [AdminDIYTourController::class, 'approve'])->name('diy.approve');
         Route::post('/{diySession}/reject', [AdminDIYTourController::class, 'reject'])->name('diy.reject');
     });
+
+    // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 });
 
 /*
