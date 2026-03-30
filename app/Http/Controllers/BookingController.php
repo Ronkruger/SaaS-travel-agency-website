@@ -54,6 +54,7 @@ class BookingController extends Controller
             'traveler_details'  => ['nullable', 'array'],
             'payment_method'    => ['required', 'in:xendit,cash,installment'],
             'installment_months'=> ['nullable', 'integer', 'min:1', 'max:15'],
+            'downpayment_amount'=> ['nullable', 'numeric', 'min:0'],
         ]);
 
         $tour = Tour::findOrFail($validated['tour_id']);
@@ -107,12 +108,17 @@ class BookingController extends Controller
                     (int) ($validated['installment_months'] ?? ($tour->installment_months ?? 10)),
                     15
                 );
-                $downpaymentAmount = $tour->fixed_downpayment_amount ?? 0;
 
-                // Use fixed monthly amount from tour if set, otherwise divide total/months
+                // Use client-entered downpayment, but enforce minimum from tour setting
+                $minDownpayment    = (float) ($tour->fixed_downpayment_amount ?? 0);
+                $clientDownpayment = (float) ($validated['downpayment_amount'] ?? 0);
+                $downpaymentAmount = max($clientDownpayment, $minDownpayment);
+
+                // Monthly = fixed tour amount if set; otherwise split remaining balance over terms
+                $remaining     = max($totalAmount - $downpaymentAmount, 0);
                 $monthlyAmount = $tour->monthly_installment_amount > 0
                     ? (float) $tour->monthly_installment_amount
-                    : (float) ceil($totalAmount / $installmentMonths);
+                    : (float) ceil($remaining / $installmentMonths);
 
                 $schedule = [];
                 $today = now();

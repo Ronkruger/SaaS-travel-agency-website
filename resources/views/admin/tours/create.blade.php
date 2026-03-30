@@ -418,7 +418,7 @@
 
                 <div class="form-row-2" id="downpaymentFields" style="{{ old('allows_downpayment') ? '' : 'display:none' }}">
                     <div class="form-group">
-                        <label>Fixed Down Payment Amount (₱)</label>
+                        <label>Minimum Down Payment Amount (₱)</label>
                         <input type="number" name="fixed_downpayment_amount" class="form-control"
                             value="{{ old('fixed_downpayment_amount') }}" step="0.01" min="0">
                     </div>

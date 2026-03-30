@@ -195,7 +195,7 @@
                         {{-- Installment sub-options (shown when installment selected) --}}
                         <div id="installmentOptions" style="display:none;margin-top:.75rem;padding:1.125rem;background:#faf5ff;border:1px solid #d8b4fe;border-radius:.75rem">
 
-                            <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+                            <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;align-items:flex-end">
                                 <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
                                     <label style="font-weight:600">Number of Monthly Terms</label>
                                     <select name="installment_months" id="installmentMonthsSel" class="form-control"
@@ -208,14 +208,45 @@
                                         @endfor
                                     </select>
                                 </div>
+
+                                <div class="form-group" style="flex:1;min-width:180px;margin-bottom:0">
+                                    <label style="font-weight:600">
+                                        Down Payment Amount (₱)
+                                        @if($tour->fixed_downpayment_amount)
+                                            <span style="font-weight:400;color:#7c3aed;font-size:.82rem">
+                                                — min ₱{{ number_format($tour->fixed_downpayment_amount, 2) }}
+                                            </span>
+                                        @endif
+                                    </label>
+                                    <div style="position:relative">
+                                        <span style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:#6b7280;font-size:.9rem">₱</span>
+                                        <input type="number"
+                                            id="downpaymentInput"
+                                            name="downpayment_input"
+                                            class="form-control"
+                                            style="padding-left:1.75rem"
+                                            min="{{ $tour->fixed_downpayment_amount ?? 0 }}"
+                                            step="100"
+                                            placeholder="{{ $tour->fixed_downpayment_amount ? number_format($tour->fixed_downpayment_amount, 0) : '0' }}"
+                                            value="{{ $tour->fixed_downpayment_amount ?? '' }}"
+                                            oninput="renderInstallmentSchedule()">
+                                    </div>
+                                    @if($tour->fixed_downpayment_amount)
+                                    <small id="dpError" style="color:#dc2626;display:none">
+                                        Minimum down payment is ₱{{ number_format($tour->fixed_downpayment_amount, 2) }}
+                                    </small>
+                                    @endif
+                                    <small class="text-muted">Enter ₱0 if no down payment. Remaining balance is split across monthly terms.</small>
+                                </div>
                             </div>
 
                             <div id="installmentSchedulePreview" style="font-size:.875rem"></div>
                         </div>
                     </div>
 
-                    {{-- Hidden: installment_months is submitted only for installment method --}}
-                    <input type="hidden" name="installment_months" id="installmentMonthsHidden" value="" disabled>
+                    {{-- Hiddens: only submitted when installment method chosen --}}
+                    <input type="hidden" name="installment_months"  id="installmentMonthsHidden"  value="" disabled>
+                    <input type="hidden" name="downpayment_amount"  id="downpaymentAmountHidden"  value="" disabled>
 
                     <!-- Terms Agreement -->
                     <div class="booking-step">
@@ -349,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ── Payment Method ──────────────────────────────────────────────────────────
 const FIXED_MONTHLY  = {{ $tour->monthly_installment_amount ?? 0 }};
-const DOWNPAYMENT    = {{ $tour->fixed_downpayment_amount ?? 0 }};
+const MIN_DOWNPAYMENT = {{ $tour->fixed_downpayment_amount ?? 0 }};
 
 function onPaymentMethodChange() {
     const method = document.querySelector('input[name="payment_method"]:checked')?.value || 'xendit';
@@ -358,8 +389,9 @@ function onPaymentMethodChange() {
     const cashFullLabel    = document.getElementById('pmCashFullLabel');
     const installmentLabel = document.getElementById('pmInstallmentLabel');
     const installmentBox   = document.getElementById('installmentOptions');
-    const hiddenMonths     = document.getElementById('installmentMonthsHidden');
-    const btnText          = document.getElementById('proceedBtnText');
+    const hiddenMonths      = document.getElementById('installmentMonthsHidden');
+    const hiddenDownpayment = document.getElementById('downpaymentAmountHidden');
+    const btnText           = document.getElementById('proceedBtnText');
 
     // Reset all borders
     [xenditLabel, cashFullLabel, installmentLabel].forEach(el => {
@@ -370,16 +402,19 @@ function onPaymentMethodChange() {
         if (xenditLabel) xenditLabel.style.borderColor = '#1e3a5f';
         if (installmentBox) installmentBox.style.display = 'none';
         if (hiddenMonths) hiddenMonths.disabled = true;
+        if (hiddenDownpayment) hiddenDownpayment.disabled = true;
         if (btnText) btnText.textContent = 'Proceed to Payment';
     } else if (method === 'cash') {
         if (cashFullLabel) cashFullLabel.style.borderColor = '#16a34a';
         if (installmentBox) installmentBox.style.display = 'none';
         if (hiddenMonths) hiddenMonths.disabled = true;
+        if (hiddenDownpayment) hiddenDownpayment.disabled = true;
         if (btnText) btnText.textContent = 'Confirm Booking (Cash)';
     } else if (method === 'installment') {
         if (installmentLabel) installmentLabel.style.borderColor = '#7c3aed';
         if (installmentBox) installmentBox.style.display = '';
         if (hiddenMonths) hiddenMonths.disabled = false;
+        if (hiddenDownpayment) hiddenDownpayment.disabled = false;
         if (btnText) btnText.textContent = 'Confirm Booking (Installment)';
         renderInstallmentSchedule();
     }
@@ -398,21 +433,43 @@ function renderInstallmentSchedule() {
     const preview  = document.getElementById('installmentSchedulePreview');
     const sel      = document.getElementById('installmentMonthsSel');
     const hiddenM  = document.getElementById('installmentMonthsHidden');
+    const dpInput  = document.getElementById('downpaymentInput');
+    const dpError  = document.getElementById('dpError');
     if (!preview || !sel) return;
 
     const months     = parseInt(sel.value);
     if (hiddenM) hiddenM.value = months;
 
-    const grandTotal = getGrandTotal();
-    // Use fixed monthly amount from tour if set, otherwise divide total by months
-    const monthly    = FIXED_MONTHLY > 0 ? FIXED_MONTHLY : Math.ceil(grandTotal / months);
-    const today      = new Date();
+    const grandTotal  = getGrandTotal();
+    const enteredDP   = dpInput ? parseFloat(dpInput.value) || 0 : MIN_DOWNPAYMENT;
+
+    // Sync hidden downpayment field
+    const dpHidden = document.getElementById('downpaymentAmountHidden');
+    if (dpHidden) dpHidden.value = Math.max(enteredDP, 0);
+
+    // Validate minimum
+    if (dpError) {
+        if (MIN_DOWNPAYMENT > 0 && enteredDP < MIN_DOWNPAYMENT) {
+            dpError.style.display = '';
+            dpInput.style.borderColor = '#dc2626';
+        } else {
+            dpError.style.display = 'none';
+            if (dpInput) dpInput.style.borderColor = '';
+        }
+    }
+
+    const downpayment = Math.max(enteredDP, 0);
+    const remaining   = Math.max(grandTotal - downpayment, 0);
+
+    // Monthly = fixed amount from tour if set, otherwise split remaining balance
+    const monthly = FIXED_MONTHLY > 0 ? FIXED_MONTHLY : Math.ceil(remaining / months);
+    const today   = new Date();
 
     let rows = '';
-    if (DOWNPAYMENT > 0) {
+    if (downpayment > 0) {
         const dp = new Date(today);
         dp.setDate(dp.getDate() + 7);
-        rows += `<tr style="background:#faf5ff"><td><strong>Down Payment</strong></td><td>${fmtDate(dp)}</td><td><strong>₱${fmt(DOWNPAYMENT)}</strong></td><td><span style="background:#fef9c3;color:#854d0e;padding:.1rem .45rem;border-radius:.25rem;font-size:.78rem">Pending</span></td></tr>`;
+        rows += `<tr style="background:#faf5ff"><td><strong>Down Payment</strong></td><td>${fmtDate(dp)}</td><td><strong>₱${fmt(downpayment)}</strong></td><td><span style="background:#fef9c3;color:#854d0e;padding:.1rem .45rem;border-radius:.25rem;font-size:.78rem">Pending</span></td></tr>`;
     }
     for (let i = 1; i <= months; i++) {
         const d = new Date(today);
@@ -420,11 +477,10 @@ function renderInstallmentSchedule() {
         rows += `<tr><td>Month ${i}</td><td>${fmtDate(d)}</td><td>₱${fmt(monthly)}</td><td><span style="background:#e5e7eb;color:#374151;padding:.1rem .45rem;border-radius:.25rem;font-size:.78rem">Pending</span></td></tr>`;
     }
 
-    const scheduleTotal = DOWNPAYMENT + (monthly * months);
+    const scheduleTotal = downpayment + (monthly * months);
     preview.innerHTML = `
         <p style="margin-bottom:.5rem;font-weight:600;color:#7c3aed">
-            ₱${fmt(monthly)}/month × ${months} months
-            ${DOWNPAYMENT > 0 ? ' + down payment' : ''}
+            ${downpayment > 0 ? `Down payment ₱${fmt(downpayment)} + ` : ''}₱${fmt(monthly)}/month × ${months} months
         </p>
         <table style="width:100%;border-collapse:collapse;font-size:.83rem">
             <thead><tr style="border-bottom:1px solid #d8b4fe;color:#6d28d9">
