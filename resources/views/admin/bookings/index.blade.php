@@ -26,6 +26,11 @@
                     </option>
                 @endforeach
             </select>
+            <select name="payment_method" class="form-control">
+                <option value="">All Methods</option>
+                <option value="xendit" {{ request('payment_method') === 'xendit' ? 'selected' : '' }}>💳 Online (Xendit)</option>
+                <option value="cash"   {{ request('payment_method') === 'cash'   ? 'selected' : '' }}>🏢 Cash / Office</option>
+            </select>
             <button type="submit" class="btn btn-outline"><i class="fas fa-search"></i> Filter</button>
             <a href="{{ route('admin.bookings.index') }}" class="btn btn-ghost">Clear</a>
         </form>
@@ -61,7 +66,12 @@
                         <td>{{ $booking->total_guests }}</td>
                         <td>₱{{ number_format($booking->total_amount, 2) }}</td>
                         <td><span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span></td>
-                        <td><span class="payment-badge payment-{{ $booking->payment_status }}">{{ ucfirst($booking->payment_status) }}</span></td>
+                        <td>
+                            <span class="payment-badge payment-{{ $booking->payment_status }}">{{ ucfirst($booking->payment_status) }}</span>
+                            @if($booking->payment_method === 'cash')
+                                <br><small style="color:#16a34a;font-size:.75rem">🏢 Cash</small>
+                            @endif
+                        </td>
                         <td>
                             <a href="{{ route('admin.bookings.show', $booking) }}"
                                class="btn btn-xs btn-outline">

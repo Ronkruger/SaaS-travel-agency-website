@@ -17,7 +17,7 @@
     <div>
         <!-- Status -->
         <div class="card mb-4">
-            <div class="card-header"><h4>Update Status</h4></div>
+            <div class="card-header"><h4>Update Booking Status</h4></div>
             <div class="card-body">
                 <form action="{{ route('admin.bookings.status', $booking) }}" method="POST" class="inline-form">
                     @csrf @method('PATCH')
@@ -33,6 +33,105 @@
             </div>
         </div>
 
+        @if($booking->payment_method === 'cash')
+        {{-- ── CASH PAYMENT MANAGEMENT ────────────────────────────── --}}
+        <div class="card mb-4" style="border:2px solid #86efac">
+            <div class="card-header" style="background:#f0fdf4">
+                <h4 style="color:#166534"><i class="fas fa-money-bill-wave"></i> Cash / Office Payment</h4>
+            </div>
+            <div class="card-body">
+
+                {{-- Overall payment status update --}}
+                <form action="{{ route('admin.bookings.payment-status', $booking) }}" method="POST" class="inline-form mb-4">
+                    @csrf @method('PATCH')
+                    <label style="font-weight:600;margin-right:.5rem">Overall Payment Status:</label>
+                    <select name="payment_status" class="form-control" style="max-width:180px">
+                        @foreach(['unpaid' => 'Unpaid', 'partial' => 'Partially Paid', 'paid' => 'Fully Paid'] as $val => $label)
+                            <option value="{{ $val }}" {{ $booking->payment_status === $val ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+
+                @if($booking->downpayment_amount > 0)
+                <div style="background:#fefce8;border:1px solid #fde047;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.9rem">
+                    <i class="fas fa-exclamation-circle" style="color:#ca8a04"></i>
+                    <strong>Down Payment:</strong> ₱{{ number_format($booking->downpayment_amount, 2) }}
+                </div>
+                @endif
+
+                {{-- Per-term schedule --}}
+                @php $schedule = $booking->installment_schedule ?? []; @endphp
+                @if(count($schedule))
+                <h5 style="margin-bottom:.75rem">Installment Schedule</h5>
+                <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+                    <thead>
+                        <tr style="background:#f1f5f9;color:#475569;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em">
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #e2e8f0">Term</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #e2e8f0">Due Date</th>
+                            <th style="padding:.5rem .75rem;text-align:right;border-bottom:2px solid #e2e8f0">Amount</th>
+                            <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #e2e8f0">Status</th>
+                            <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #e2e8f0">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($schedule as $term)
+                        <tr style="border-bottom:1px solid #e2e8f0{{ $term['type'] === 'downpayment' ? ';background:#f0fdf4' : '' }}">
+                            <td style="padding:.6rem .75rem">
+                                @if($term['type'] === 'downpayment')
+                                    <strong>Down Payment</strong>
+                                @else
+                                    Month {{ $term['term'] }}
+                                @endif
+                            </td>
+                            <td style="padding:.6rem .75rem">{{ \Carbon\Carbon::parse($term['due_date'])->format('M d, Y') }}</td>
+                            <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format($term['amount'], 2) }}</td>
+                            <td style="padding:.6rem .75rem;text-align:center">
+                                @if($term['status'] === 'paid')
+                                    <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
+                                        <i class="fas fa-check"></i> Paid
+                                        @if(!empty($term['paid_at']))
+                                            <br><small>{{ \Carbon\Carbon::parse($term['paid_at'])->format('M d') }}</small>
+                                        @endif
+                                    </span>
+                                @else
+                                    <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
+                                @endif
+                            </td>
+                            <td style="padding:.6rem .75rem;text-align:center">
+                                <form action="{{ route('admin.bookings.installment-term', [$booking, $term['term']]) }}" method="POST" style="display:inline">
+                                    @csrf @method('PATCH')
+                                    @if($term['status'] === 'paid')
+                                        <input type="hidden" name="status" value="pending">
+                                        <button type="submit" class="btn btn-xs btn-ghost" style="color:#6b7280">
+                                            <i class="fas fa-undo"></i> Undo
+                                        </button>
+                                    @else
+                                        <input type="hidden" name="status" value="paid">
+                                        <button type="submit" class="btn btn-xs btn-primary" style="background:#16a34a;border-color:#16a34a">
+                                            <i class="fas fa-check"></i> Mark Paid
+                                        </button>
+                                    @endif
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr style="font-weight:700;background:#f8fafc">
+                            <td colspan="2" style="padding:.6rem .75rem">Total</td>
+                            <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format(collect($schedule)->sum('amount'), 2) }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Booking Info -->
         <div class="card mb-4">
             <div class="card-header"><h4>Booking Information</h4></div>
@@ -46,7 +145,10 @@
                     <div class="detail-item"><span>Status</span>
                         <span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span>
                     </div>
-                    <div class="detail-item"><span>Payment</span>
+                    <div class="detail-item"><span>Payment Method</span>
+                        <strong>{{ $booking->payment_method === 'cash' ? '🏢 Cash / Office' : '💳 Xendit Online' }}</strong>
+                    </div>
+                    <div class="detail-item"><span>Payment Status</span>
                         <span class="payment-badge payment-{{ $booking->payment_status }}">{{ ucfirst($booking->payment_status) }}</span>
                     </div>
                     <div class="detail-item"><span>Booked On</span><strong>{{ $booking->created_at->format('M d, Y h:i A') }}</strong></div>
