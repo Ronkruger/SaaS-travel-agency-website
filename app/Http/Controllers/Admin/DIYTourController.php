@@ -112,4 +112,12 @@ class DIYTourController extends Controller
         return redirect()->route('admin.diy.show', $diySession)
             ->with('success', 'DIY tour request rejected.');
     }
+
+    public function destroy(DIYTourSession $diySession)
+    {
+        $diySession->delete();
+
+        return redirect()->route('admin.diy.index')
+            ->with('success', 'DIY tour session deleted.');
+    }
 }

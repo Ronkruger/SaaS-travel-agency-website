@@ -76,10 +76,19 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.bookings.show', $booking) }}"
-                               class="btn btn-xs btn-outline">
-                                <i class="fas fa-eye"></i> View
-                            </a>
+                            <div class="action-btns">
+                                <a href="{{ route('admin.bookings.show', $booking) }}"
+                                   class="btn btn-xs btn-outline">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST"
+                                      onsubmit="return confirm('Permanently delete booking {{ $booking->booking_number }}? This cannot be undone.')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-xs btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty

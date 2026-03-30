@@ -113,6 +113,13 @@
                                     <button class="btn btn-xs btn-danger" onclick="return confirm('Reject this DIY tour request?')">Reject</button>
                                 </form>
                                 @endif
+                                <form action="{{ route('admin.diy.destroy', $session) }}" method="POST" style="display:inline"
+                                      onsubmit="return confirm('Permanently delete this DIY tour session? This cannot be undone.')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-xs btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>

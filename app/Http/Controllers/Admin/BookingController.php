@@ -115,4 +115,13 @@ class BookingController extends Controller
 
         return back()->with('success', 'Term ' . $term . ' marked as ' . $validated['status'] . '.');
     }
+
+    public function destroy(Booking $booking)
+    {
+        $bookingNumber = $booking->booking_number;
+        $booking->delete();
+
+        return redirect()->route('admin.bookings.index')
+            ->with('success', "Booking {$bookingNumber} has been deleted.");
+    }
 }

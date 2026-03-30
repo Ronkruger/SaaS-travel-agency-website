@@ -181,6 +181,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
     Route::patch('/bookings/{booking}/payment-status', [AdminBookingController::class, 'updatePaymentStatus'])->name('bookings.payment-status');
     Route::patch('/bookings/{booking}/installment/{term}', [AdminBookingController::class, 'updateInstallmentTerm'])->name('bookings.installment-term');
+    Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
 
     // Users
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
@@ -202,6 +203,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
         Route::patch('/{diySession}/status', [AdminDIYTourController::class, 'updateStatus'])->name('diy.status');
         Route::post('/{diySession}/approve', [AdminDIYTourController::class, 'approve'])->name('diy.approve');
         Route::post('/{diySession}/reject', [AdminDIYTourController::class, 'reject'])->name('diy.reject');
+        Route::delete('/{diySession}', [AdminDIYTourController::class, 'destroy'])->name('diy.destroy');
     });
 
     // Reports
