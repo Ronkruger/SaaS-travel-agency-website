@@ -6,10 +6,13 @@ use App\Models\Booking;
 use App\Models\Tour;
 use App\Models\TourSchedule;
 use App\Models\Payment;
+use App\Mail\BookingReservationMail;
 use App\Services\SecurityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class BookingController extends Controller
 {
@@ -178,6 +181,15 @@ class BookingController extends Controller
             ]);
 
             DB::commit();
+
+            // Send reservation email
+            try {
+                $booking->load('tour');
+                Mail::to($booking->contact_email)
+                    ->send(new BookingReservationMail($booking));
+            } catch (\Throwable $e) {
+                Log::error('Failed to send reservation email: ' . $e->getMessage());
+            }
 
             return redirect()->route('checkout.show', $booking)->with('success', 'Booking created! Please complete your payment.');
 
