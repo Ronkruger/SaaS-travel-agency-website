@@ -35,7 +35,14 @@ class BookingController extends Controller
         $tour = Tour::active()
             ->findOrFail($request->input('tour_id'));
 
-        return view('booking.create', compact('tour'));
+        // Count booked guests per departure start date for live availability display
+        $bookedByDate = Booking::where('tour_id', $tour->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->get(['tour_date', 'total_guests'])
+            ->groupBy(fn($b) => \Carbon\Carbon::parse($b->tour_date)->format('Y-m-d'))
+            ->map(fn($g) => $g->sum('total_guests'));
+
+        return view('booking.create', compact('tour', 'bookedByDate'));
     }
 
     public function store(Request $request)

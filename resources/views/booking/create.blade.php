@@ -34,20 +34,31 @@
                                 <label>Scheduled Departure</label>
                                 <select name="departure_date" class="form-control" onchange="updateScheduleDate(this)">
                                     <option value="">Choose a departure date...</option>
-                                    @foreach($departureDates as $idx => $dateEntry)
-                                        <option value="{{ $dateEntry['start'] ?? '' }}"
-                                            data-date="{{ $dateEntry['start'] ?? '' }}"
+                                    @foreach($departureDates as $dateEntry)
+                                        @php
+                                            $dateKey   = $dateEntry['start'] ?? '';
+                                            $maxCap    = $dateEntry['maxCapacity'] ?? null;
+                                            $booked    = (int) ($bookedByDate[$dateKey] ?? 0);
+                                            $slotsLeft = $maxCap ? max(0, (int) $maxCap - $booked) : null;
+                                            $soldOut   = $maxCap && $slotsLeft === 0;
+                                        @endphp
+                                        <option value="{{ $dateKey }}"
+                                            data-date="{{ $dateKey }}"
                                             data-price="{{ $dateEntry['price'] ?? '' }}"
-                                            {{ old('departure_date') == ($dateEntry['start'] ?? '') ? 'selected' : '' }}>
-                                            {{ isset($dateEntry['start']) ? \Carbon\Carbon::parse($dateEntry['start'])->format('M d, Y') : '' }}
+                                            data-slots="{{ $slotsLeft ?? '' }}"
+                                            {{ $soldOut ? 'disabled' : '' }}
+                                            {{ old('departure_date') == $dateKey ? 'selected' : '' }}>
+                                            {{ $dateKey ? \Carbon\Carbon::parse($dateKey)->format('M d, Y') : '' }}
                                             @if(!empty($dateEntry['end']))
                                                 — {{ \Carbon\Carbon::parse($dateEntry['end'])->format('M d, Y') }}
                                             @endif
-                                            @if(!empty($dateEntry['maxCapacity']) && !empty($dateEntry['currentBookings']))
-                                                — {{ $dateEntry['maxCapacity'] - ($dateEntry['currentBookings'] ?? 0) }} seats left
-                                            @endif
                                             @if(!empty($dateEntry['price']))
                                                 — ₱{{ number_format($dateEntry['price'], 2) }}/person
+                                            @endif
+                                            @if($soldOut)
+                                                — SOLD OUT
+                                            @elseif($slotsLeft !== null)
+                                                — {{ $slotsLeft }} slot{{ $slotsLeft === 1 ? '' : 's' }} left
                                             @endif
                                         </option>
                                     @endforeach
@@ -162,6 +173,15 @@
                                     </div>
                                 </div>
                             </label>
+
+                            {{-- GCash / Maya daily-limit advisory (shown when total > ₱100k) --}}
+                            <div id="gcashLimitWarning" style="display:none;padding:.75rem 1rem;background:#fefce8;border:1px solid #fde047;border-radius:.625rem;font-size:.85rem;color:#854d0e;margin-top:-.25rem">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>GCash &amp; Maya daily outgoing limit: ₱100,000.</strong>
+                                Your total (<strong id="gcashWarnAmt"></strong>) exceeds this limit.
+                                For payments over ₱100,000 via e-wallet, you may need to send across multiple days.
+                                Consider <strong>Payment Terms&nbsp;/&nbsp;Installment</strong> or pay via <strong>Credit/Debit Card or Bank Transfer</strong> instead.
+                            </div>
 
                             {{-- Option B: Full Cash at Office --}}
                             <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #d1d5db;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmCashFullLabel">
@@ -321,6 +341,7 @@ function updateBookingSummary() {
     document.getElementById('sumTax').textContent         = `₱${fmt(tax)}`;
     document.getElementById('sumTotal').textContent       = `₱${fmt(grand)}`;
     document.getElementById('sumChildRow').style.display  = children > 0 ? 'flex' : 'none';
+    updateGcashWarning();
 }
 
 function updateScheduleDate(sel) {
@@ -348,8 +369,23 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ── Payment Method ──────────────────────────────────────────────────────────
-const FIXED_MONTHLY  = {{ $tour->monthly_installment_amount ?? 0 }};
-const DOWNPAYMENT    = {{ $tour->fixed_downpayment_amount ?? 0 }};
+const FIXED_MONTHLY   = {{ $tour->monthly_installment_amount ?? 0 }};
+const DOWNPAYMENT     = {{ $tour->fixed_downpayment_amount ?? 0 }};
+const GCASH_MAYA_LIMIT = 100000;
+
+function updateGcashWarning() {
+    const method = document.querySelector('input[name="payment_method"]:checked')?.value || 'xendit';
+    const total  = getGrandTotal();
+    const warn   = document.getElementById('gcashLimitWarning');
+    const amtEl  = document.getElementById('gcashWarnAmt');
+    if (!warn) return;
+    if (method === 'xendit' && total > GCASH_MAYA_LIMIT) {
+        if (amtEl) amtEl.textContent = '₱' + fmt(total);
+        warn.style.display = '';
+    } else {
+        warn.style.display = 'none';
+    }
+}
 
 function onPaymentMethodChange() {
     const method = document.querySelector('input[name="payment_method"]:checked')?.value || 'xendit';
@@ -383,6 +419,7 @@ function onPaymentMethodChange() {
         if (btnText) btnText.textContent = 'Confirm Booking (Installment)';
         renderInstallmentSchedule();
     }
+    updateGcashWarning();
 }
 
 function getGrandTotal() {
