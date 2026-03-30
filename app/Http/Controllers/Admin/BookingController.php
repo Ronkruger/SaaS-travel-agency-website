@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class BookingController extends Controller
 {
@@ -47,15 +46,12 @@ class BookingController extends Controller
 
     public function show(Booking $booking)
     {
-        $this->authorize('view', $booking);
         $booking->load(['user', 'tour', 'payment', 'schedule']);
         return view('admin.bookings.show', compact('booking'));
     }
 
     public function updateStatus(Request $request, Booking $booking)
     {
-        $this->authorize('update', $booking);
-        
         $validated = $request->validate([
             'status' => ['required', 'in:pending,confirmed,cancelled,completed,refunded'],
         ]);
@@ -67,8 +63,6 @@ class BookingController extends Controller
 
     public function updatePaymentStatus(Request $request, Booking $booking)
     {
-        $this->authorize('update', $booking);
-
         $validated = $request->validate([
             'payment_status' => ['required', 'in:unpaid,partial,paid'],
             'notes'          => ['nullable', 'string', 'max:500'],
@@ -81,8 +75,6 @@ class BookingController extends Controller
 
     public function updateInstallmentTerm(Request $request, Booking $booking, int $term)
     {
-        $this->authorize('update', $booking);
-
         $validated = $request->validate([
             'status' => ['required', 'in:pending,paid'],
         ]);

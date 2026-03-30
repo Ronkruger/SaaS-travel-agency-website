@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Review;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class ReviewController extends Controller
 {
@@ -31,8 +30,6 @@ class ReviewController extends Controller
 
     public function approve(Review $review)
     {
-        $this->authorize('approve', $review);
-        
         $review->update([
             'is_approved' => true,
             'approved_at' => now(),
@@ -45,8 +42,6 @@ class ReviewController extends Controller
 
     public function destroy(Review $review)
     {
-        $this->authorize('delete', $review);
-        
         $tour = $review->tour;
         $review->delete();
         $tour->updateRating();
