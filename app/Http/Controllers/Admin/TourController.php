@@ -172,6 +172,8 @@ class TourController extends Controller
             'allows_downpayment'            => $request->boolean('allows_downpayment'),
             'fixed_downpayment_amount'      => $request->input('fixed_downpayment_amount') ?: null,
             'balance_due_days_before_travel'=> $request->input('balance_due_days_before_travel') ?: null,
+            'installment_months'           => $request->input('installment_months') ?: null,
+            'monthly_installment_amount'   => $request->input('monthly_installment_amount') ?: null,
             // Status
             'is_active'                     => $request->boolean('is_active'),
             'is_featured'                   => $request->boolean('is_featured'),

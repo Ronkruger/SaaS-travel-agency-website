@@ -429,6 +429,26 @@
                     </div>
                 </div>
 
+                <hr class="mt-4">
+                <h5>Installment / Payment Terms</h5>
+                <p class="text-muted" style="font-size:.85rem">Allow clients to pay in monthly installments (e.g. ₱16,000/month for 10 months). Set both fields to enable cash installment booking.</p>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label>Max Payment Terms (months, 1–15)</label>
+                        <input type="number" name="installment_months" class="form-control"
+                            value="{{ old('installment_months') }}" min="1" max="15"
+                            placeholder="e.g. 10">
+                        <small class="text-muted">Leave blank to disable installment option.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Installment Amount (₱)</label>
+                        <input type="number" name="monthly_installment_amount" class="form-control"
+                            value="{{ old('monthly_installment_amount') }}" step="0.01" min="0"
+                            placeholder="e.g. 16000">
+                        <small class="text-muted">Fixed amount per monthly term.</small>
+                    </div>
+                </div>
+
             </div>
         </div>
 

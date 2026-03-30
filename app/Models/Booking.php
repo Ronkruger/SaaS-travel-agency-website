@@ -35,15 +35,21 @@ class Booking extends Model
         'contact_name',
         'contact_email',
         'contact_phone',
+        'payment_method',
+        'installment_months',
+        'downpayment_amount',
+        'installment_schedule',
     ];
 
     protected $casts = [
         'tour_date' => 'date',
         'traveler_details' => 'array',
-        'subtotal' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'tax_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'subtotal'              => 'decimal:2',
+        'discount_amount'       => 'decimal:2',
+        'tax_amount'            => 'decimal:2',
+        'total_amount'          => 'decimal:2',
+        'downpayment_amount'    => 'decimal:2',
+        'installment_schedule'  => 'array',
     ];
 
     public static function generateBookingNumber(): string

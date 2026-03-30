@@ -23,6 +23,93 @@
         <div class="checkout-layout">
             <!-- Payment Form -->
             <div class="checkout-form">
+
+                @if($booking->payment_method === 'cash')
+                {{-- ── CASH / INSTALLMENT VIEW ────────────────────────────── --}}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4><i class="fas fa-money-bill-wave" style="color:#16a34a"></i> Cash / Installment Payment</h4>
+                    </div>
+                    <div class="card-body">
+
+                        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
+                            <p style="margin:0;font-size:.925rem">
+                                <i class="fas fa-check-circle" style="color:#16a34a"></i>
+                                <strong>Booking confirmed!</strong> Please follow the payment schedule below.
+                                Our team will contact you to coordinate payments.
+                            </p>
+                        </div>
+
+                        @if($booking->downpayment_amount > 0)
+                        <div style="background:#fefce8;border:1px solid #fde047;border-radius:.75rem;padding:.875rem 1.125rem;margin-bottom:1.25rem">
+                            <strong><i class="fas fa-exclamation-circle" style="color:#ca8a04"></i> Down Payment Required</strong>
+                            <p style="margin:.4rem 0 0;font-size:.9rem">
+                                Please send <strong>₱{{ number_format($booking->downpayment_amount, 2) }}</strong>
+                                within 7 days to secure your slot.
+                            </p>
+                        </div>
+                        @endif
+
+                        {{-- Installment schedule table --}}
+                        @php $schedule = $booking->installment_schedule ?? []; @endphp
+                        @if(count($schedule))
+                        <h5 style="margin-bottom:.75rem">Payment Schedule</h5>
+                        <div style="overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+                            <thead>
+                                <tr style="background:#f1f5f9;color:#475569;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em">
+                                    <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #e2e8f0">Term</th>
+                                    <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #e2e8f0">Due Date</th>
+                                    <th style="padding:.5rem .75rem;text-align:right;border-bottom:2px solid #e2e8f0">Amount</th>
+                                    <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #e2e8f0">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($schedule as $term)
+                                <tr style="border-bottom:1px solid #e2e8f0{{ $term['type'] === 'downpayment' ? ';background:#f0fdf4' : '' }}">
+                                    <td style="padding:.6rem .75rem">
+                                        @if($term['type'] === 'downpayment')
+                                            <strong>Down Payment</strong>
+                                        @else
+                                            Month {{ $term['term'] }}
+                                        @endif
+                                    </td>
+                                    <td style="padding:.6rem .75rem">{{ \Carbon\Carbon::parse($term['due_date'])->format('M d, Y') }}</td>
+                                    <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format($term['amount'], 2) }}</td>
+                                    <td style="padding:.6rem .75rem;text-align:center">
+                                        @if($term['status'] === 'paid')
+                                            <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">Paid</span>
+                                        @else
+                                            <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr style="font-weight:700;background:#f8fafc">
+                                    <td colspan="2" style="padding:.6rem .75rem">Total</td>
+                                    <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format(collect($schedule)->sum('amount'), 2) }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        </div>
+                        @endif
+
+                        <div style="margin-top:1.5rem;padding:1rem;background:#f8fafc;border-radius:.75rem;font-size:.875rem;color:#374151">
+                            <strong><i class="fas fa-university"></i> Bank Transfer Details</strong><br>
+                            <span class="text-muted">Our team will send you bank account details via email at <strong>{{ $booking->contact_email }}</strong>.</span>
+                        </div>
+
+                        <a href="{{ route('booking.show', $booking) }}" class="btn btn-primary btn-lg btn-block mt-4">
+                            <i class="fas fa-check-circle"></i> View My Booking
+                        </a>
+                    </div>
+                </div>
+
+                @else
+                {{-- ── XENDIT ONLINE PAYMENT VIEW ──────────────────────────── --}}
                 <div class="card mb-4">
                     <div class="card-header">
                         <h4><i class="fas fa-credit-card"></i> Secure Payment via Xendit</h4>
@@ -57,6 +144,7 @@
                         </form>
                     </div>
                 </div>
+                @endif
             </div>
 
             <!-- Order Summary -->

@@ -41,17 +41,19 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tour_id'          => ['required', 'exists:tours,id'],
-            'schedule_id'      => ['nullable', 'exists:tour_schedules,id'],
-            'tour_date'        => ['required', 'date', 'after_or_equal:today'],
-            'adults'           => ['required', 'integer', 'min:1', 'max:50'],
-            'children'         => ['required', 'integer', 'min:0', 'max:50'],
-            'infants'          => ['required', 'integer', 'min:0', 'max:10'],
-            'contact_name'     => ['required', 'string', 'max:255'],
-            'contact_email'    => ['required', 'email', 'max:255'],
-            'contact_phone'    => ['required', 'string', 'max:20'],
-            'special_requests' => ['nullable', 'string', 'max:1000'],
-            'traveler_details' => ['nullable', 'array'],
+            'tour_id'           => ['required', 'exists:tours,id'],
+            'schedule_id'       => ['nullable', 'exists:tour_schedules,id'],
+            'tour_date'         => ['required', 'date', 'after_or_equal:today'],
+            'adults'            => ['required', 'integer', 'min:1', 'max:50'],
+            'children'          => ['required', 'integer', 'min:0', 'max:50'],
+            'infants'           => ['required', 'integer', 'min:0', 'max:10'],
+            'contact_name'      => ['required', 'string', 'max:255'],
+            'contact_email'     => ['required', 'email', 'max:255'],
+            'contact_phone'     => ['required', 'string', 'max:20'],
+            'special_requests'  => ['nullable', 'string', 'max:1000'],
+            'traveler_details'  => ['nullable', 'array'],
+            'payment_method'    => ['required', 'in:xendit,cash'],
+            'installment_months'=> ['nullable', 'integer', 'min:1', 'max:15'],
         ]);
 
         $tour = Tour::findOrFail($validated['tour_id']);
@@ -94,29 +96,71 @@ class BookingController extends Controller
 
         DB::beginTransaction();
         try {
+            // Build installment schedule for cash payments
+            $paymentMethod      = $validated['payment_method'];
+            $installmentMonths  = null;
+            $downpaymentAmount  = null;
+            $installmentSchedule = null;
+
+            if ($paymentMethod === 'cash' && $tour->installment_months && $tour->monthly_installment_amount) {
+                $installmentMonths = min(
+                    (int) ($validated['installment_months'] ?? $tour->installment_months),
+                    $tour->installment_months
+                );
+                $downpaymentAmount = $tour->fixed_downpayment_amount ?? 0;
+                $schedule = [];
+                $today = now();
+
+                if ($downpaymentAmount > 0) {
+                    $schedule[] = [
+                        'type'     => 'downpayment',
+                        'term'     => 0,
+                        'due_date' => $today->copy()->addDays(7)->toDateString(),
+                        'amount'   => (float) $downpaymentAmount,
+                        'status'   => 'pending',
+                    ];
+                }
+
+                for ($i = 1; $i <= $installmentMonths; $i++) {
+                    $schedule[] = [
+                        'type'     => 'installment',
+                        'term'     => $i,
+                        'due_date' => $today->copy()->addMonths($i)->toDateString(),
+                        'amount'   => (float) $tour->monthly_installment_amount,
+                        'status'   => 'pending',
+                    ];
+                }
+
+                $installmentSchedule = $schedule;
+            }
+
             $booking = Booking::create([
-                'booking_number'   => Booking::generateBookingNumber(),
-                'user_id'          => auth()->id(),
-                'tour_id'          => $tour->id,
-                'schedule_id'      => $validated['schedule_id'] ?? null,
-                'tour_date'        => $validated['tour_date'],
-                'adults'           => $validated['adults'],
-                'children'         => $validated['children'],
-                'infants'          => $validated['infants'],
-                'total_guests'     => $totalGuests,
-                'price_per_adult'  => $pricePerAdult,
-                'price_per_child'  => $pricePerChild,
-                'subtotal'         => $subtotal,
-                'discount_amount'  => 0,
-                'tax_amount'       => $taxAmount,
-                'total_amount'     => $totalAmount,
-                'status'           => 'pending',
-                'payment_status'   => 'unpaid',
-                'contact_name'     => $validated['contact_name'],
-                'contact_email'    => $validated['contact_email'],
-                'contact_phone'    => $validated['contact_phone'],
-                'special_requests' => $validated['special_requests'] ?? null,
-                'traveler_details' => $validated['traveler_details'] ?? null,
+                'booking_number'      => Booking::generateBookingNumber(),
+                'user_id'             => auth()->id(),
+                'tour_id'             => $tour->id,
+                'schedule_id'         => $validated['schedule_id'] ?? null,
+                'tour_date'           => $validated['tour_date'],
+                'adults'              => $validated['adults'],
+                'children'            => $validated['children'],
+                'infants'             => $validated['infants'],
+                'total_guests'        => $totalGuests,
+                'price_per_adult'     => $pricePerAdult,
+                'price_per_child'     => $pricePerChild,
+                'subtotal'            => $subtotal,
+                'discount_amount'     => 0,
+                'tax_amount'          => $taxAmount,
+                'total_amount'        => $totalAmount,
+                'status'              => 'pending',
+                'payment_status'      => 'unpaid',
+                'payment_method'      => $paymentMethod,
+                'installment_months'  => $installmentMonths,
+                'downpayment_amount'  => $downpaymentAmount,
+                'installment_schedule'=> $installmentSchedule,
+                'contact_name'        => $validated['contact_name'],
+                'contact_email'       => $validated['contact_email'],
+                'contact_phone'       => $validated['contact_phone'],
+                'special_requests'    => $validated['special_requests'] ?? null,
+                'traveler_details'    => $validated['traveler_details'] ?? null,
             ]);
 
             DB::commit();

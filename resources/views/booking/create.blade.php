@@ -118,10 +118,12 @@
                             </div>
                             <div class="form-group">
                                 <label>Phone Number *</label>
-                                <input type="tel" name="contact_phone"
-                                    value="{{ old('contact_phone', auth()->user()->phone) }}"
-                                    class="form-control @error('contact_phone') is-invalid @enderror" required>
-                                @error('contact_phone')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                                @include('components.phone-input', [
+                                    'name'     => 'contact_phone',
+                                    'value'    => old('contact_phone', auth()->user()->phone ?? ''),
+                                    'required' => true,
+                                    'error'    => $errors->first('contact_phone'),
+                                ])
                             </div>
                         </div>
 
@@ -140,6 +142,66 @@
                         </div>
                     </div>
 
+                    <!-- Step 3: Payment Method -->
+                    <div class="booking-step">
+                        <div class="step-header">
+                            <span class="step-num">3</span>
+                            <h3>Payment Method</h3>
+                        </div>
+
+                        <div style="display:flex;flex-direction:column;gap:.75rem">
+                            {{-- Option A: Pay Online via Xendit --}}
+                            <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #d1d5db;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmXenditLabel">
+                                <input type="radio" name="payment_method" value="xendit" checked
+                                    style="margin-top:.2rem;accent-color:#1e3a5f" onchange="onPaymentMethodChange()">
+                                <div>
+                                    <strong><i class="fas fa-credit-card" style="color:#1e3a5f"></i> Pay Online via Xendit</strong>
+                                    <div class="text-muted" style="font-size:.85rem;margin-top:.2rem">
+                                        Credit/debit card, GCash, GrabPay, Maya, bank transfer — full payment now.
+                                    </div>
+                                </div>
+                            </label>
+
+                            @if($tour->installment_months && $tour->monthly_installment_amount)
+                            {{-- Option B: Cash / Installment --}}
+                            <label style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.125rem;border:2px solid #d1d5db;border-radius:.75rem;cursor:pointer;transition:border-color .15s" id="pmCashLabel">
+                                <input type="radio" name="payment_method" value="cash"
+                                    style="margin-top:.2rem;accent-color:#1e3a5f" onchange="onPaymentMethodChange()">
+                                <div>
+                                    <strong><i class="fas fa-money-bill-wave" style="color:#16a34a"></i> Cash / Installment</strong>
+                                    <div class="text-muted" style="font-size:.85rem;margin-top:.2rem">
+                                        Pay via bank transfer or in-person.
+                                        ₱{{ number_format($tour->monthly_installment_amount, 2) }}/month
+                                        — up to {{ $tour->installment_months }} month{{ $tour->installment_months > 1 ? 's' : '' }}.
+                                        @if($tour->fixed_downpayment_amount)
+                                            Down payment: ₱{{ number_format($tour->fixed_downpayment_amount, 2) }}.
+                                        @endif
+                                    </div>
+                                </div>
+                            </label>
+
+                            {{-- Installment Options (shown only when cash selected) --}}
+                            <div id="installmentOptions" style="display:none;padding:1.125rem;background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem">
+                                <div class="form-group" style="margin-bottom:.875rem">
+                                    <label style="font-weight:600">Number of Monthly Terms</label>
+                                    <select name="installment_months" id="installmentMonthsSel" class="form-control" onchange="renderInstallmentSchedule()" style="max-width:200px">
+                                        @for($i = 1; $i <= $tour->installment_months; $i++)
+                                            <option value="{{ $i }}">{{ $i }} month{{ $i > 1 ? 's' : '' }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+
+                                <div id="installmentSchedulePreview" style="font-size:.875rem">
+                                    {{-- Filled by JS --}}
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Hidden field for installment months when xendit selected --}}
+                    <input type="hidden" name="installment_months" id="installmentMonthsHidden" value="">
+
                     <!-- Terms Agreement -->
                     <div class="booking-step">
                         <label class="form-check">
@@ -149,8 +211,8 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg btn-block">
-                        <i class="fas fa-arrow-right"></i> Proceed to Payment
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" id="proceedBtn">
+                        <i class="fas fa-arrow-right"></i> <span id="proceedBtnText">Proceed to Payment</span>
                     </button>
                 </form>
             </div>
@@ -267,6 +329,89 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         updateBookingSummary();
     }
+    onPaymentMethodChange();
 });
+
+// ── Payment Method ──────────────────────────────────────────────────────────
+const MONTHLY_AMOUNT = {{ $tour->monthly_installment_amount ?? 0 }};
+const DOWNPAYMENT    = {{ $tour->fixed_downpayment_amount ?? 0 }};
+
+function onPaymentMethodChange() {
+    const method = document.querySelector('input[name="payment_method"]:checked')?.value || 'xendit';
+    const cashBox = document.getElementById('installmentOptions');
+    const xenditLabel = document.getElementById('pmXenditLabel');
+    const cashLabel   = document.getElementById('pmCashLabel');
+    const btnText     = document.getElementById('proceedBtnText');
+    const hiddenMonths = document.getElementById('installmentMonthsHidden');
+    const selMonths    = document.getElementById('installmentMonthsSel');
+
+    if (method === 'cash' && cashBox) {
+        cashBox.style.display = '';
+        if (xenditLabel) xenditLabel.style.borderColor = '#d1d5db';
+        if (cashLabel)   cashLabel.style.borderColor   = '#16a34a';
+        if (btnText) btnText.textContent = 'Confirm Booking (Cash/Installment)';
+        if (hiddenMonths) hiddenMonths.disabled = true;
+        renderInstallmentSchedule();
+    } else {
+        if (cashBox) cashBox.style.display = 'none';
+        if (xenditLabel) xenditLabel.style.borderColor = '#1e3a5f';
+        if (cashLabel)   cashLabel.style.borderColor   = '#d1d5db';
+        if (btnText) btnText.textContent = 'Proceed to Payment';
+        if (hiddenMonths) hiddenMonths.disabled = false;
+    }
+}
+
+function renderInstallmentSchedule() {
+    const preview = document.getElementById('installmentSchedulePreview');
+    const sel     = document.getElementById('installmentMonthsSel');
+    if (!preview || !sel) return;
+
+    const months   = parseInt(sel.value);
+    const tourDate = document.getElementById('tourDate')?.value;
+    const baseDate = tourDate ? new Date(tourDate) : new Date();
+
+    // Compute start: today + 30 days for first instalment
+    const today = new Date();
+    let rows = '';
+
+    // Downpayment row (if set)
+    if (DOWNPAYMENT > 0) {
+        const dp = new Date(today);
+        dp.setDate(dp.getDate() + 7);
+        rows += `<tr style="background:#dcfce7"><td><strong>Down Payment</strong></td><td>${fmtDate(dp)}</td><td><strong>₱${fmt(DOWNPAYMENT)}</strong></td><td><span style="background:#fef9c3;color:#854d0e;padding:.1rem .45rem;border-radius:.25rem;font-size:.8rem">Pending</span></td></tr>`;
+    }
+
+    for (let i = 1; i <= months; i++) {
+        const d = new Date(today);
+        d.setMonth(d.getMonth() + i);
+        rows += `<tr><td>Month ${i}</td><td>${fmtDate(d)}</td><td>₱${fmt(MONTHLY_AMOUNT)}</td><td><span style="background:#e5e7eb;color:#374151;padding:.1rem .45rem;border-radius:.25rem;font-size:.8rem">Pending</span></td></tr>`;
+    }
+
+    const total = DOWNPAYMENT + (MONTHLY_AMOUNT * months);
+    preview.innerHTML = `
+        <p style="margin-bottom:.5rem;font-weight:600;color:#15803d">Payment Schedule Preview</p>
+        <table style="width:100%;border-collapse:collapse;font-size:.83rem">
+            <thead><tr style="border-bottom:1px solid #86efac;color:#166534">
+                <th style="text-align:left;padding:.3rem .5rem">Term</th>
+                <th style="text-align:left;padding:.3rem .5rem">Due Date</th>
+                <th style="text-align:left;padding:.3rem .5rem">Amount</th>
+                <th style="text-align:left;padding:.3rem .5rem">Status</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+            <tfoot><tr style="border-top:1px solid #86efac;font-weight:700;color:#166534">
+                <td colspan="2" style="padding:.4rem .5rem">Total via installment</td>
+                <td style="padding:.4rem .5rem">₱${fmt(total)}</td>
+                <td></td>
+            </tr></tfoot>
+        </table>
+        <p style="margin-top:.5rem;font-size:.8rem;color:#6b7280">
+            <i class="fas fa-info-circle"></i>
+            Dates are approximate. Our team will send payment reminders before each due date.
+        </p>`;
+}
+
+function fmtDate(d) {
+    return d.toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' });
+}
 </script>
 @endpush

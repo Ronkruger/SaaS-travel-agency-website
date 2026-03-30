@@ -29,6 +29,7 @@ class Tour extends Model
         // Booking
         'booking_links', 'allows_downpayment', 'fixed_downpayment_amount',
         'balance_due_days_before_travel',
+        'installment_months', 'monthly_installment_amount',
         // Optional Tours & Freebies
         'optional_tours', 'cash_freebies',
         // Status
@@ -55,8 +56,9 @@ class Tour extends Model
         'regular_price_per_person'     => 'decimal:2',
         'promo_price_per_person'       => 'decimal:2',
         'base_price_per_day'           => 'decimal:2',
-        'fixed_downpayment_amount'     => 'decimal:2',
-        'average_rating'               => 'decimal:2',
+        'fixed_downpayment_amount'          => 'decimal:2',
+        'monthly_installment_amount'       => 'decimal:2',
+        'average_rating'                   => 'decimal:2',
         'sale_end_date'                => 'date',
     ];
 
