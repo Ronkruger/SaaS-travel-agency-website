@@ -61,5 +61,47 @@ class CheckoutController extends Controller
         $booking->load(['tour', 'payment']);
         return view('checkout.confirmation', compact('booking'));
     }
+
+    /**
+     * Initiate Xendit payment for a single installment term.
+     * Route: POST /checkout/{booking}/installment/{term}
+     */
+    public function payInstallmentTerm(Booking $booking, int $term)
+    {
+        if (Gate::denies('view', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'installment_pay', $booking->id);
+            abort(403);
+        }
+
+        if ($booking->payment_method !== 'installment') {
+            return back()->withErrors(['error' => 'This booking does not use installment payment.']);
+        }
+
+        $schedule = $booking->installment_schedule ?? [];
+        $scheduleIndex = null;
+        foreach ($schedule as $i => $entry) {
+            if ((int) $entry['term'] === $term) {
+                $scheduleIndex = $i;
+                break;
+            }
+        }
+
+        if ($scheduleIndex === null) {
+            return back()->withErrors(['error' => 'Installment term not found.']);
+        }
+
+        if ($schedule[$scheduleIndex]['status'] === 'paid') {
+            return back()->with('info', 'This term is already paid.');
+        }
+
+        try {
+            $booking->load('tour');
+            $invoiceUrl = XenditController::createInstallmentInvoice($booking, $scheduleIndex, $schedule[$scheduleIndex]);
+            return redirect()->away($invoiceUrl);
+        } catch (\Throwable $e) {
+            Log::error('Xendit installment invoice creation failed: ' . $e->getMessage(), ['exception' => $e]);
+            return back()->withErrors(['error' => 'Could not initiate payment. Please try again.']);
+        }
+    }
 }
 

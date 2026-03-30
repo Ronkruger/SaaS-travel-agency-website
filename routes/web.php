@@ -32,6 +32,7 @@ Route::post('/xendit/webhook', [XenditController::class, 'webhook'])->name('xend
 Route::middleware('auth')->group(function () {
     Route::get('/xendit/success/{booking}', [XenditController::class, 'success'])->name('xendit.success');
     Route::get('/xendit/failure/{booking}', [XenditController::class, 'failure'])->name('xendit.failure');
+    Route::get('/xendit/installment-success/{booking}', [XenditController::class, 'installmentSuccess'])->name('xendit.installment.success');
 });
 
 // Tours
@@ -90,6 +91,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{booking}', [CheckoutController::class, 'show'])->name('show');
         Route::post('/{booking}', [CheckoutController::class, 'process'])->name('process');
         Route::get('/{booking}/confirmation', [CheckoutController::class, 'confirmation'])->name('confirmation');
+        Route::post('/{booking}/installment/{term}', [CheckoutController::class, 'payInstallmentTerm'])->name('installment.pay');
     });
 
     // Reviews

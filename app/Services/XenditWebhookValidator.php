@@ -56,8 +56,9 @@ class XenditWebhookValidator
         }
 
         // 4. External ID format validation
+        // Accepts: BOOKING-{id}-{ts}  or  INSTALLMENT-{id}-{term}-{ts}
         if (!empty($data['external_id'])) {
-            if (!preg_match('/^BOOKING-\d+-\d+$/', $data['external_id'])) {
+            if (!preg_match('/^(BOOKING|INSTALLMENT)-\d+/', $data['external_id'])) {
                 $errors[] = 'invalid_external_id_format';
             }
         }

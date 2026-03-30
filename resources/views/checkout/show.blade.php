@@ -38,6 +38,7 @@
                     </div>
                     <div class="card-body">
 
+                        @if($booking->payment_method === 'installment')
                         <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
                             <p style="margin:0;font-size:.925rem">
                                 <i class="fas fa-check-circle" style="color:#16a34a"></i>
@@ -45,6 +46,15 @@
                                 Our team will contact you to coordinate payments.
                             </p>
                         </div>
+                        @else
+                        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
+                            <p style="margin:0;font-size:.925rem">
+                                <i class="fas fa-check-circle" style="color:#16a34a"></i>
+                                <strong>Booking confirmed!</strong> Please follow the payment schedule below.
+                                Our team will contact you to coordinate payments.
+                            </p>
+                        </div>
+                        @endif
 
                         @if($booking->downpayment_amount > 0)
                         <div style="background:#fefce8;border:1px solid #fde047;border-radius:.75rem;padding:.875rem 1.125rem;margin-bottom:1.25rem">
@@ -60,6 +70,23 @@
                         @php $schedule = $booking->installment_schedule ?? []; @endphp
                         @if(count($schedule))
                         <h5 style="margin-bottom:.75rem">Payment Schedule</h5>
+
+                        @if(session('success'))
+                        <div style="background:#dcfce7;border:1px solid #86efac;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.9rem">
+                            <i class="fas fa-check-circle" style="color:#16a34a"></i> {{ session('success') }}
+                        </div>
+                        @endif
+                        @if(session('info'))
+                        <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.9rem">
+                            <i class="fas fa-info-circle" style="color:#1d4ed8"></i> {{ session('info') }}
+                        </div>
+                        @endif
+                        @error('error')
+                        <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.9rem">
+                            <i class="fas fa-exclamation-circle" style="color:#dc2626"></i> {{ $message }}
+                        </div>
+                        @enderror
+
                         <div style="overflow-x:auto">
                         <table style="width:100%;border-collapse:collapse;font-size:.9rem">
                             <thead>
@@ -68,6 +95,9 @@
                                     <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #e2e8f0">Due Date</th>
                                     <th style="padding:.5rem .75rem;text-align:right;border-bottom:2px solid #e2e8f0">Amount</th>
                                     <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #e2e8f0">Status</th>
+                                    @if($booking->payment_method === 'installment')
+                                    <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #e2e8f0">Action</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -84,11 +114,30 @@
                                     <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format($term['amount'], 2) }}</td>
                                     <td style="padding:.6rem .75rem;text-align:center">
                                         @if($term['status'] === 'paid')
-                                            <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">Paid</span>
+                                            <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
+                                                <i class="fas fa-check"></i> Paid
+                                            </span>
                                         @else
                                             <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
                                         @endif
                                     </td>
+                                    @if($booking->payment_method === 'installment')
+                                    <td style="padding:.5rem .75rem;text-align:center">
+                                        @if($term['status'] === 'paid')
+                                            <span style="color:#86efac;font-size:.85rem"><i class="fas fa-check-circle"></i></span>
+                                        @else
+                                            <form method="POST" action="{{ route('checkout.installment.pay', [$booking, $term['term']]) }}" style="display:inline">
+                                                @csrf
+                                                <button type="submit"
+                                                    style="background:#1e3a5f;color:#fff;border:none;border-radius:.4rem;padding:.3rem .75rem;font-size:.82rem;cursor:pointer;white-space:nowrap"
+                                                    onclick="this.disabled=true;this.textContent='Processing…';this.form.submit()">
+                                                    <i class="fas fa-credit-card"></i>
+                                                    Pay ₱{{ number_format($term['amount'], 0) }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -97,6 +146,7 @@
                                     <td colspan="2" style="padding:.6rem .75rem">Total</td>
                                     <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format(collect($schedule)->sum('amount'), 2) }}</td>
                                     <td></td>
+                                    @if($booking->payment_method === 'installment')<td></td>@endif
                                 </tr>
                             </tfoot>
                         </table>
