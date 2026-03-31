@@ -20,6 +20,7 @@ class User extends Authenticatable
         'avatar',
         'address',
         'city',
+        'state',
         'country',
         'role',
         'auth0_id',

@@ -60,7 +60,100 @@
     </div>
 </section>
 
-<!-- DIY / Package Tour Choice Section -->
+<!-- Quick Navigation Icon Strip -->
+<section class="section-icon-strip">
+    <div class="container">
+        <div class="icon-strip-grid">
+            <a href="{{ route('tours.index') }}" class="icon-strip-item" aria-label="Tours">
+                <div class="icon-strip-circle icon-tours">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <span>Tours</span>
+            </a>
+            <a href="{{ route('tours.index', ['sort' => 'popular']) }}" class="icon-strip-item" aria-label="Destinations">
+                <div class="icon-strip-circle icon-destinations">
+                    <i class="fas fa-globe-asia"></i>
+                </div>
+                <span>Destinations</span>
+            </a>
+            <a href="{{ route('tours.index', ['sort' => 'popular']) }}" class="icon-strip-item" aria-label="Popular">
+                <div class="icon-strip-circle icon-popular">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <span>Popular</span>
+            </a>
+            <a href="{{ route('diy.index') }}" class="icon-strip-item" aria-label="Build My Tour">
+                <div class="icon-strip-circle icon-buildtour">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <span>Build My Tour</span>
+            </a>
+            <a href="{{ route('about') }}" class="icon-strip-item" aria-label="About Us">
+                <div class="icon-strip-circle icon-about">
+                    <i class="fas fa-users"></i>
+                </div>
+                <span>About Us</span>
+            </a>
+            <a href="{{ route('contact') }}" class="icon-strip-item" aria-label="Contact">
+                <div class="icon-strip-circle icon-contact">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <span>Contact</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Promotional Banner -->
+@if($promoBannerUrl ?? false)
+<section class="promo-banner-section">
+    <div class="container">
+        @if($promoBannerLink ?? false)
+            <a href="{{ $promoBannerLink }}" target="_blank" rel="noopener" class="promo-banner-link">
+                <img src="{{ $promoBannerUrl }}" alt="Promotion" class="promo-banner-img">
+            </a>
+        @else
+            <img src="{{ $promoBannerUrl }}" alt="Promotion" class="promo-banner-img">
+        @endif
+    </div>
+</section>
+@endif
+
+<!-- Embedded Media (Facebook + YouTube) -->
+@php
+    $hasFb = !empty($fbEmbedUrl ?? '');
+    $hasYt = !empty($ytEmbedUrl ?? '');
+@endphp
+@if($hasFb || $hasYt)
+<section class="section section-gray section-media-embeds">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-label">Stay Connected</span>
+            <h2>Follow Our Journey</h2>
+        </div>
+        <div class="media-embeds-grid {{ ($hasFb && $hasYt) ? 'two-cols' : 'one-col' }}">
+            @if($hasFb)
+            <div class="media-embed-card">
+                <div class="media-embed-label"><i class="fab fa-facebook"></i> Facebook</div>
+                {!! $fbEmbedUrl !!}
+            </div>
+            @endif
+            @if($hasYt)
+            <div class="media-embed-card">
+                <div class="media-embed-label"><i class="fab fa-youtube"></i> YouTube</div>
+                <div class="yt-responsive">
+                    <iframe src="{{ $ytEmbedUrl }}" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+</section>
+@endif
+
+
 <section class="section section-diy-choice">
     <div class="container">
         <div class="section-header text-center">
@@ -77,7 +170,7 @@
                     <li>✓ Guaranteed departures</li>
                     <li>✓ Group &amp; private options</li>
                 </ul>
-                <a href="{{ route('tours.index') }}" class="btn btn-outline btn-block">Browse Tours</a>
+                <a href="{{ route('tours.index') }}" class="btn btn-outline">Browse Tours</a>
             </div>
             <div class="diy-choice-card diy-card featured">
                 <div class="diy-ai-badge">✨ AI-Powered</div>
@@ -90,7 +183,7 @@
                     <li>✓ Real-time pricing</li>
                     <li>✓ Interactive map builder</li>
                 </ul>
-                <a href="{{ route('diy.index') }}" class="btn btn-primary btn-block">
+                <a href="{{ route('diy.index') }}" class="btn btn-primary">
                     Start Building <i class="fas fa-arrow-right"></i>
                 </a>
             </div>

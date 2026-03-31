@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\Auth0Controller;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CheckoutController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\DIYTourController;
 use App\Http\Controllers\DIYTourApiController;
 use App\Http\Controllers\Admin\DIYTourController as AdminDIYTourController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\Auth\AdminAuth0Controller;
 use App\Http\Controllers\Admin\Auth\AdminOnboardingController;
@@ -30,6 +32,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about', fn() => view('about'))->name('about');
+Route::get('/contact', [ContactController::class, 'show'])->name('contact');
+Route::post('/contact', [ContactController::class, 'send'])->name('contact.send')->middleware('throttle:5,1');
 
 // Xendit payment callbacks (CSRF-exempt, no auth required for webhook)
 Route::post('/xendit/webhook', [XenditController::class, 'webhook'])->name('xendit.webhook');
@@ -210,6 +215,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export-csv', [ReportController::class, 'exportCsv'])->name('reports.export-csv');
     Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');
+
+    // Branding / Settings
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::delete('/settings/logo', [SettingsController::class, 'deleteLogo'])->name('settings.delete-logo');
 });
 
 /*

@@ -284,9 +284,9 @@
         const timelineEl = document.getElementById('timelineView');
         const calendarEl = document.getElementById('calendarView');
 
-        mapEl.style.display      = view === 'map'      ? '' : 'none';
-        timelineEl.style.display = view === 'timeline' ? '' : 'none';
-        calendarEl.style.display = view === 'calendar' ? '' : 'none';
+        mapEl.style.display      = view === 'map'      ? ''      : 'none';
+        timelineEl.style.display = view === 'timeline' ? 'block' : 'none';
+        calendarEl.style.display = view === 'calendar' ? 'block' : 'none';
 
         if (view === 'timeline') renderTimelineView();
         if (view === 'calendar') renderCalendarView();

@@ -940,7 +940,7 @@ iframe, video, canvas, svg, img { max-width: 100%; height: auto; }
 }
 
 
-.timeline-view, .calendar-view { padding: 1rem; overflow-y: auto; flex: 1; display: none; }
+.timeline-view, .calendar-view { padding: 1rem; overflow-y: auto; flex: 1; min-height: 0; display: none; }
 .timeline { display: flex; flex-direction: column; gap: .5rem; }
 .timeline-city-header { font-weight: 700; font-size: 1rem; margin-top: .75rem; color: var(--diy-dark); display: flex; align-items: center; gap: .5rem; }
 .timeline-day { background: #fff; border-radius: 8px; padding: .6rem 1rem; border: 1px solid var(--diy-border); display: flex; gap: .75rem; align-items: flex-start; flex-wrap: wrap; }

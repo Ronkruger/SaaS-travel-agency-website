@@ -35,7 +35,12 @@
 
     {{-- Header --}}
     <div class="header">
-        <h1>Discover Group</h1>
+        @php $emailLogo = \App\Models\Setting::logoUrl('logo_path'); @endphp
+        @if($emailLogo)
+            <img src="{{ $emailLogo }}" alt="Discover Group" style="max-height:48px;width:auto;margin-bottom:6px">
+        @else
+            <h1>Discover Group</h1>
+        @endif
         <p>📋 Your Official Quote is Ready</p>
     </div>
 

@@ -7,8 +7,12 @@
     <title>@yield('title', 'DiscoverGroup') - Tour Reservations</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+    @if($brandFaviconUrl)
+        <link rel="icon" href="{{ $brandFaviconUrl }}">
+    @else
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+    @endif
     <meta name="theme-color" content="#0A2D74">
 
     <!-- Brand Fonts: Poppins (headings/brand fallback) + Dancing Script (Blacksword fallback) -->
@@ -30,18 +34,26 @@
 <nav class="navbar" id="navbar">
     <div class="container">
         <a href="{{ route('home') }}" class="navbar-brand" aria-label="DiscoverGroup Home">
-            {{-- Full logo: shown on tablet (480px+) --}}
-            <svg class="navbar-logo-full" width="168" height="40" viewBox="0 0 168 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect width="40" height="40" rx="9" fill="#0A2D74"/>
-                <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#ffffff">D</text>
-                <text x="50" y="20" font-family="'LemonMilk','Poppins',sans-serif" font-size="11" font-weight="800" letter-spacing="1.5" fill="#0A2D74">DISCOVER</text>
-                <text x="50" y="35" font-family="'LemonMilk','Poppins',sans-serif" font-size="9" font-weight="700" letter-spacing="4.5" fill="#28A2DC">GROUP</text>
-            </svg>
-            {{-- Submark: shown on small phones (<480px) --}}
-            <svg class="navbar-logo-mark" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect width="40" height="40" rx="9" fill="#0A2D74"/>
-                <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#ffffff">D</text>
-            </svg>
+            @if($brandLogoUrl)
+                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="navbar-logo-full" style="max-height:40px;width:auto">
+                @if($brandFaviconUrl)
+                    <img src="{{ $brandFaviconUrl }}" alt="{{ $brandName }}" class="navbar-logo-mark" style="max-height:40px;width:auto">
+                @else
+                    <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="navbar-logo-mark" style="max-height:40px;width:auto">
+                @endif
+            @else
+                {{-- Fallback SVG --}}
+                <svg class="navbar-logo-full" width="168" height="40" viewBox="0 0 168 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="40" height="40" rx="9" fill="#0A2D74"/>
+                    <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#ffffff">D</text>
+                    <text x="50" y="20" font-family="'LemonMilk','Poppins',sans-serif" font-size="11" font-weight="800" letter-spacing="1.5" fill="#0A2D74">DISCOVER</text>
+                    <text x="50" y="35" font-family="'LemonMilk','Poppins',sans-serif" font-size="9" font-weight="700" letter-spacing="4.5" fill="#28A2DC">GROUP</text>
+                </svg>
+                <svg class="navbar-logo-mark" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="40" height="40" rx="9" fill="#0A2D74"/>
+                    <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#ffffff">D</text>
+                </svg>
+            @endif
         </a>
 
         <ul class="navbar-nav" id="navMenu">
@@ -60,6 +72,8 @@
                 </ul>
             </li>
             <li><a href="{{ route('tours.index', ['sort' => 'popular']) }}">Popular</a></li>
+            <li><a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About Us</a></li>
+            <li><a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a></li>
             <li><a href="{{ route('diy.index') }}" class="{{ request()->routeIs('diy.*') ? 'active' : '' }}" style="color:#28A2DC;font-weight:600;">✨ Build My Tour</a></li>
         </ul>
 
@@ -138,59 +152,63 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <div class="footer-brand">
-                    <svg width="168" height="40" viewBox="0 0 168 40" xmlns="http://www.w3.org/2000/svg" aria-label="DiscoverGroup" role="img">
-                        <rect width="40" height="40" rx="9" fill="#ffffff"/>
-                        <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#0A2D74">D</text>
-                        <text x="50" y="20" font-family="'LemonMilk','Poppins',sans-serif" font-size="11" font-weight="800" letter-spacing="1.5" fill="#ffffff">DISCOVER</text>
-                        <text x="50" y="35" font-family="'LemonMilk','Poppins',sans-serif" font-size="9" font-weight="700" letter-spacing="4.5" fill="#28A2DC">GROUP</text>
-                    </svg>
+                    @php $footerLogo = $brandLogoDarkUrl ?? $brandLogoUrl; @endphp
+                    @if($footerLogo)
+                        <img src="{{ $footerLogo }}" alt="{{ $brandName }}" style="max-height:40px;width:auto">
+                    @else
+                        <svg width="168" height="40" viewBox="0 0 168 40" xmlns="http://www.w3.org/2000/svg" aria-label="DiscoverGroup" role="img">
+                            <rect width="40" height="40" rx="9" fill="#ffffff"/>
+                            <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#0A2D74">D</text>
+                            <text x="50" y="20" font-family="'LemonMilk','Poppins',sans-serif" font-size="11" font-weight="800" letter-spacing="1.5" fill="#ffffff">DISCOVER</text>
+                            <text x="50" y="35" font-family="'LemonMilk','Poppins',sans-serif" font-size="9" font-weight="700" letter-spacing="4.5" fill="#28A2DC">GROUP</text>
+                        </svg>
+                    @endif
                 </div>
-                <p>Explore the world with confidence. We craft unforgettable tour experiences for every kind of traveler.</p>
+                <p>Your trusted partner in creating exceptional travel experiences. Discover the world with confidence and style.</p>
                 <div class="social-links">
-                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.facebook.com/discovergrp" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/discover_grp/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
             <div class="footer-col">
-                <h4>Quick Links</h4>
+                <h4>Explore</h4>
                 <ul>
-                    <li><a href="{{ route('home') }}">Home</a></li>
-                    <li><a href="{{ route('tours.index') }}">All Tours</a></li>
-                    <li><a href="{{ route('tours.index', ['sort' => 'popular']) }}">Popular Tours</a></li>
-                    <li><a href="{{ route('tours.index', ['sort' => 'rating']) }}">Top Rated</a></li>
+                    <li><a href="{{ route('tours.index') }}">Destinations</a></li>
+                    <li><a href="{{ route('tours.index', ['sort' => 'popular']) }}">Special Deals</a></li>
+                    <li><a href="{{ route('about') }}">About Us</a></li>
+                    <li><a href="{{ route('contact') }}">Contact</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Support</h4>
-                <ul>
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Terms & Conditions</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Cancellation Policy</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
+                <h4>Get in Touch</h4>
                 <ul class="contact-list">
-                    <li><i class="fas fa-map-marker-alt"></i> 123 Travel Street, City</li>
-                    <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
-                    <li><i class="fas fa-envelope"></i> info@discovergrp.com</li>
-                    <li><i class="fas fa-clock"></i> Mon–Sat 9:00 AM – 6:00 PM</li>
+                    <li><i class="fas fa-map-marker-alt"></i> 22nd Floor, The Upper Class Tower<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Quezon Ave, Diliman, QC 1103</li>
+                    <li><i class="fas fa-phone"></i> 02 8554 6954</li>
+                    <li><i class="fas fa-envelope"></i> inquiry@discovergrp.com</li>
                 </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Stay Updated</h4>
+                <p style="font-size:.88rem;color:#94a3b8;margin-bottom:14px">Subscribe to our newsletter for exclusive deals and travel inspiration.</p>
+                <form onsubmit="event.preventDefault();this.querySelector('button').textContent='✅ Subscribed!'" style="display:flex;gap:8px">
+                    <input type="email" placeholder="Your email" required
+                        style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#fff;font-size:.88rem;outline:none">
+                    <button type="submit"
+                        style="background:#F5A623;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:700;cursor:pointer;white-space:nowrap">Join</button>
+                </form>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; {{ date('Y') }} DiscoverGroup. All rights reserved.</p>
-            <div class="payment-icons">
-                <i class="fab fa-cc-visa"></i>
-                <i class="fab fa-cc-mastercard"></i>
-                <i class="fab fa-cc-paypal"></i>
-                <i class="fab fa-cc-amex"></i>
+            <p>&copy; {{ date('Y') }} Discover Group. All rights reserved.</p>
+            <div style="display:flex;gap:16px;font-size:.82rem">
+                <a href="#" style="color:#64748b;text-decoration:none">Privacy Policy</a>
+                <span style="color:#334155">•</span>
+                <a href="#" style="color:#64748b;text-decoration:none">Terms of Service</a>
+                <span style="color:#334155">•</span>
+                <a href="#" style="color:#64748b;text-decoration:none">FAQ</a>
+                <span style="color:#334155">•</span>
+                <a href="#" style="color:#64748b;text-decoration:none">Careers</a>
             </div>
         </div>
     </div>

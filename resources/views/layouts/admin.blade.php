@@ -8,6 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    @if($brandFaviconUrl ?? false)
+        <link rel="icon" href="{{ $brandFaviconUrl }}">
+    @else
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    @endif
     @stack('styles')
 </head>
 <body class="admin-body">
@@ -17,8 +22,12 @@
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-header">
             <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
-                <i class="fas fa-compass"></i>
-                <span>DiscoverGRP</span>
+                @if($brandLogoUrl ?? false)
+                    <img src="{{ $brandLogoUrl }}" alt="{{ $brandName ?? 'DiscoverGRP' }}" style="max-height:32px;width:auto;filter:brightness(0) invert(1)">
+                @else
+                    <i class="fas fa-compass"></i>
+                    <span>{{ $brandName ?? 'DiscoverGRP' }}</span>
+                @endif
             </a>
             <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
         </div>
@@ -68,6 +77,9 @@
                 <i class="fas fa-chart-bar"></i> Monthly Report
             </a>
             <div class="nav-section">ACCOUNT</div>
+            <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <i class="fas fa-palette"></i> Branding
+            </a>
             <a href="{{ route('home') }}" target="_blank">
                 <i class="fas fa-external-link-alt"></i> View Site
             </a>

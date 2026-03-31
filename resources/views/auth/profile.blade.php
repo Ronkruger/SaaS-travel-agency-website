@@ -59,19 +59,54 @@
                             <input type="email" value="{{ $user->email }}" class="form-control" disabled>
                         </div>
                         <div class="form-group">
-                            <label>Address</label>
-                            <textarea name="address" class="form-control" rows="2">{{ old('address', $user->address) }}</textarea>
+                            <label>Address <span style="font-weight:400;font-size:12px;color:#6b7280">(Street / Barangay)</span></label>
+                            <textarea name="address" class="form-control" rows="2"
+                                placeholder="e.g. Balucuc, Sto. Niño St., House No.">{{ old('address', $user->address) }}</textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:2">
+                                <label>Country</label>
+                                <div style="position:relative">
+                                    <select id="csc-country" name="country" class="form-control"
+                                        data-current="{{ old('country', $user->country) }}">
+                                        <option value="">Loading countries…</option>
+                                    </select>
+                                    <span id="csc-country-spin" style="display:none;position:absolute;right:32px;top:50%;transform:translateY(-50%);color:#6b7280">
+                                        <i class="fas fa-circle-notch fa-spin"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end">
+                                <button type="button" id="detect-loc-btn" class="btn btn-outline"
+                                    title="Auto-fill from GPS location" style="white-space:nowrap">
+                                    <i class="fas fa-location-arrow"></i> Detect
+                                </button>
+                            </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>City</label>
-                                <input type="text" name="city" value="{{ old('city', $user->city) }}"
-                                    class="form-control">
+                                <label>State / Province</label>
+                                <div style="position:relative">
+                                    <select id="csc-state" name="state" class="form-control"
+                                        data-current="{{ old('state', $user->state ?? '') }}" disabled>
+                                        <option value="">— select country first —</option>
+                                    </select>
+                                    <span id="csc-state-spin" style="display:none;position:absolute;right:32px;top:50%;transform:translateY(-50%);color:#6b7280">
+                                        <i class="fas fa-circle-notch fa-spin"></i>
+                                    </span>
+                                </div>
                             </div>
                             <div class="form-group">
-                                <label>Country</label>
-                                <input type="text" name="country" value="{{ old('country', $user->country) }}"
-                                    class="form-control">
+                                <label>City / Municipality</label>
+                                <div style="position:relative">
+                                    <select id="csc-city" name="city" class="form-control"
+                                        data-current="{{ old('city', $user->city) }}" disabled>
+                                        <option value="">— select state first —</option>
+                                    </select>
+                                    <span id="csc-city-spin" style="display:none;position:absolute;right:32px;top:50%;transform:translateY(-50%);color:#6b7280">
+                                        <i class="fas fa-circle-notch fa-spin"></i>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">
@@ -91,14 +126,30 @@
                             <label>Current Password</label>
                             <input type="password" name="current_password" class="form-control" required>
                         </div>
+                        <div style="margin-bottom:14px">
+                            <button type="button" id="gen-pwd-btn" class="btn btn-outline btn-sm">
+                                <i class="fas fa-magic"></i> Generate Strong Password
+                            </button>
+                            <span id="gen-pwd-preview" style="display:none;margin-left:10px;font-family:monospace;font-size:13px;background:#f1f5f9;padding:4px 10px;border-radius:6px;letter-spacing:.05em;color:#1e3a5f;cursor:pointer" title="Click to copy"></span>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>New Password</label>
-                                <input type="password" name="password" class="form-control" required>
+                                <div style="position:relative">
+                                    <input type="password" id="pwd-new" name="password" class="form-control" required>
+                                    <button type="button" onclick="togglePwd('pwd-new',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#6b7280">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Confirm New Password</label>
-                                <input type="password" name="password_confirmation" class="form-control" required>
+                                <div style="position:relative">
+                                    <input type="password" id="pwd-confirm" name="password_confirmation" class="form-control" required>
+                                    <button type="button" onclick="togglePwd('pwd-confirm',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#6b7280">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-warning">
@@ -144,3 +195,229 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const API        = 'https://countriesnow.space/api/v0.1';
+    const countryEl  = document.getElementById('csc-country');
+    const stateEl    = document.getElementById('csc-state');
+    const cityEl     = document.getElementById('csc-city');
+    const ctrSpin    = document.getElementById('csc-country-spin');
+    const staSpin    = document.getElementById('csc-state-spin');
+    const citSpin    = document.getElementById('csc-city-spin');
+
+    const INIT_COUNTRY = countryEl.dataset.current || '';
+    const INIT_STATE   = stateEl.dataset.current   || '';
+    const INIT_CITY    = cityEl.dataset.current    || '';
+
+    /* ── helpers ────────────────────────────────────────────── */
+    function populate(el, values, preselect) {
+        el.innerHTML = '<option value="">— select —</option>';
+        values.forEach(v => {
+            const o = document.createElement('option');
+            o.value = o.textContent = v;
+            if (v === preselect) o.selected = true;
+            el.appendChild(o);
+        });
+        el.disabled = false;
+    }
+
+    function resetEl(el, placeholder) {
+        el.innerHTML = `<option value="">${placeholder}</option>`;
+        el.disabled  = true;
+    }
+
+    /* ── API calls ──────────────────────────────────────────── */
+    async function loadCountries() {
+        ctrSpin.style.display = 'inline';
+        countryEl.disabled    = true;
+        try {
+            const r = await fetch(`${API}/countries`);
+            const d = await r.json();
+            if (!d.error) {
+                const names = d.data.map(c => c.country).sort();
+                populate(countryEl, names, INIT_COUNTRY);
+                if (INIT_COUNTRY) await loadStates(INIT_COUNTRY, true);
+            }
+        } catch {
+            countryEl.innerHTML = '<option value="">Failed to load — type state/city below</option>';
+            countryEl.disabled  = false;
+        } finally {
+            ctrSpin.style.display = 'none';
+        }
+    }
+
+    async function loadStates(country, isInit = false) {
+        staSpin.style.display = 'inline';
+        resetEl(stateEl, 'Loading…');
+        resetEl(cityEl,  '— select state first —');
+        try {
+            const r = await fetch(`${API}/countries/states`, {
+                method:  'POST',
+                headers: {'Content-Type': 'application/json'},
+                body:    JSON.stringify({ country }),
+            });
+            const d = await r.json();
+            const states = d.data?.states ?? [];
+            if (!d.error && states.length) {
+                const names     = states.map(s => s.name).sort();
+                const preselect = isInit ? INIT_STATE : '';
+                populate(stateEl, names, preselect);
+                if (isInit && INIT_STATE) await loadCities(country, INIT_STATE, true);
+            } else {
+                stateEl.innerHTML = '<option value="">No provinces available</option>';
+                stateEl.disabled  = false;
+            }
+        } catch {
+            stateEl.innerHTML = '<option value="">Failed to load</option>';
+            stateEl.disabled  = false;
+        } finally {
+            staSpin.style.display = 'none';
+        }
+    }
+
+    async function loadCities(country, state, isInit = false) {
+        citSpin.style.display = 'inline';
+        resetEl(cityEl, 'Loading…');
+        try {
+            const r = await fetch(`${API}/countries/state/cities`, {
+                method:  'POST',
+                headers: {'Content-Type': 'application/json'},
+                body:    JSON.stringify({ country, state }),
+            });
+            const d = await r.json();
+            if (!d.error && d.data?.length) {
+                const preselect = isInit ? INIT_CITY : '';
+                populate(cityEl, [...d.data].sort(), preselect);
+            } else {
+                cityEl.innerHTML = '<option value="">No cities available</option>';
+                cityEl.disabled  = false;
+            }
+        } catch {
+            cityEl.innerHTML = '<option value="">Failed to load</option>';
+            cityEl.disabled  = false;
+        } finally {
+            citSpin.style.display = 'none';
+        }
+    }
+
+    /* ── change events ──────────────────────────────────────── */
+    countryEl.addEventListener('change', () => {
+        if (countryEl.value) {
+            loadStates(countryEl.value);
+        } else {
+            resetEl(stateEl, '— select country first —');
+            resetEl(cityEl,  '— select state first —');
+        }
+    });
+
+    stateEl.addEventListener('change', () => {
+        if (stateEl.value) {
+            loadCities(countryEl.value, stateEl.value);
+        } else {
+            resetEl(cityEl, '— select state first —');
+        }
+    });
+
+    /* ── GPS detect ─────────────────────────────────────────── */
+    document.getElementById('detect-loc-btn').addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser.');
+            return;
+        }
+        const btn = document.getElementById('detect-loc-btn');
+        btn.disabled    = true;
+        btn.innerHTML   = '<i class="fas fa-circle-notch fa-spin"></i> Detecting…';
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            try {
+                const { latitude, longitude } = pos.coords;
+                const nr = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&format=json`,
+                    { headers: { 'Accept-Language': 'en' } }
+                );
+                const geo  = await nr.json();
+                const addr = geo.address ?? {};
+
+                // Philippines returns addr.province; other countries return addr.state
+                const detectedCountry = addr.country ?? '';
+                const detectedState   = addr.province ?? addr.county ?? addr.state ?? '';
+                const detectedCity    = addr.city ?? addr.town ?? addr.municipality ?? addr.village ?? '';
+                const detectedStreet  = [addr.suburb, addr.neighbourhood, addr.village, addr.road]
+                    .filter(Boolean).join(', ');
+
+                // Match country option (case-insensitive)
+                const cOpt = [...countryEl.options].find(
+                    o => o.value.toLowerCase() === detectedCountry.toLowerCase()
+                );
+                if (cOpt) {
+                    countryEl.value = cOpt.value;
+                    await loadStates(cOpt.value);
+                    const sOpt = [...stateEl.options].find(
+                        o => o.value.toLowerCase() === detectedState.toLowerCase()
+                    );
+                    if (sOpt) {
+                        stateEl.value = sOpt.value;
+                        await loadCities(cOpt.value, sOpt.value);
+                        const ciOpt = [...cityEl.options].find(
+                            o => o.value.toLowerCase() === detectedCity.toLowerCase()
+                        );
+                        if (ciOpt) cityEl.value = ciOpt.value;
+                    }
+                }
+
+                const addressField = document.querySelector('textarea[name="address"]');
+                if (addressField && detectedStreet) addressField.value = detectedStreet;
+
+            } catch {
+                alert('Could not detect your location. Please fill in manually.');
+            } finally {
+                btn.disabled  = false;
+                btn.innerHTML = '<i class="fas fa-location-arrow"></i> Detect';
+            }
+        }, () => {
+            alert('Location access was denied.');
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fas fa-location-arrow"></i> Detect';
+        });
+    });
+
+    /* ── strong password generator ─────────────────────────── */
+    function togglePwd(id, btn) {
+        const el = document.getElementById(id);
+        el.type = el.type === 'password' ? 'text' : 'password';
+        btn.querySelector('i').className = el.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+    }
+
+    document.getElementById('gen-pwd-btn').addEventListener('click', () => {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
+        let pwd = '';
+        const arr = new Uint32Array(16);
+        crypto.getRandomValues(arr);
+        arr.forEach(v => { pwd += chars[v % chars.length]; });
+        // Ensure at least one of each type
+        pwd = pwd.slice(0, 12) +
+              'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[arr[12] % 26] +
+              '0123456789'[arr[13] % 10] +
+              '!@#$%^&*'[arr[14] % 8] +
+              'abcdefghijklmnopqrstuvwxyz'[arr[15] % 26];
+
+        document.getElementById('pwd-new').type     = 'text';
+        document.getElementById('pwd-new').value    = pwd;
+        document.getElementById('pwd-confirm').type  = 'text';
+        document.getElementById('pwd-confirm').value = pwd;
+
+        const preview = document.getElementById('gen-pwd-preview');
+        preview.textContent = pwd + ' 📋';
+        preview.style.display = 'inline';
+        preview.onclick = () => {
+            navigator.clipboard.writeText(pwd).then(() => {
+                preview.textContent = '✅ Copied!';
+                setTimeout(() => { preview.textContent = pwd + ' 📋'; }, 2000);
+            });
+        };
+    });
+})();
+</script>
+@endpush
