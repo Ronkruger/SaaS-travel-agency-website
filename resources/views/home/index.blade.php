@@ -70,7 +70,7 @@
                 </div>
                 <span>Tours</span>
             </a>
-            <a href="{{ route('tours.index', ['sort' => 'popular']) }}" class="icon-strip-item" aria-label="Destinations">
+            <a href="{{ route('destinations.index') }}" class="icon-strip-item" aria-label="Destinations">
                 <div class="icon-strip-circle icon-destinations">
                     <i class="fas fa-globe-asia"></i>
                 </div>

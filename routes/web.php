@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\DestinationsController;
 use App\Http\Controllers\DIYTourController;
 use App\Http\Controllers\DIYTourApiController;
 use App\Http\Controllers\Admin\DIYTourController as AdminDIYTourController;
@@ -33,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', fn() => view('about'))->name('about');
+Route::get('/destinations', [DestinationsController::class, 'index'])->name('destinations.index');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send')->middleware('throttle:5,1');
 

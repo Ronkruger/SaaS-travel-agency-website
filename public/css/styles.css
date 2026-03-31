@@ -1212,3 +1212,76 @@ table { width: 100%; }
     .icon-strip-circle{width:54px;height:54px;font-size:1.25rem}
     .icon-strip-item{min-width:62px;font-size:.75rem}
 }
+
+
+/* DESTINATIONS PAGE */
+.dest-header{position:relative;background:linear-gradient(135deg,#0A2D74 0%,#1d4ed8 60%,#3b82f6 100%);min-height:240px;display:flex;align-items:center;overflow:hidden}
+.dest-header-overlay{position:absolute;inset:0;background:rgba(10,45,116,.35)}
+.dest-header-content{position:relative;z-index:2;padding:48px 0}
+.dest-header-label{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px;border-radius:999px;margin-bottom:14px}
+.dest-header-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;color:#fff;margin:0 0 12px;line-height:1.15}
+.dest-header-sub{color:rgba(255,255,255,.8);font-size:1rem;max-width:540px;margin:0}
+
+/* Continent Tabs */
+.dest-tabs-wrap{background:#fff;border-bottom:2px solid #e2e8f0;position:sticky;top:70px;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.dest-continent-tabs{display:flex;gap:4px;overflow-x:auto;padding:12px 0;scrollbar-width:none;-ms-overflow-style:none}
+.dest-continent-tabs::-webkit-scrollbar{display:none}
+.dest-continent-tab{display:flex;align-items:center;gap:10px;padding:10px 20px;border:none;background:none;border-radius:12px;cursor:pointer;white-space:nowrap;transition:background .2s,box-shadow .2s;flex-shrink:0}
+.dest-continent-tab:hover{background:#f1f5f9}
+.dest-continent-tab.active{background:#eff6ff;box-shadow:0 0 0 2px #1d4ed8}
+.dest-tab-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;flex-shrink:0}
+.dest-tab-name{font-weight:700;font-size:.9rem;color:#1e293b}
+.dest-continent-tab.active .dest-tab-name{color:#1d4ed8}
+.dest-tab-count{font-size:.75rem;color:#64748b;background:#f1f5f9;padding:2px 8px;border-radius:999px}
+.dest-continent-tab.active .dest-tab-count{background:#dbeafe;color:#1d4ed8}
+
+/* Body */
+.dest-body{padding:40px 0 80px}
+.dest-section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+.dest-section-header h2{font-size:1.4rem;font-weight:800;color:#1e293b;margin:0}
+.dest-section-subtitle{font-size:.9rem;color:#64748b}
+
+/* Countries Grid */
+.dest-countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+
+/* Country Card */
+.dest-country-card{border-radius:18px;overflow:hidden;background:#fff;border:1.5px solid #e2e8f0;cursor:pointer;transition:box-shadow .3s,border-color .3s;outline:none}
+.dest-country-card:hover,.dest-country-card:focus-visible{box-shadow:0 8px 32px rgba(10,45,116,.14);border-color:#bfdbfe}
+.dest-country-card.expanded{box-shadow:0 12px 40px rgba(10,45,116,.18);border-color:#3b82f6}
+
+/* Thumbnail */
+.dest-country-thumb{position:relative;height:190px;overflow:hidden}
+.dest-country-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .5s ease}
+.dest-country-card:hover .dest-country-bg{transform:scale(1.06)}
+.dest-country-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.05) 65%)}
+.dest-country-info{position:absolute;bottom:0;left:0;right:0;padding:16px}
+.dest-country-name{margin:0 0 6px;font-size:1.15rem;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+.dest-country-meta{display:flex;gap:14px}
+.dest-country-meta span{font-size:.78rem;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:5px}
+.dest-country-meta i{opacity:.75}
+.dest-expand-btn{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;transition:transform .35s ease,background .2s}
+.dest-country-card.expanded .dest-expand-btn{transform:rotate(180deg);background:rgba(255,255,255,.35)}
+
+/* Cities Panel */
+.dest-cities-panel{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.4,0,.2,1)}
+.dest-country-card.expanded .dest-cities-panel{max-height:420px}
+.dest-cities-inner{padding:18px 18px 20px}
+.dest-cities-label{font-size:.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;margin:0 0 12px;display:flex;align-items:center;gap:7px}
+.dest-city-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.dest-city-tag{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:999px;font-size:.82rem;font-weight:600;color:#334155;text-decoration:none;transition:all .2s}
+.dest-city-tag:hover{background:#0A2D74;border-color:#0A2D74;color:#fff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(10,45,116,.2)}
+.dest-city-tag i{font-size:.7rem;opacity:.7}
+.dest-see-tours-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#0A2D74,#1d4ed8);color:#fff;border-radius:10px;font-size:.85rem;font-weight:700;text-decoration:none;transition:opacity .2s,transform .2s;box-shadow:0 3px 12px rgba(10,45,116,.25)}
+.dest-see-tours-btn:hover{opacity:.9;transform:translateY(-1px);color:#fff}
+
+/* Responsive */
+@media(max-width:768px){
+    .dest-header-content{padding:36px 0}
+    .dest-countries-grid{grid-template-columns:1fr 1fr}
+    .dest-continent-tab{padding:8px 14px}
+    .dest-tab-icon{width:30px;height:30px;font-size:.8rem}
+}
+@media(max-width:480px){
+    .dest-countries-grid{grid-template-columns:1fr}
+    .dest-country-thumb{height:160px}
+}
