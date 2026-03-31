@@ -6,6 +6,56 @@ use App\Models\Tour;
 
 class DestinationsController extends Controller
 {
+    // Maps a country name to its continent — used to exclude transit/departure
+    // countries (e.g. Philippines from a Europe tour) from the wrong bucket.
+    private const COUNTRY_CONTINENT = [
+        // Asia
+        'Philippines'=>'Asia','Japan'=>'Asia','China'=>'Asia','South Korea'=>'Asia',
+        'Thailand'=>'Asia','Vietnam'=>'Asia','Indonesia'=>'Asia','Malaysia'=>'Asia',
+        'Singapore'=>'Asia','India'=>'Asia','Nepal'=>'Asia','Maldives'=>'Asia',
+        'Sri Lanka'=>'Asia','Cambodia'=>'Asia','Myanmar'=>'Asia','Laos'=>'Asia',
+        'Taiwan'=>'Asia','Hong Kong'=>'Asia','Macau'=>'Asia','Mongolia'=>'Asia',
+        'Bangladesh'=>'Asia','Pakistan'=>'Asia','Brunei'=>'Asia','East Timor'=>'Asia',
+        // Europe
+        'France'=>'Europe','Italy'=>'Europe','Spain'=>'Europe','Germany'=>'Europe',
+        'United Kingdom'=>'Europe','UK'=>'Europe','Switzerland'=>'Europe',
+        'Austria'=>'Europe','Netherlands'=>'Europe','Belgium'=>'Europe',
+        'Portugal'=>'Europe','Greece'=>'Europe','Czech Republic'=>'Europe',
+        'Poland'=>'Europe','Hungary'=>'Europe','Croatia'=>'Europe',
+        'Slovenia'=>'Europe','Slovakia'=>'Europe','Romania'=>'Europe',
+        'Bulgaria'=>'Europe','Serbia'=>'Europe','Montenegro'=>'Europe',
+        'Albania'=>'Europe','North Macedonia'=>'Europe','Bosnia'=>'Europe',
+        'Vatican City'=>'Europe','Vatican'=>'Europe','San Marino'=>'Europe',
+        'Monaco'=>'Europe','Luxembourg'=>'Europe','Liechtenstein'=>'Europe',
+        'Denmark'=>'Europe','Sweden'=>'Europe','Norway'=>'Europe',
+        'Finland'=>'Europe','Iceland'=>'Europe','Ireland'=>'Europe',
+        'Scotland'=>'Europe','England'=>'Europe','Wales'=>'Europe',
+        'Russia'=>'Europe','Ukraine'=>'Europe','Turkey'=>'Europe',
+        'Estonia'=>'Europe','Latvia'=>'Europe','Lithuania'=>'Europe',
+        'Malta'=>'Europe','Cyprus'=>'Europe',
+        // Americas
+        'USA'=>'Americas','United States'=>'Americas','Canada'=>'Americas',
+        'Mexico'=>'Americas','Brazil'=>'Americas','Argentina'=>'Americas',
+        'Peru'=>'Americas','Colombia'=>'Americas','Chile'=>'Americas',
+        'Ecuador'=>'Americas','Bolivia'=>'Americas','Uruguay'=>'Americas',
+        'Paraguay'=>'Americas','Venezuela'=>'Americas','Cuba'=>'Americas',
+        'Costa Rica'=>'Americas','Panama'=>'Americas','Guatemala'=>'Americas',
+        // Africa
+        'Egypt'=>'Africa','Morocco'=>'Africa','South Africa'=>'Africa',
+        'Kenya'=>'Africa','Tanzania'=>'Africa','Ethiopia'=>'Africa',
+        'Tunisia'=>'Africa','Zimbabwe'=>'Africa','Botswana'=>'Africa',
+        'Namibia'=>'Africa','Uganda'=>'Africa','Rwanda'=>'Africa',
+        'Mauritius'=>'Africa','Madagascar'=>'Africa','Seychelles'=>'Africa',
+        // Middle East
+        'UAE'=>'Middle East','United Arab Emirates'=>'Middle East',
+        'Saudi Arabia'=>'Middle East','Qatar'=>'Middle East',
+        'Kuwait'=>'Middle East','Bahrain'=>'Middle East','Oman'=>'Middle East',
+        'Jordan'=>'Middle East','Israel'=>'Middle East','Lebanon'=>'Middle East',
+        // Oceania
+        'Australia'=>'Oceania','New Zealand'=>'Oceania','Fiji'=>'Oceania',
+        'Papua New Guinea'=>'Oceania','Samoa'=>'Oceania','Vanuatu'=>'Oceania',
+    ];
+
     private const CONTINENT_META = [
         'Europe'        => ['icon' => 'fa-monument',    'gradient' => 'linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%)'],
         'Asia'          => ['icon' => 'fa-torii-gate',  'gradient' => 'linear-gradient(135deg,#78350f 0%,#f59e0b 100%)'],
@@ -37,6 +87,13 @@ class DestinationsController extends Controller
                 $country = trim($stop['country'] ?? '');
                 $city    = trim($stop['city']    ?? '');
                 if (!$country || !$city) continue;
+
+                // Skip stops whose country belongs to a DIFFERENT continent
+                // (e.g. Manila/Philippines on a Europe tour = departure, not destination)
+                $stopContinent = self::COUNTRY_CONTINENT[$country] ?? null;
+                if ($stopContinent !== null && $stopContinent !== $continent) {
+                    continue;
+                }
 
                 // Init country bucket
                 if (!isset($destinations[$continent][$country])) {
