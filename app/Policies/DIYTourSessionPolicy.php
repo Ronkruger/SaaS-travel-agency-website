@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\AdminUser;
 use App\Models\DIYTourSession;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -14,7 +15,7 @@ class DIYTourSessionPolicy
      * Any authenticated or guest user can create a new DIY session.
      * (Guest access is controlled at the route level via session_token.)
      */
-    public function create(?User $user): bool
+    public function create(User|AdminUser|null $user): bool
     {
         return true;
     }
@@ -22,7 +23,7 @@ class DIYTourSessionPolicy
     /**
      * The session owner, a collaborator, or an admin may view the session.
      */
-    public function view(?User $user, DIYTourSession $session): bool
+    public function view(User|AdminUser|null $user, DIYTourSession $session): bool
     {
         if ($user && $user->isAdmin()) return true;
 
@@ -38,7 +39,7 @@ class DIYTourSessionPolicy
     /**
      * Only the owner or an admin may update.
      */
-    public function update(?User $user, DIYTourSession $session): bool
+    public function update(User|AdminUser|null $user, DIYTourSession $session): bool
     {
         if ($user && $user->isAdmin()) return true;
         if ($user && $session->user_id === $user->id) return true;
@@ -57,7 +58,7 @@ class DIYTourSessionPolicy
     /**
      * Only the owner or admin may delete.
      */
-    public function delete(?User $user, DIYTourSession $session): bool
+    public function delete(User|AdminUser|null $user, DIYTourSession $session): bool
     {
         if ($user && $user->isAdmin()) return true;
         return $user && $session->user_id === $user->id;

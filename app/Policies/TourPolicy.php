@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\AdminUser;
 use App\Models\Tour;
 use App\Models\User;
 
@@ -10,7 +11,7 @@ class TourPolicy
     /**
      * Determine if the user can view the tour listing (admin).
      */
-    public function viewAny(User $user): bool
+    public function viewAny(User|AdminUser $user): bool
     {
         return $user->isAdmin();
     }
@@ -18,7 +19,7 @@ class TourPolicy
     /**
      * Determine if the user can view the tour.
      */
-    public function view(?User $user, Tour $tour): bool
+    public function view(User|AdminUser|null $user, Tour $tour): bool
     {
         // Public tours can be viewed by anyone
         if ($tour->is_active) {
@@ -32,7 +33,7 @@ class TourPolicy
     /**
      * Determine if the user can create tours.
      */
-    public function create(User $user): bool
+    public function create(User|AdminUser $user): bool
     {
         return $user->isAdmin();
     }
@@ -40,7 +41,7 @@ class TourPolicy
     /**
      * Determine if the user can update the tour.
      */
-    public function update(User $user, Tour $tour): bool
+    public function update(User|AdminUser $user, Tour $tour): bool
     {
         return $user->isAdmin();
     }
@@ -48,7 +49,7 @@ class TourPolicy
     /**
      * Determine if the user can delete the tour.
      */
-    public function delete(User $user, Tour $tour): bool
+    public function delete(User|AdminUser $user, Tour $tour): bool
     {
         return $user->isAdmin();
     }
@@ -56,7 +57,7 @@ class TourPolicy
     /**
      * Determine if the user can restore the tour.
      */
-    public function restore(User $user, Tour $tour): bool
+    public function restore(User|AdminUser $user, Tour $tour): bool
     {
         return $user->isAdmin();
     }

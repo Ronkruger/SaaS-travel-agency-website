@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\DIYTourQuoteMail;
 use App\Models\DIYTourSession;
 use App\Models\DIYTourItinerary;
 use App\Models\DIYTourQuote;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class DIYTourController extends Controller
 {
@@ -66,7 +69,7 @@ class DIYTourController extends Controller
             ? (float) $validated['price_override']
             : (float) ($pricing['total_per_person'] ?? 0);
 
-        DIYTourQuote::create([
+        $quote = DIYTourQuote::create([
             'itinerary_id'     => $itinerary->id,
             'quoted_price_php' => $quotePrice,
             'valid_until'      => now()->addDays((int) ($validated['valid_days'] ?? 7)),
@@ -77,7 +80,23 @@ class DIYTourController extends Controller
 
         $diySession->update(['status' => 'quoted']);
 
-        return back()->with('success', 'Quote generated successfully. The client will be notified.');
+        // Send quote email to the client if they have an account
+        $client = $diySession->user;
+        if ($client && $client->email) {
+            try {
+                // Eager-load latestItinerary so the Mailable doesn't run extra queries
+                $diySession->loadMissing('latestItinerary');
+                Mail::to($client->email)->send(new DIYTourQuoteMail($quote, $diySession));
+            } catch (\Throwable $e) {
+                Log::error('DIY quote email failed', [
+                    'session_id' => $diySession->id,
+                    'quote_id'   => $quote->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Quote generated successfully. The client has been notified by email.');
     }
 
     // -------------------------------------------------------------------------

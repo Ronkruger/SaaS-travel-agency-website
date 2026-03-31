@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\AdminUser;
 use App\Models\Booking;
 use App\Models\User;
 
@@ -10,7 +11,7 @@ class BookingPolicy
     /**
      * Determine if the user can view the booking.
      */
-    public function view(User $user, Booking $booking): bool
+    public function view(User|AdminUser $user, Booking $booking): bool
     {
         // Admin can view any booking
         if ($user->isAdmin()) {
@@ -24,7 +25,7 @@ class BookingPolicy
     /**
      * Determine if the user can update the booking.
      */
-    public function update(User $user, Booking $booking): bool
+    public function update(User|AdminUser $user, Booking $booking): bool
     {
         // Admin can update any booking
         if ($user->isAdmin()) {
@@ -38,7 +39,7 @@ class BookingPolicy
     /**
      * Determine if the user can cancel the booking.
      */
-    public function cancel(User $user, Booking $booking): bool
+    public function cancel(User|AdminUser $user, Booking $booking): bool
     {
         // Admin can cancel any booking
         if ($user->isAdmin()) {
