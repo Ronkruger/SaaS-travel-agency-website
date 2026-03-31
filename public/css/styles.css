@@ -1152,13 +1152,12 @@ table { width: 100%; }
 }
 
 
-/* Quick Navigation Icon Strip */
-.section-icon-strip{background:#fff;padding:28px 0;border-bottom:1px solid #e8eef6}
-.icon-strip-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 20px}
+/* Quick Navigation Icon Strip — floats over bottom of hero */
+.section-icon-strip{position:relative;z-index:10;background:#fff;padding:32px 0 24px;border-bottom:1px solid #e8eef6;margin-top:-80px;border-radius:28px 28px 0 0;box-shadow:0 -6px 32px rgba(10,45,116,.10)}
+.icon-strip-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 24px}
 .icon-strip-item{display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:#1e293b;font-size:.8rem;font-weight:600;letter-spacing:.01em;transition:color .2s;min-width:76px;text-align:center}
 .icon-strip-item:hover{color:#0A2D74}
-.icon-strip-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,background .2s;box-shadow:0 2px 10px rgba(10,45,116,.10)}
-.icon-strip-item:hover .icon-strip-circle{transform:translateY(-6px) scale(1.08);box-shadow:0 10px 28px rgba(10,45,116,.18)}
+.icon-strip-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:box-shadow .3s,background .2s;box-shadow:0 2px 10px rgba(10,45,116,.10)}
 .icon-tours{background:#dbeafe;color:#1d4ed8}
 .icon-destinations{background:#d1fae5;color:#065f46}
 .icon-popular{background:#fee2e2;color:#991b1b}
@@ -1171,14 +1170,26 @@ table { width: 100%; }
 .icon-strip-item:hover .icon-buildtour{background:#ddd6fe}
 .icon-strip-item:hover .icon-about{background:#fde68a}
 .icon-strip-item:hover .icon-contact{background:#bae6fd}
+/* Continuous staggered float animation */
+@keyframes iconFloat{
+    0%,100%{transform:translateY(0) scale(1)}
+    50%{transform:translateY(-8px) scale(1.06)}
+}
+.icon-strip-item:nth-child(1) .icon-strip-circle{animation:iconFloat 2.6s ease-in-out infinite 0s}
+.icon-strip-item:nth-child(2) .icon-strip-circle{animation:iconFloat 2.6s ease-in-out infinite .35s}
+.icon-strip-item:nth-child(3) .icon-strip-circle{animation:iconFloat 2.6s ease-in-out infinite .7s}
+.icon-strip-item:nth-child(4) .icon-strip-circle{animation:iconFloat 2.6s ease-in-out infinite 1.05s}
+.icon-strip-item:nth-child(5) .icon-strip-circle{animation:iconFloat 2.6s ease-in-out infinite 1.4s}
+.icon-strip-item:nth-child(6) .icon-strip-circle{animation:iconFloat 2.6s ease-in-out infinite 1.75s}
+/* Hover: snap to bounce, override float */
 @keyframes iconBounce{
     0%{transform:translateY(0) scale(1)}
-    40%{transform:translateY(-8px) scale(1.12)}
-    60%{transform:translateY(-4px) scale(1.06)}
-    80%{transform:translateY(-6px) scale(1.09)}
-    100%{transform:translateY(-6px) scale(1.08)}
+    40%{transform:translateY(-10px) scale(1.14)}
+    60%{transform:translateY(-5px) scale(1.07)}
+    80%{transform:translateY(-8px) scale(1.1)}
+    100%{transform:translateY(-8px) scale(1.08)}
 }
-.icon-strip-item:hover .icon-strip-circle{animation:iconBounce .45s ease forwards}
+.icon-strip-item:hover .icon-strip-circle{animation:iconBounce .4s ease forwards!important;box-shadow:0 10px 28px rgba(10,45,116,.18)}
 
 /* Promotional Banner */
 .promo-banner-section{padding:24px 0;background:#fff}
