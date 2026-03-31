@@ -18,12 +18,14 @@ WORKDIR /var/www
 # Copy project files
 COPY . .
 
+# Create required runtime directories before composer post-autoload hook runs
+RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
-RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs \
-    && chmod -R 775 storage bootstrap/cache \
+RUN chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data /var/www
 
 # Nginx config template (PORT substituted at runtime by start.sh)
