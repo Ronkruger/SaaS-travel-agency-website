@@ -15,10 +15,25 @@ class TourController extends Controller
     {
         $query = Tour::active();
 
-        // Search - sanitize input
+        // Search - sanitize and escape LIKE wildcards
         if ($search = $request->input('search')) {
-            $search = strip_tags($search);
-            $query->where('title', 'like', "%{$search}%");
+            $search = strip_tags(trim($search));
+            $search = substr($search, 0, 200); // cap length
+            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search);
+            $query->where(function ($q) use ($escaped) {
+                $q->where('title', 'like', "%{$escaped}%")
+                  ->orWhereJsonContains('full_stops', ['city' => $search])
+                  ->orWhereJsonContains('full_stops', ['country' => $search]);
+            });
+        }
+
+        // Filter by category slug - validate against DB values
+        if ($categorySlug = $request->input('category')) {
+            $categorySlug = strip_tags(trim($categorySlug));
+            $category = Category::where('slug', $categorySlug)->where('is_active', true)->first();
+            if ($category) {
+                $query->where('category_id', $category->id);
+            }
         }
 
         // Filter by continent - validate against allowed values
