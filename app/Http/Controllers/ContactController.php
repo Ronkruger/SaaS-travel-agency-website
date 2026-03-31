@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
+    public function about()
+    {
+        return view('about');
+    }
+
     public function show()
     {
         return view('contact');

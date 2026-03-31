@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/about', fn() => view('about'))->name('about');
+Route::get('/about', [ContactController::class, 'about'])->name('about');
 Route::get('/destinations', [DestinationsController::class, 'index'])->name('destinations.index');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send')->middleware('throttle:5,1');
