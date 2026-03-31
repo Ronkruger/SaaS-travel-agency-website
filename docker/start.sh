@@ -6,10 +6,10 @@ export PORT=${PORT:-8080}
 
 cd /var/www
 
-# Laravel bootstrap
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Laravel bootstrap (optimizations are non-fatal; migrate is required)
+php artisan config:cache  || echo "[warn] config:cache failed, continuing..."
+php artisan route:cache   || echo "[warn] route:cache failed, continuing..."
+php artisan view:cache    || echo "[warn] view:cache failed, continuing..."
 php artisan migrate --force
 php artisan storage:link --force 2>/dev/null || true
 
