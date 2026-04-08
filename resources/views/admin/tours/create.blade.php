@@ -193,13 +193,26 @@
                     </div>
                     <div class="form-group">
                         <label>Video URL</label>
-                        <input type="text" name="video_url" class="form-control" value="{{ old('video_url') }}"
-                            placeholder="YouTube / Vimeo URL">
+                        <input type="text" name="video_url" id="create_video_url" class="form-control" value="{{ old('video_url') }}"
+                            placeholder="YouTube / Vimeo / Google Drive URL"
+                            oninput="updateEmbedPreview('create_video_url','create_video_preview','video')">
+                        <div id="create_video_preview" class="admin-embed-preview" style="display:none;margin-top:10px">
+                            <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:8px;overflow:hidden;background:#000">
+                                <iframe id="create_video_preview_frame" src="" frameborder="0" allowfullscreen
+                                    style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"></iframe>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Facebook Post URL</label>
-                        <input type="text" name="facebook_post_url" class="form-control" value="{{ old('facebook_post_url') }}"
-                            placeholder="https://facebook.com/...">
+                        <input type="text" name="facebook_post_url" id="create_fb_url" class="form-control" value="{{ old('facebook_post_url') }}"
+                            placeholder="https://facebook.com/..."
+                            oninput="updateEmbedPreview('create_fb_url','create_fb_preview','facebook')">
+                        <div id="create_fb_preview" class="admin-embed-preview" style="display:none;margin-top:10px;text-align:center">
+                            <iframe id="create_fb_preview_frame" src="" frameborder="0" scrolling="no"
+                                style="border:none;overflow:hidden;width:100%;min-height:400px"
+                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                        </div>
                     </div>
                 </div>
 

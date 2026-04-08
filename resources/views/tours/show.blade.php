@@ -8,6 +8,14 @@
 <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap' rel='stylesheet'>
 <style>
 /* ── Tour Route Map ─────────────────────────────────────── */
+/* ── Tour Media Embeds ──────────────────────────────────── */
+.tour-media-embeds{display:grid;gap:24px}
+.tour-media-block h4{font-size:1rem;font-weight:700;margin:0 0 12px;color:#1e293b}
+.tour-video-wrap{position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;background:#000}
+.tour-video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+.tour-fb-wrap{display:flex;justify-content:center;overflow:hidden;border-radius:12px}
+.tour-fb-wrap iframe{max-width:100%;width:500px;min-height:450px;border:none}
+@media(max-width:640px){.tour-fb-wrap iframe{width:100%;min-height:380px}}
 #tourStopsMapWrap{margin:0 -2rem 2rem -2rem;border-radius:0;overflow:hidden;background:#0f2d5c}
 #tab-destinations{overflow:visible}
 .tour-tabs{overflow:visible}
@@ -198,6 +206,36 @@
                                     <li><i class="fas fa-star text-yellow"></i> {{ $highlight }}</li>
                                 @endforeach
                             </ul>
+                        @endif
+
+                        @php
+                            $tourVideoEmbed = video_embed_url($tour->video_url ?? '');
+                            $tourFbEmbed    = facebook_embed_url($tour->facebook_post_url ?? '');
+                        @endphp
+                        @if($tourVideoEmbed || $tourFbEmbed)
+                        <div class="tour-media-embeds mt-4">
+                            @if($tourVideoEmbed)
+                            <div class="tour-media-block">
+                                <h4><i class="fas fa-film"></i> Tour Video</h4>
+                                <div class="tour-video-wrap">
+                                    <iframe src="{{ $tourVideoEmbed }}" frameborder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen></iframe>
+                                </div>
+                            </div>
+                            @endif
+                            @if($tourFbEmbed)
+                            <div class="tour-media-block">
+                                <h4><i class="fab fa-facebook" style="color:#1877f2"></i> Facebook Post</h4>
+                                <div class="tour-fb-wrap">
+                                    <iframe src="{{ $tourFbEmbed }}"
+                                        style="border:none;overflow:hidden"
+                                        scrolling="no" frameborder="0" allowfullscreen="true"
+                                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
                         @endif
 
                         <div class="tour-info-grid mt-4">

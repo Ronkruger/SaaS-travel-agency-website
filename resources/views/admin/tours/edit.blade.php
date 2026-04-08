@@ -152,13 +152,30 @@
                     </div>
                     <div class="form-group">
                         <label>Video URL</label>
-                        <input type="text" name="video_url" class="form-control"
-                            value="{{ old('video_url', $tour->video_url) }}" placeholder="YouTube / Vimeo URL">
+                        <input type="text" name="video_url" id="edit_video_url" class="form-control"
+                            value="{{ old('video_url', $tour->video_url) }}" placeholder="YouTube / Vimeo / Google Drive URL"
+                            oninput="updateEmbedPreview('edit_video_url','edit_video_preview','video')">
+                        <div id="edit_video_preview" class="admin-embed-preview" style="margin-top:10px;{{ $tour->video_url ? '' : 'display:none' }}">
+                            <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:8px;overflow:hidden;background:#000">
+                                <iframe id="edit_video_preview_frame"
+                                    src="{{ video_embed_url($tour->video_url ?? '') }}"
+                                    frameborder="0" allowfullscreen
+                                    style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"></iframe>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Facebook Post URL</label>
-                        <input type="text" name="facebook_post_url" class="form-control"
-                            value="{{ old('facebook_post_url', $tour->facebook_post_url) }}" placeholder="https://facebook.com/...">
+                        <input type="text" name="facebook_post_url" id="edit_fb_url" class="form-control"
+                            value="{{ old('facebook_post_url', $tour->facebook_post_url) }}" placeholder="https://facebook.com/..."
+                            oninput="updateEmbedPreview('edit_fb_url','edit_fb_preview','facebook')">
+                        <div id="edit_fb_preview" class="admin-embed-preview" style="margin-top:10px;text-align:center;{{ $tour->facebook_post_url ? '' : 'display:none' }}">
+                            <iframe id="edit_fb_preview_frame"
+                                src="{{ facebook_embed_url($tour->facebook_post_url ?? '') }}"
+                                frameborder="0" scrolling="no"
+                                style="border:none;overflow:hidden;width:100%;min-height:400px"
+                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                        </div>
                     </div>
                 </div>
 

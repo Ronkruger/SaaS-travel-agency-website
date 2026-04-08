@@ -3,6 +3,48 @@
  * Dynamic repeatable-row builders for the Tour admin create/edit form.
  */
 
+// ─── Embed Preview (Video URL / Facebook Post URL) ────────────────────────────
+function updateEmbedPreview(inputId, previewId, type) {
+    var url = (document.getElementById(inputId) || {}).value || '';
+    var preview = document.getElementById(previewId);
+    var frame   = document.getElementById(previewId + '_frame');
+    if (!preview || !frame) return;
+
+    var embedSrc = '';
+    if (type === 'video') {
+        embedSrc = videoEmbedUrl(url);
+    } else if (type === 'facebook') {
+        embedSrc = facebookEmbedUrl(url);
+    }
+
+    if (embedSrc) {
+        frame.src = embedSrc;
+        preview.style.display = '';
+    } else {
+        preview.style.display = 'none';
+        frame.src = '';
+    }
+}
+
+function videoEmbedUrl(url) {
+    if (!url) return '';
+    if (url.indexOf('youtube.com/embed/') !== -1) return url;
+    var m;
+    if ((m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/))) return 'https://www.youtube.com/embed/' + m[1];
+    if ((m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)))              return 'https://www.youtube.com/embed/' + m[1];
+    if ((m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)))         return 'https://www.youtube.com/embed/' + m[1];
+    if ((m = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/))) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)))           return 'https://player.vimeo.com/video/' + m[1];
+    return '';
+}
+
+function facebookEmbedUrl(url) {
+    if (!url) return '';
+    if (url.indexOf('facebook.com/plugins/') !== -1) return url;
+    if (/facebook\.com\//.test(url)) return 'https://www.facebook.com/plugins/post.php?href=' + encodeURIComponent(url) + '&show_text=true&width=500&appId=';
+    return '';
+}
+
 // ─── Departure Dates ─────────────────────────────────────────────────────────
 let departureDateIdx = 0;
 function addDepartureDate(data) {

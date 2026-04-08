@@ -85,3 +85,63 @@ if (!function_exists('youtube_embed_url')) {
         return $url;
     }
 }
+
+if (!function_exists('video_embed_url')) {
+    /**
+     * Convert a YouTube, YouTube Shorts, youtu.be, Google Drive, or Vimeo
+     * share/watch URL into an embeddable iframe src.
+     * Returns empty string if the URL is not recognised as a supported video.
+     */
+    function video_embed_url(string $url): string
+    {
+        if (empty($url)) return '';
+
+        // Already an embed URL
+        if (str_contains($url, 'youtube.com/embed/') || str_contains($url, 'drive.google.com/file/d/') && str_contains($url, '/preview')) {
+            return $url;
+        }
+
+        // YouTube Shorts
+        if (preg_match('#youtube\.com/shorts/([a-zA-Z0-9_-]+)#', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1];
+        }
+        // YouTube watch
+        if (preg_match('#[?&]v=([a-zA-Z0-9_-]{11})#', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1];
+        }
+        // youtu.be
+        if (preg_match('#youtu\.be/([a-zA-Z0-9_-]{11})#', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1];
+        }
+        // Google Drive share link  → /preview embed
+        if (preg_match('#drive\.google\.com/file/d/([a-zA-Z0-9_-]+)#', $url, $m)) {
+            return 'https://drive.google.com/file/d/' . $m[1] . '/preview';
+        }
+        // Vimeo
+        if (preg_match('#vimeo\.com/(?:video/)?(\d+)#', $url, $m)) {
+            return 'https://player.vimeo.com/video/' . $m[1];
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('facebook_embed_url')) {
+    /**
+     * Convert a Facebook post/video/reel URL into a Facebook embed URL.
+     * Returns empty string if not recognised.
+     */
+    function facebook_embed_url(string $url): string
+    {
+        if (empty($url)) return '';
+        // Already a plugin/post or plugin/video embed URL
+        if (str_contains($url, 'facebook.com/plugins/')) {
+            return $url;
+        }
+        // Any facebook.com URL → use oEmbed-style iframe plugin
+        if (preg_match('#facebook\.com/#', $url)) {
+            return 'https://www.facebook.com/plugins/post.php?href=' . urlencode($url) . '&show_text=true&width=500&appId=';
+        }
+        return '';
+    }
+}
