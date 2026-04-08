@@ -13,6 +13,11 @@ php artisan view:cache    || echo "[warn] view:cache failed, continuing..."
 php artisan migrate --force
 php artisan storage:link --force 2>/dev/null || true
 
+# Fix ownership: artisan commands above run as root, but php-fpm runs as www-data.
+# Without this, cache/session files created by root are not writable by www-data,
+# causing 500 errors on routes that use throttle middleware (login, register, etc.)
+chown -R www-data:www-data storage bootstrap/cache
+
 # Substitute PORT into nginx config
 envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
