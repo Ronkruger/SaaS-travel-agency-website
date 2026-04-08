@@ -125,6 +125,12 @@
                     <button class="alert-close" onclick="this.parentElement.remove()">×</button>
                 </div>
             @endif
+            @if(session('warning'))
+                <div class="alert alert-warning" style="background:#fefce8;border:1px solid #fde047;color:#854d0e">
+                    <i class="fas fa-exclamation-triangle"></i> {{ session('warning') }}
+                    <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+                </div>
+            @endif
             @if(session('error') || $errors->any())
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-circle"></i>

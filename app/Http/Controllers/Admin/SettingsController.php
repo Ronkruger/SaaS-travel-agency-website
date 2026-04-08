@@ -58,10 +58,24 @@ class SettingsController extends Controller
             Setting::set('yt_embed_url', $request->yt_embed_url);
         }
 
-        $this->handleUpload($request, 'logo',         'logo_path',         'logos');
-        $this->handleUpload($request, 'logo_dark',    'logo_dark_path',    'logos');
-        $this->handleUpload($request, 'favicon',      'favicon_path',      'logos');
-        $this->handleUpload($request, 'promo_banner', 'promo_banner_path', 'banners');
+        $uploadErrors = [];
+        foreach ([
+            'logo'         => ['logo_path',         'logos'],
+            'logo_dark'    => ['logo_dark_path',    'logos'],
+            'favicon'      => ['favicon_path',      'logos'],
+            'promo_banner' => ['promo_banner_path', 'banners'],
+        ] as $field => [$settingKey, $dir]) {
+            $error = $this->handleUpload($request, $field, $settingKey, $dir);
+            if ($error) {
+                $uploadErrors[] = ucfirst(str_replace('_', ' ', $field)) . ': ' . $error;
+            }
+        }
+
+        if (!empty($uploadErrors)) {
+            return back()
+                ->with('warning', 'Settings saved but image upload failed: ' . implode('; ', $uploadErrors))
+                ->withInput();
+        }
 
         return back()->with('success', 'Settings saved successfully.');
     }
@@ -83,31 +97,51 @@ class SettingsController extends Controller
 
     /**
      * Upload a file to Cloudinary and store the secure URL in settings.
-     * Deletes the previous stored value (Cloudinary URL or legacy local path).
+     * Returns null on success, or an error string on failure.
+     * The old image is only deleted AFTER the new upload succeeds.
      */
-    private function handleUpload(Request $request, string $field, string $settingKey, string $dir): void
+    private function handleUpload(Request $request, string $field, string $settingKey, string $dir): ?string
     {
-        if (!$request->hasFile($field) || !$request->file($field)->isValid()) {
-            return;
+        if (!$request->hasFile($field)) {
+            return null; // no file submitted — not an error
         }
 
         $file = $request->file($field);
 
-        // Defence-in-depth MIME check
-        if (!in_array($file->getMimeType(), self::ALLOWED_MIME, true)
-            && $file->getMimeType() !== 'image/x-icon') {
-            return;
+        if (!$file->isValid()) {
+            return 'Upload failed (PHP upload error ' . $file->getError() . ')';
         }
 
-        // Delete previous value (Cloudinary URL or legacy local path)
+        // Defence-in-depth MIME check — also accept image/jpg used by some systems
+        $mime = $file->getMimeType();
+        $allowed = array_merge(self::ALLOWED_MIME, ['image/jpg', 'image/x-icon', 'image/vnd.microsoft.icon']);
+        if (!in_array($mime, $allowed, true)) {
+            return "Unsupported file type ({$mime}). Allowed: PNG, JPG, SVG, WebP.";
+        }
+
+        // Upload first — only delete old image if upload succeeds
+        try {
+            $secureUrl = $file->storeOnCloudinary($dir)->getSecurePath();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Cloudinary upload failed', [
+                'field' => $field,
+                'error' => $e->getMessage(),
+            ]);
+            return 'Cloudinary upload failed: ' . $e->getMessage();
+        }
+
+        // Delete the previous image only after successful upload
         $old = Setting::get($settingKey);
         if ($old) {
-            $this->cloudinaryDelete($old);
+            try {
+                $this->cloudinaryDelete($old);
+            } catch (\Throwable) {
+                // Non-fatal — old image cleanup failure should not block saving the new one
+            }
         }
 
-        // Upload to Cloudinary and store the returned secure URL
-        $secureUrl = $file->storeOnCloudinary($dir)->getSecurePath();
         Setting::set($settingKey, $secureUrl);
+        return null;
     }
 
     /**
