@@ -26,3 +26,46 @@ if (!function_exists('cdn_url')) {
         return asset('storage/' . ltrim($path, '/'));
     }
 }
+
+if (!function_exists('youtube_embed_url')) {
+    /**
+     * Convert any YouTube URL format to an embed URL.
+     *
+     * Accepts:
+     *   https://www.youtube.com/watch?v=VIDEO_ID
+     *   https://www.youtube.com/shorts/VIDEO_ID
+     *   https://youtu.be/VIDEO_ID
+     *   https://www.youtube.com/embed/VIDEO_ID  (already correct, returned as-is)
+     *
+     * @param  string  $url
+     * @return string
+     */
+    function youtube_embed_url(string $url): string
+    {
+        if (empty($url)) {
+            return '';
+        }
+
+        // Already an embed URL
+        if (str_contains($url, 'youtube.com/embed/')) {
+            return $url;
+        }
+
+        // Shorts: youtube.com/shorts/VIDEO_ID
+        if (preg_match('#youtube\.com/shorts/([a-zA-Z0-9_-]+)#', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1];
+        }
+
+        // Watch: youtube.com/watch?v=VIDEO_ID
+        if (preg_match('#[?&]v=([a-zA-Z0-9_-]{11})#', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1];
+        }
+
+        // Short link: youtu.be/VIDEO_ID
+        if (preg_match('#youtu\.be/([a-zA-Z0-9_-]{11})#', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1];
+        }
+
+        return $url;
+    }
+}

@@ -207,13 +207,13 @@
             {{-- YouTube Embed --}}
             <h4 style="font-size:1rem;font-weight:700;margin-bottom:4px"><i class="fab fa-youtube" style="color:#ff0000"></i> YouTube Video</h4>
             <p style="font-size:.82rem;color:#6b7280;margin:0 0 10px">
-                Paste the YouTube embed URL (e.g. <code>https://www.youtube.com/embed/VIDEO_ID</code>).
+                Paste any YouTube URL — watch, shorts, or embed links are all accepted (e.g. <code>https://www.youtube.com/shorts/VIDEO_ID</code> or <code>https://youtu.be/VIDEO_ID</code>).
                 Leave blank to hide this section on the homepage.
             </p>
             <div class="form-group">
                 <input type="url" name="yt_embed_url" class="form-control"
                     value="{{ old('yt_embed_url', $ytEmbedUrl) }}"
-                    placeholder="https://www.youtube.com/embed/dQw4w9WgXcQ">
+                    placeholder="https://www.youtube.com/shorts/VIDEO_ID">
             </div>
         </div>
     </div>

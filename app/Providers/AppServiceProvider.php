@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
                 View::share('promoBannerUrl',  Setting::logoUrl('promo_banner_path'));
                 View::share('promoBannerLink', Setting::get('promo_banner_link', ''));
                 View::share('fbEmbedUrl',      Setting::get('fb_embed_code', ''));
-                View::share('ytEmbedUrl',      Setting::get('yt_embed_url', ''));
+                View::share('ytEmbedUrl',      youtube_embed_url(Setting::get('yt_embed_url', '')));
             } else {
                 View::share('brandLogoUrl',     null);
                 View::share('brandLogoDarkUrl', null);
