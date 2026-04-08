@@ -117,6 +117,19 @@ class TourController extends Controller
         return back()->with('success', 'Tour restored.');
     }
 
+    public function forceDestroy(int $id)
+    {
+        $tour = Tour::withTrashed()->findOrFail($id);
+        $this->authorize('forceDelete', $tour);
+        // Delete images from Cloudinary
+        $this->cloudinaryDelete($tour->main_image);
+        $this->cloudinaryDelete($tour->video_file, 'video');
+        foreach ((array) $tour->gallery_images as $img)  { $this->cloudinaryDelete($img); }
+        foreach ((array) $tour->related_images as $img)  { $this->cloudinaryDelete($img); }
+        $tour->forceDelete();
+        return back()->with('success', 'Tour permanently deleted.');
+    }
+
     // ── Private Helpers ────────────────────────────────────────────────────
 
     private function validateAndPrepare(Request $request, ?int $ignoreId = null): array

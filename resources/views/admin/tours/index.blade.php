@@ -138,6 +138,13 @@
                                             <i class="fas fa-undo"></i> Restore
                                         </button>
                                     </form>
+                                    <form action="{{ route('admin.tours.force-delete', $tour->id) }}" method="POST"
+                                          onsubmit="return confirm('Permanently delete this tour? This cannot be undone.')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-xs btn-danger" title="Delete Forever">
+                                            <i class="fas fa-times-circle"></i> Delete Forever
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </td>

@@ -63,6 +63,14 @@ class TourPolicy
     }
 
     /**
+     * Determine if the user can permanently delete the tour.
+     */
+    public function forceDelete(User|AdminUser $user, Tour $tour): bool
+    {
+        return $user->isAdmin();
+    }
+
+    /**
      * Determine if the user can toggle wishlist for the tour.
      */
     public function wishlist(User $user, Tour $tour): bool

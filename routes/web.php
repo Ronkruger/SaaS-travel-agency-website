@@ -174,6 +174,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::put('/tours/{tour}', [AdminTourController::class, 'update'])->name('tours.update');
     Route::delete('/tours/{tour}', [AdminTourController::class, 'destroy'])->name('tours.destroy');
     Route::post('/tours/{id}/restore', [AdminTourController::class, 'restore'])->name('tours.restore');
+    Route::delete('/tours/{id}/force-delete', [AdminTourController::class, 'forceDestroy'])->name('tours.force-delete');
     Route::delete('/tours/images/{imageId}', [AdminTourController::class, 'deleteImage'])->name('tours.images.destroy');
 
     // Categories
