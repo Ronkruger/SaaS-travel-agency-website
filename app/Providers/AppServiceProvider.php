@@ -54,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
                 View::share('ytEmbeds',         []);
                 View::share('fbEmbedUrl',       '');
                 View::share('ytEmbedUrl',       '');
+            }
         } catch (\Throwable) {
             View::share('brandLogoUrl',     null);
             View::share('brandLogoDarkUrl', null);
