@@ -139,8 +139,8 @@
                 <div class="media-embed-label"><i class="fab fa-facebook"></i> Facebook</div>
                 <div class="media-carousel media-carousel-fb" id="carousel-fb">
                     <div class="media-carousel-track">
-                        @foreach($fbEmbeds as $embed)
-                        <div class="media-carousel-slide">{!! $embed !!}</div>
+                        @foreach($fbEmbeds as $i => $embed)
+                        <div class="media-carousel-slide{{ $i===0?' active':'' }}">{!! $embed !!}</div>
                         @endforeach
                     </div>
                     @if(count($fbEmbeds) > 1)
@@ -193,10 +193,8 @@ function carouselGoto(id, idx) {
     var n = slides.length;
     if (idx < 0) idx = n - 1;
     if (idx >= n) idx = 0;
-    var vertical = el.classList.contains('media-carousel-fb');
-    if (vertical) {
-        var slideH = slides[0] ? slides[0].offsetHeight : 0;
-        el.querySelector('.media-carousel-track').style.transform = 'translateY(-' + (idx * slideH) + 'px)';
+    if (el.classList.contains('media-carousel-fb')) {
+        slides.forEach(function(s, i) { s.classList.toggle('active', i === idx); });
     } else {
         el.querySelector('.media-carousel-track').style.transform = 'translateX(-' + (idx * 100) + '%)';
     }

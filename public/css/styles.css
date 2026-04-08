@@ -1210,9 +1210,10 @@ table { width: 100%; }
 /* Horizontal (YouTube) */
 .media-carousel-track{display:flex;transition:transform .35s ease}
 .media-carousel-slide{flex:0 0 100%;min-width:0}
-/* Vertical (Facebook) */
-.media-carousel-fb .media-carousel-track{flex-direction:column;transition:transform .35s ease}
-.media-carousel-fb .media-carousel-slide{display:flex;justify-content:center;align-items:flex-start;padding:16px 0}
+/* Vertical fade (Facebook) — one slide at a time */
+.media-carousel-fb .media-carousel-track{display:block;position:relative}
+.media-carousel-fb .media-carousel-slide{display:none;justify-content:center;align-items:flex-start;padding:16px 12px}
+.media-carousel-fb .media-carousel-slide.active{display:flex}
 .media-carousel-fb .media-carousel-slide>*{max-width:100%}
 .media-carousel-yt{flex:1;min-height:320px}
 .media-carousel-yt .media-carousel-track{height:100%}
