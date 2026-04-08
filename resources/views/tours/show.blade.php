@@ -210,7 +210,7 @@
 
                         @php
                             $tourVideoEmbed = video_embed_url($tour->video_url ?? '');
-                            $tourFbEmbed    = facebook_embed_url($tour->facebook_post_url ?? '');
+                            $tourFbEmbed    = $tour->facebook_post_url ?? '';
                         @endphp
                         @if($tourVideoEmbed || $tourFbEmbed)
                         <div class="tour-media-embeds mt-4">
@@ -228,10 +228,7 @@
                             <div class="tour-media-block">
                                 <h4><i class="fab fa-facebook" style="color:#1877f2"></i> Facebook Post</h4>
                                 <div class="tour-fb-wrap">
-                                    <iframe src="{{ $tourFbEmbed }}"
-                                        style="border:none;overflow:hidden"
-                                        scrolling="no" frameborder="0" allowfullscreen="true"
-                                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                                    {!! $tourFbEmbed !!}
                                 </div>
                             </div>
                             @endif

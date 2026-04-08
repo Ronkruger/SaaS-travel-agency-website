@@ -13,8 +13,6 @@ function updateEmbedPreview(inputId, previewId, type) {
     var embedSrc = '';
     if (type === 'video') {
         embedSrc = videoEmbedUrl(url);
-    } else if (type === 'facebook') {
-        embedSrc = facebookEmbedUrl(url);
     }
 
     if (embedSrc) {
@@ -23,6 +21,20 @@ function updateEmbedPreview(inputId, previewId, type) {
     } else {
         preview.style.display = 'none';
         frame.src = '';
+    }
+}
+
+function updateFbEmbedPreview(inputId, previewId) {
+    var html = (document.getElementById(inputId) || {}).value || '';
+    var preview = document.getElementById(previewId);
+    var htmlEl  = document.getElementById(previewId + '_html');
+    if (!preview) return;
+    if (html.trim()) {
+        if (htmlEl) htmlEl.innerHTML = html;
+        preview.style.display = '';
+    } else {
+        preview.style.display = 'none';
+        if (htmlEl) htmlEl.innerHTML = '';
     }
 }
 

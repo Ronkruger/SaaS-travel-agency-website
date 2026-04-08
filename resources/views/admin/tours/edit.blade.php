@@ -165,16 +165,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Facebook Post URL</label>
-                        <input type="text" name="facebook_post_url" id="edit_fb_url" class="form-control"
-                            value="{{ old('facebook_post_url', $tour->facebook_post_url) }}" placeholder="https://facebook.com/..."
-                            oninput="updateEmbedPreview('edit_fb_url','edit_fb_preview','facebook')">
+                        <label>Facebook Post Embed</label>
+                        <textarea name="facebook_post_url" id="edit_fb_url" class="form-control" rows="4"
+                            placeholder='&lt;iframe src="https://www.facebook.com/plugins/post.php?..." ...&gt;&lt;/iframe&gt;'
+                            oninput="updateFbEmbedPreview('edit_fb_url','edit_fb_preview')">{{ old('facebook_post_url', $tour->facebook_post_url) }}</textarea>
+                        <small style="color:#6b7280">Paste the full Facebook embed code (from <a href="https://developers.facebook.com/docs/plugins/embedded-posts" target="_blank">Facebook Embedded Posts</a>).</small>
                         <div id="edit_fb_preview" class="admin-embed-preview" style="margin-top:10px;text-align:center;{{ $tour->facebook_post_url ? '' : 'display:none' }}">
-                            <iframe id="edit_fb_preview_frame"
-                                src="{{ facebook_embed_url($tour->facebook_post_url ?? '') }}"
-                                frameborder="0" scrolling="no"
-                                style="border:none;overflow:hidden;width:100%;min-height:400px"
-                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                            <div id="edit_fb_preview_html">{!! $tour->facebook_post_url !!}</div>
                         </div>
                     </div>
                 </div>

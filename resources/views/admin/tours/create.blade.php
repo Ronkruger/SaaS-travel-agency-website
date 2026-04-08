@@ -204,14 +204,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Facebook Post URL</label>
-                        <input type="text" name="facebook_post_url" id="create_fb_url" class="form-control" value="{{ old('facebook_post_url') }}"
-                            placeholder="https://facebook.com/..."
-                            oninput="updateEmbedPreview('create_fb_url','create_fb_preview','facebook')">
+                        <label>Facebook Post Embed</label>
+                        <textarea name="facebook_post_url" id="create_fb_url" class="form-control" rows="4"
+                            placeholder='&lt;iframe src="https://www.facebook.com/plugins/post.php?..." ...&gt;&lt;/iframe&gt;'
+                            oninput="updateFbEmbedPreview('create_fb_url','create_fb_preview')">{{ old('facebook_post_url') }}</textarea>
+                        <small style="color:#6b7280">Paste the full Facebook embed code (from <a href="https://developers.facebook.com/docs/plugins/embedded-posts" target="_blank">Facebook Embedded Posts</a>).</small>
                         <div id="create_fb_preview" class="admin-embed-preview" style="display:none;margin-top:10px;text-align:center">
-                            <iframe id="create_fb_preview_frame" src="" frameborder="0" scrolling="no"
-                                style="border:none;overflow:hidden;width:100%;min-height:400px"
-                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                            <div id="create_fb_preview_html"></div>
                         </div>
                     </div>
                 </div>
