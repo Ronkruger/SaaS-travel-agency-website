@@ -1198,17 +1198,18 @@ table { width: 100%; }
 .promo-banner-link:hover .promo-banner-img{opacity:.93}
 
 /* Media Embeds */
-.media-embeds-grid{display:grid;gap:24px}
+.media-embeds-grid{display:grid;gap:24px;align-items:stretch}
 .media-embeds-grid.two-cols{grid-template-columns:1fr 1fr}
 .media-embeds-grid.one-col{grid-template-columns:1fr;max-width:680px;margin:0 auto}
-.media-embed-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08)}
-.media-embed-label{padding:12px 18px;font-weight:700;font-size:.85rem;color:#1e293b;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f1f5f9}
+.media-embed-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08);display:flex;flex-direction:column}
+.media-embed-label{padding:12px 18px;font-weight:700;font-size:.85rem;color:#1e293b;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f1f5f9;flex-shrink:0}
 .media-embed-label .fab.fa-facebook{color:#1877f2;font-size:1.05rem}
 .media-embed-label .fab.fa-youtube{color:#ff0000;font-size:1.05rem}
-.yt-responsive{position:relative;padding-bottom:56.25%;height:0}
+.yt-responsive{position:relative;flex:1;min-height:320px}
 .yt-responsive iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
 @media(max-width:768px){
     .media-embeds-grid.two-cols{grid-template-columns:1fr}
+    .yt-responsive{min-height:220px}
     .icon-strip-circle{width:54px;height:54px;font-size:1.25rem}
     .icon-strip-item{min-width:62px;font-size:.75rem}
 }
