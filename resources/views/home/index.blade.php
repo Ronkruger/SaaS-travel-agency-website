@@ -121,8 +121,10 @@
 
 <!-- Embedded Media (Facebook + YouTube) -->
 @php
-    $hasFb = !empty($fbEmbedUrl ?? '');
-    $hasYt = !empty($ytEmbedUrl ?? '');
+    $fbEmbeds = $fbEmbeds ?? [];
+    $ytEmbeds = $ytEmbeds ?? [];
+    $hasFb = count($fbEmbeds) > 0;
+    $hasYt = count($ytEmbeds) > 0;
 @endphp
 @if($hasFb || $hasYt)
 <section class="section section-gray section-media-embeds">
@@ -135,22 +137,71 @@
             @if($hasFb)
             <div class="media-embed-card">
                 <div class="media-embed-label"><i class="fab fa-facebook"></i> Facebook</div>
-                {!! $fbEmbedUrl !!}
+                <div class="media-carousel media-carousel-fb" id="carousel-fb">
+                    <div class="media-carousel-track">
+                        @foreach($fbEmbeds as $embed)
+                        <div class="media-carousel-slide">{!! $embed !!}</div>
+                        @endforeach
+                    </div>
+                    @if(count($fbEmbeds) > 1)
+                    <button class="carousel-btn carousel-btn-prev" onclick="carouselShift('carousel-fb',-1)" aria-label="Previous">&#8249;</button>
+                    <button class="carousel-btn carousel-btn-next" onclick="carouselShift('carousel-fb',1)" aria-label="Next">&#8250;</button>
+                    <div class="carousel-dots">
+                        @foreach($fbEmbeds as $i => $e)
+                        <span class="carousel-dot{{ $i===0?' active':'' }}" onclick="carouselGoto('carousel-fb',{{$i}})"></span>
+                        @endforeach
+                    </div>
+                    @endif
+                </div>
             </div>
             @endif
             @if($hasYt)
             <div class="media-embed-card">
                 <div class="media-embed-label"><i class="fab fa-youtube"></i> YouTube</div>
-                <div class="yt-responsive">
-                    <iframe src="{{ $ytEmbedUrl }}" frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
+                <div class="media-carousel media-carousel-yt" id="carousel-yt">
+                    <div class="media-carousel-track">
+                        @foreach($ytEmbeds as $url)
+                        <div class="media-carousel-slide">
+                            <div class="yt-responsive">
+                                <iframe src="{{ $url }}" frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @if(count($ytEmbeds) > 1)
+                    <button class="carousel-btn carousel-btn-prev" onclick="carouselShift('carousel-yt',-1)" aria-label="Previous">&#8249;</button>
+                    <button class="carousel-btn carousel-btn-next" onclick="carouselShift('carousel-yt',1)" aria-label="Next">&#8250;</button>
+                    <div class="carousel-dots">
+                        @foreach($ytEmbeds as $i => $url)
+                        <span class="carousel-dot{{ $i===0?' active':'' }}" onclick="carouselGoto('carousel-yt',{{$i}})"></span>
+                        @endforeach
+                    </div>
+                    @endif
                 </div>
             </div>
             @endif
         </div>
     </div>
 </section>
+<script>
+function carouselGoto(id, idx) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var slides = el.querySelectorAll('.media-carousel-slide');
+    var n = slides.length;
+    if (idx < 0) idx = n - 1;
+    if (idx >= n) idx = 0;
+    el.querySelector('.media-carousel-track').style.transform = 'translateX(-' + (idx * 100) + '%)';
+    el.querySelectorAll('.carousel-dot').forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+    el._idx = idx;
+}
+function carouselShift(id, dir) {
+    var el = document.getElementById(id);
+    carouselGoto(id, (el ? (el._idx || 0) : 0) + dir);
+}
+</script>
 @endif
 
 

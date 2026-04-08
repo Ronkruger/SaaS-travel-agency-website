@@ -27,6 +27,22 @@ if (!function_exists('cdn_url')) {
     }
 }
 
+if (!function_exists('parse_setting_array')) {
+    /**
+     * Parse a Setting value that may be a JSON array or a legacy single string.
+     * Returns a flat, filtered array of non-empty strings.
+     */
+    function parse_setting_array(?string $value): array
+    {
+        if (empty($value)) return [];
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            return array_values(array_filter(array_map('trim', $decoded)));
+        }
+        return [trim($value)];
+    }
+}
+
 if (!function_exists('youtube_embed_url')) {
     /**
      * Convert any YouTube URL format to an embed URL.

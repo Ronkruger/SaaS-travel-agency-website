@@ -192,29 +192,56 @@
             <hr style="margin:24px 0">
 
             {{-- Facebook Embed --}}
-            <h4 style="font-size:1rem;font-weight:700;margin-bottom:4px"><i class="fab fa-facebook" style="color:#1877f2"></i> Facebook Embed</h4>
+            <h4 style="font-size:1rem;font-weight:700;margin-bottom:4px"><i class="fab fa-facebook" style="color:#1877f2"></i> Facebook Embeds</h4>
             <p style="font-size:.82rem;color:#6b7280;margin:0 0 10px">
-                Paste the full Facebook iframe/blockquote embed code (from Facebook's Embedded Posts tool).
-                Leave blank to hide this section on the homepage.
+                Paste each Facebook iframe/blockquote embed code (from Facebook's Embedded Posts tool). Add multiple to create a carousel.
+                Leave empty to hide this section.
             </p>
-            <div class="form-group">
-                <textarea name="fb_embed_code" class="form-control" rows="5"
-                    placeholder='&lt;iframe src="https://www.facebook.com/plugins/post.php?..." ...&gt;&lt;/iframe&gt;'>{{ old('fb_embed_code', $fbEmbedCode) }}</textarea>
+            <div id="fb-list">
+                @forelse($fbEmbedItems as $code)
+                <div class="embed-item" style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start">
+                    <textarea name="fb_embed_code[]" class="form-control" rows="4"
+                        placeholder='&lt;iframe src="https://www.facebook.com/plugins/post.php?..." ...&gt;&lt;/iframe&gt;'>{{ $code }}</textarea>
+                    <button type="button" onclick="this.closest('.embed-item').remove()" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa-times"></i></button>
+                </div>
+                @empty
+                <div class="embed-item" style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start">
+                    <textarea name="fb_embed_code[]" class="form-control" rows="4"
+                        placeholder='&lt;iframe src="https://www.facebook.com/plugins/post.php?..." ...&gt;&lt;/iframe&gt;'></textarea>
+                    <button type="button" onclick="this.closest('.embed-item').remove()" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa-times"></i></button>
+                </div>
+                @endforelse
             </div>
+            <button type="button" onclick="addEmbedFb()" class="btn btn-sm" style="background:#f1f5f9;border:1px solid #cbd5e1;color:#1e293b">
+                <i class="fas fa-plus"></i> Add Facebook Post
+            </button>
 
             <hr style="margin:24px 0">
 
             {{-- YouTube Embed --}}
-            <h4 style="font-size:1rem;font-weight:700;margin-bottom:4px"><i class="fab fa-youtube" style="color:#ff0000"></i> YouTube Video</h4>
+            <h4 style="font-size:1rem;font-weight:700;margin-bottom:4px"><i class="fab fa-youtube" style="color:#ff0000"></i> YouTube Videos</h4>
             <p style="font-size:.82rem;color:#6b7280;margin:0 0 10px">
-                Paste any YouTube URL — watch, shorts, or embed links are all accepted (e.g. <code>https://www.youtube.com/shorts/VIDEO_ID</code> or <code>https://youtu.be/VIDEO_ID</code>).
-                Leave blank to hide this section on the homepage.
+                Paste any YouTube URL — watch, shorts, or embed links are all accepted. Add multiple to create a carousel.
+                Leave empty to hide this section.
             </p>
-            <div class="form-group">
-                <input type="url" name="yt_embed_url" class="form-control"
-                    value="{{ old('yt_embed_url', $ytEmbedUrl) }}"
-                    placeholder="https://www.youtube.com/shorts/VIDEO_ID">
+            <div id="yt-list">
+                @forelse($ytEmbedItems as $url)
+                <div class="embed-item" style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+                    <input type="url" name="yt_embed_url[]" class="form-control" value="{{ $url }}"
+                        placeholder="https://www.youtube.com/shorts/VIDEO_ID">
+                    <button type="button" onclick="this.closest('.embed-item').remove()" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa-times"></i></button>
+                </div>
+                @empty
+                <div class="embed-item" style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+                    <input type="url" name="yt_embed_url[]" class="form-control"
+                        placeholder="https://www.youtube.com/shorts/VIDEO_ID">
+                    <button type="button" onclick="this.closest('.embed-item').remove()" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa-times"></i></button>
+                </div>
+                @endforelse
             </div>
+            <button type="button" onclick="addEmbedYt()" class="btn btn-sm" style="background:#f1f5f9;border:1px solid #cbd5e1;color:#1e293b">
+                <i class="fas fa-plus"></i> Add YouTube Video
+            </button>
         </div>
     </div>
 
@@ -254,6 +281,23 @@ function deleteLogo(key, link) {
     document.getElementById('delete-logo-key').value = key;
     document.getElementById('delete-logo-form').submit();
     return false;
+}
+
+function addEmbedFb() {
+    var item = document.createElement('div');
+    item.className = 'embed-item';
+    item.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;align-items:flex-start';
+    item.innerHTML = '<textarea name="fb_embed_code[]" class="form-control" rows="4" placeholder=\'<iframe src="https://www.facebook.com/plugins/post.php?..." ...></iframe>\'></textarea>'
+        + '<button type="button" onclick="this.closest(\'.embed-item\').remove()" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa-times"></i></button>';
+    document.getElementById('fb-list').appendChild(item);
+}
+function addEmbedYt() {
+    var item = document.createElement('div');
+    item.className = 'embed-item';
+    item.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;align-items:center';
+    item.innerHTML = '<input type="url" name="yt_embed_url[]" class="form-control" placeholder="https://www.youtube.com/shorts/VIDEO_ID">'
+        + '<button type="button" onclick="this.closest(\'.embed-item\').remove()" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa-times"></i></button>';
+    document.getElementById('yt-list').appendChild(item);
 }
 </script>
 @endpush

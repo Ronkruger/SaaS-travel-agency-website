@@ -35,8 +35,13 @@ class AppServiceProvider extends ServiceProvider
                 // Homepage customisation
                 View::share('promoBannerUrl',  Setting::logoUrl('promo_banner_path'));
                 View::share('promoBannerLink', Setting::get('promo_banner_link', ''));
-                View::share('fbEmbedUrl',      Setting::get('fb_embed_code', ''));
-                View::share('ytEmbedUrl',      youtube_embed_url(Setting::get('yt_embed_url', '')));
+                $fbItems = parse_setting_array(Setting::get('fb_embed_code', ''));
+                $ytRaw   = parse_setting_array(Setting::get('yt_embed_url', ''));
+                $ytItems = array_map('youtube_embed_url', $ytRaw);
+                View::share('fbEmbeds',   $fbItems);
+                View::share('ytEmbeds',   $ytItems);
+                View::share('fbEmbedUrl', $fbItems[0] ?? '');
+                View::share('ytEmbedUrl', $ytItems[0] ?? '');
             } else {
                 View::share('brandLogoUrl',     null);
                 View::share('brandLogoDarkUrl', null);
@@ -45,9 +50,10 @@ class AppServiceProvider extends ServiceProvider
                 View::share('brandTagline',     '');
                 View::share('promoBannerUrl',   null);
                 View::share('promoBannerLink',  '');
+                View::share('fbEmbeds',         []);
+                View::share('ytEmbeds',         []);
                 View::share('fbEmbedUrl',       '');
                 View::share('ytEmbedUrl',       '');
-            }
         } catch (\Throwable) {
             View::share('brandLogoUrl',     null);
             View::share('brandLogoDarkUrl', null);
@@ -56,6 +62,8 @@ class AppServiceProvider extends ServiceProvider
             View::share('brandTagline',     '');
             View::share('promoBannerUrl',   null);
             View::share('promoBannerLink',  '');
+            View::share('fbEmbeds',         []);
+            View::share('ytEmbeds',         []);
             View::share('fbEmbedUrl',       '');
             View::share('ytEmbedUrl',       '');
         }

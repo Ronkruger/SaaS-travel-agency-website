@@ -23,8 +23,8 @@ class SettingsController extends Controller
             'tagline'         => Setting::get('company_tagline', ''),
             'promoBannerUrl'  => Setting::logoUrl('promo_banner_path'),
             'promoBannerLink' => Setting::get('promo_banner_link', ''),
-            'fbEmbedCode'     => Setting::get('fb_embed_code', ''),
-            'ytEmbedUrl'      => Setting::get('yt_embed_url', ''),
+            'fbEmbedItems'    => parse_setting_array(Setting::get('fb_embed_code', '')),
+            'ytEmbedItems'    => parse_setting_array(Setting::get('yt_embed_url', '')),
         ]);
     }
 
@@ -38,8 +38,10 @@ class SettingsController extends Controller
             'favicon'           => ['nullable', 'file', 'max:512', 'mimes:png,jpg,jpeg,svg,webp,ico'],
             'promo_banner'      => ['nullable', 'file', 'max:4096', 'mimes:png,jpg,jpeg,webp'],
             'promo_banner_link' => ['nullable', 'string', 'max:500'],
-            'fb_embed_code'     => ['nullable', 'string', 'max:2000'],
-            'yt_embed_url'      => ['nullable', 'url', 'max:500'],
+            'fb_embed_code'     => ['nullable', 'array'],
+            'fb_embed_code.*'   => ['nullable', 'string', 'max:5000'],
+            'yt_embed_url'      => ['nullable', 'array'],
+            'yt_embed_url.*'    => ['nullable', 'url', 'max:500'],
         ]);
 
         if ($request->filled('company_name')) {
@@ -52,10 +54,12 @@ class SettingsController extends Controller
             Setting::set('promo_banner_link', $request->promo_banner_link);
         }
         if ($request->has('fb_embed_code')) {
-            Setting::set('fb_embed_code', $request->fb_embed_code);
+            $fbItems = array_values(array_filter(array_map('trim', (array) $request->fb_embed_code)));
+            Setting::set('fb_embed_code', json_encode($fbItems));
         }
         if ($request->has('yt_embed_url')) {
-            Setting::set('yt_embed_url', $request->yt_embed_url);
+            $ytItems = array_values(array_filter(array_map('trim', (array) $request->yt_embed_url)));
+            Setting::set('yt_embed_url', json_encode($ytItems));
         }
 
         $uploadErrors = [];
