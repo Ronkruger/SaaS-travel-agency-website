@@ -1497,11 +1497,11 @@ function _parseDateLine(line, data) {
 function parseTourText(text) {
     var lines = text.split('\n');
     var data = {
-        title: null, duration_days: null,
+        title: null, duration_days: null, price: null,
         booking_links: [], departure_dates: [],
         optional_tours: [], cash_freebies: [],
         highlights: [], countries_visited: [],
-        downpayment: null
+        optional_link: null, downpayment: null
     };
     var mode = null;
     var firstLine = true;
@@ -1516,18 +1516,38 @@ function parseTourText(text) {
         if (/^excursions?\s*:?\s*$/i.test(line))                                 { mode = 'optional';    continue; }
         if (/^cash\s*(freebies?|allowances?|inclusions?)?\s*:?\s*$/i.test(line)) { mode = 'freebies';    continue; }
         if (/^freebies?\s*:?\s*$/i.test(line))                                   { mode = 'freebies';    continue; }
+        if (/^full\s*cash\s+payment\s+freebies?\s*:?\s*$/i.test(line))          { mode = 'freebies';    continue; }
         if (/^(highlights?|inclusions?|what.?s\s+included)\s*:?\s*$/i.test(line)){ mode = 'highlights';  continue; }
+
+        // ── Optional Tours with inline URL: "Optional Tours: https://..." ──
+        var optUrlM = line.match(/^optional\s+tours?\s*:\s*(https?:\/\/\S+)/i);
+        if (optUrlM) { data.optional_link = optUrlM[1]; mode = 'optional'; continue; }
+
+        // ── Countries to visit: "Country to Visit: X | Y | Z" ──
+        var countryM = line.match(/^countr(?:y|ies)\s+to\s+visit\s*:\s*(.+)/i);
+        if (countryM) {
+            data.countries_visited = countryM[1].split(/\s*[|,]\s*/).map(function(c){ return c.trim(); }).filter(Boolean);
+            mode = null; continue;
+        }
 
         // ── Title + Duration (very first content line) ──
         if (firstLine) {
             firstLine = false;
-            var durM = line.match(/\((\d+)\s*n?ights?\s*(?:\/\s*\d+\s*days?)?\)|(\d+)\s*days?/i);
             var dayMatch = line.match(/\((\d+)\s*days?\)/i);
             if (dayMatch) {
                 data.duration_days = parseInt(dayMatch[1]);
                 data.title = line.replace(/\s*\(\d+\s*days?\)/i, '').trim().replace(/[-–\s]+$/, '').trim();
             } else {
                 data.title = line;
+            }
+            // Strip any inline URL from the title; save it as a booking link
+            var urlInTitle = data.title.match(/(https?:\/\/\S+)/i);
+            if (urlInTitle) {
+                var _u = urlInTitle[1];
+                var _yrM = _u.match(/(20\d{2})/);
+                var _yr = _yrM ? _yrM[1] : String(new Date().getFullYear());
+                data.booking_links.push({ year: _yr, urls: [_u] });
+                data.title = data.title.replace(/\s*-?\s*https?:\/\/\S+/i, '').trim().replace(/[-–\s]+$/, '').trim();
             }
             mode = null;
             continue;
@@ -1638,6 +1658,12 @@ function applyParsedTourData(data) {
         var d = document.querySelector('[name="duration_days"]');
         if (d) d.value = data.duration_days;
     }
+    // Price: use explicit data.price or fall back to the first departure date's price
+    var resolvedPrice = data.price || (data.departure_dates.length && data.departure_dates[0].price) || null;
+    if (resolvedPrice) {
+        var pr = document.querySelector('[name="regular_price_per_person"]');
+        if (pr) pr.value = resolvedPrice;
+    }
     data.booking_links.forEach(function(bl)  { addBookingLinkYear(bl); });
     data.departure_dates.forEach(function(dd) { addDepartureDate(dd); });
     data.optional_tours.forEach(function(ot)  { addOptionalTour(ot); });
@@ -1662,8 +1688,12 @@ function showSmartPastePreview(data) {
     var preview = document.getElementById('aiParsePreview');
     if (!preview) return;
     var rows = [];
+    var _resolvedPrice = data.price || (data.departure_dates.length && data.departure_dates[0].price) || null;
     if (data.title)               rows.push(['Title',           esc(data.title)]);
     if (data.duration_days)       rows.push(['Duration',        data.duration_days + ' days']);
+    if (_resolvedPrice)           rows.push(['Price',           '₱' + Number(_resolvedPrice).toLocaleString()]);
+    if (data.countries_visited.length) rows.push(['Countries',   esc(data.countries_visited.join(', '))]);
+    if (data.optional_link)       rows.push(['Optional Tours Link', '<a href="'+esc(data.optional_link)+'" target="_blank">'+esc(data.optional_link)+'</a>']);
     if (data.booking_links.length)  rows.push(['Flipbook Links', data.booking_links.map(function(b){ return b.year+': '+b.urls.length+' URL(s)'; }).join('; ')]);
     if (data.departure_dates.length) rows.push(['Departure Dates', data.departure_dates.length + ' date(s) added to Travel Dates tab']);
     if (data.optional_tours.length) rows.push(['Optional Tours', esc(data.optional_tours.map(function(o){ return 'Day '+o.day+': '+o.title; }).join(', '))]);

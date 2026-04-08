@@ -41,7 +41,7 @@
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-0" style="overflow-x:auto">
         <table class="data-table">
             <thead>
                 <tr>
