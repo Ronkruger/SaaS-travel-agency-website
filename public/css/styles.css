@@ -1207,8 +1207,13 @@ table { width: 100%; }
 .media-embed-label .fab.fa-youtube{color:#ff0000;font-size:1.05rem}
 /* Carousel */
 .media-carousel{position:relative;overflow:hidden}
+/* Horizontal (YouTube) */
 .media-carousel-track{display:flex;transition:transform .35s ease}
 .media-carousel-slide{flex:0 0 100%;min-width:0}
+/* Vertical (Facebook) */
+.media-carousel-fb .media-carousel-track{flex-direction:column;transition:transform .35s ease}
+.media-carousel-fb .media-carousel-slide{display:flex;justify-content:center;align-items:flex-start;padding:16px 0}
+.media-carousel-fb .media-carousel-slide>*{max-width:100%}
 .media-carousel-yt{flex:1;min-height:320px}
 .media-carousel-yt .media-carousel-track{height:100%}
 .media-carousel-yt .media-carousel-slide{height:100%}
@@ -1218,7 +1223,13 @@ table { width: 100%; }
 .carousel-btn:hover{background:rgba(0,0,0,.72)}
 .carousel-btn-prev{left:10px}
 .carousel-btn-next{right:10px}
+/* Vertical nav for FB: top/bottom arrows, centred */
+.media-carousel-fb .carousel-btn{top:auto;transform:none;left:50%;margin-left:-18px}
+.media-carousel-fb .carousel-btn-prev{top:6px;bottom:auto}
+.media-carousel-fb .carousel-btn-next{bottom:6px;top:auto}
 .carousel-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:10}
+/* FB dots: vertical strip on right side */
+.media-carousel-fb .carousel-dots{bottom:auto;top:50%;left:auto;right:10px;transform:translateY(-50%);flex-direction:column}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.25);cursor:pointer;transition:background .2s}
 .carousel-dot.active{background:#0A2D74}
 .media-carousel-yt .carousel-dot{background:rgba(255,255,255,.45)}
