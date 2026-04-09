@@ -122,10 +122,10 @@ class BookingImportController extends Controller
 
             $rowWarnings = [];
             if (!$tour) {
-                $rowWarnings[] = "Tour \"{$row['route name']}\" not found — row will be skipped.";
+                $rowWarnings[] = "Tour \"{$tourName}\" not found — row will be skipped.";
             }
             if (!$travelDate) {
-                $rowWarnings[] = "Invalid travel date \"{$row['travel date']}\" — row will be skipped.";
+                $rowWarnings[] = "Invalid travel date \"" . ($row['travel date'] ?? '') . "\" — row will be skipped.";
             }
             if ($rate <= 0) {
                 $rowWarnings[] = "Rate is 0 — will use tour's current price.";
