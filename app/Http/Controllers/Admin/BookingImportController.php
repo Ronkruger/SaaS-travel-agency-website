@@ -175,7 +175,12 @@ class BookingImportController extends Controller
         $created    = $skipped = 0;
         $errors     = [];
 
-        DB::transaction(function () use ($preview, $scheduleSeats, &$tourCache, &$schedCache, &$created, &$skipped, &$errors) {
+        // Pre-calculate booking number base to avoid duplicates inside the transaction
+        $year           = date('Y');
+        $existingCount  = Booking::whereYear('created_at', $year)->count();
+        $bookingCounter = $existingCount;
+
+        DB::transaction(function () use ($preview, $scheduleSeats, &$tourCache, &$schedCache, &$created, &$skipped, &$errors, $year, &$bookingCounter) {
             foreach ($preview as $row) {
                 if ($row['skipped']) { $skipped++; continue; }
 
@@ -226,7 +231,7 @@ class BookingImportController extends Controller
                     $paymentMethod = $row['terms'] === 'installment' ? 'installment' : 'cash';
 
                     Booking::create([
-                        'booking_number'    => Booking::generateBookingNumber(),
+                        'booking_number'    => 'DG-' . $year . '-' . str_pad(++$bookingCounter, 6, '0', STR_PAD_LEFT),
                         'tour_id'           => $tour->id,
                         'schedule_id'       => $schedule->id,
                         'tour_date'         => $row['travel_date'],
