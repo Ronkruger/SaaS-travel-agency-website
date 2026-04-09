@@ -149,9 +149,16 @@
                             </div>
                         </div>
 
-                        @if($booking->payment_status === 'unpaid')
+                        @if($booking->status === 'unpaid')
                             <a href="{{ route('checkout.show', $booking) }}" class="btn btn-primary btn-block mt-3">
                                 <i class="fas fa-credit-card"></i> Complete Payment
+                            </a>
+                        @endif
+
+                        @if($booking->isConfirmed())
+                            <a href="{{ route('booking.pdf.download', $booking) }}"
+                               class="btn btn-outline-primary btn-block mt-2">
+                                <i class="fas fa-file-pdf"></i> Download Confirmation PDF
                             </a>
                         @endif
 

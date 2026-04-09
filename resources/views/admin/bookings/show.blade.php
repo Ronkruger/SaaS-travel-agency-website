@@ -5,13 +5,86 @@
     <a href="{{ route('admin.bookings.index') }}">Bookings</a> / {{ $booking->booking_number }}
 @endsection
 
+@push('styles')
+<style>
+.approve-bar { border-radius:.75rem; padding:1.25rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+.approve-bar--pending { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:2px solid #86efac; }
+.approve-bar__info { display:flex; align-items:center; gap:.75rem; }
+.approve-bar__actions { display:flex; gap:.75rem; flex-wrap:wrap; }
+.btn-approve { background:#16a34a; color:#fff; border:none; padding:.6rem 1.5rem; border-radius:.5rem; font-weight:700; font-size:.95rem; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
+.btn-approve:hover { background:#15803d; }
+.btn-reject { background:#fff; color:#991b1b; border:2px solid #fca5a5; padding:.6rem 1.25rem; border-radius:.5rem; font-weight:600; font-size:.875rem; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
+.btn-reject:hover { background:#fee2e2; }
+.slot-avail-card { border:1px solid #e2e8f0; border-radius:.75rem; overflow:hidden; margin-bottom:1rem; }
+.slot-avail-head { background:#1e293b; color:#fff; padding:.75rem 1rem; font-weight:600; font-size:.875rem; display:flex; align-items:center; gap:.5rem; }
+.slot-avail-body { padding:1rem; }
+.slot-row { display:flex; justify-content:space-between; align-items:center; padding:.35rem 0; border-bottom:1px solid #f1f5f9; font-size:.875rem; }
+.slot-row:last-child { border-bottom:none; }
+.seats-mini-bar { width:100%; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-top:.5rem; }
+.seats-mini-fill { height:100%; border-radius:4px; }
+</style>
+@endpush
+
 @section('content')
 <div class="page-title-row">
     <h2>Booking #{{ $booking->booking_number }}</h2>
-    <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline">
-        <i class="fas fa-arrow-left"></i> Back
-    </a>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+        {{-- PDF Actions --}}
+        <a href="{{ route('admin.bookings.pdf.preview', $booking) }}" target="_blank"
+           class="btn btn-outline" title="Preview PDF">
+            <i class="fas fa-file-pdf" style="color:#dc2626"></i> Preview PDF
+        </a>
+        <a href="{{ route('admin.bookings.pdf.download', $booking) }}"
+           class="btn btn-outline" title="Download PDF">
+            <i class="fas fa-download"></i> Download PDF
+        </a>
+        <form action="{{ route('admin.bookings.pdf.email', $booking) }}" method="POST" style="display:inline"
+              onsubmit="return confirm('Send booking confirmation PDF to {{ $booking->contact_email }}?')">
+            @csrf
+            <button type="submit" class="btn btn-outline" title="Email PDF to client">
+                <i class="fas fa-envelope"></i> Email PDF
+            </button>
+        </form>
+        <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
 </div>
+
+{{-- ── PENDING APPROVAL BAR ──────────────────────────────────────── --}}
+@if($booking->status === 'pending')
+<div class="approve-bar approve-bar--pending">
+    <div class="approve-bar__info">
+        <i class="fas fa-clock" style="font-size:1.5rem;color:#ca8a04"></i>
+        <div>
+            <div style="font-weight:700;font-size:1rem;color:#166534">This booking is waiting for approval</div>
+            <div style="font-size:.85rem;color:#4b5563">
+                {{ $booking->contact_name }} &bull; {{ $booking->total_guests }} pax &bull;
+                {{ $booking->tour->title }} &bull;
+                {{ $booking->tour_date->format('M d, Y') }}
+            </div>
+        </div>
+    </div>
+    <div class="approve-bar__actions">
+        <form action="{{ route('admin.bookings.status', $booking) }}" method="POST">
+            @csrf @method('PATCH')
+            <input type="hidden" name="status" value="confirmed">
+            <button type="submit" class="btn-approve"
+                    onclick="return confirm('Confirm this booking? A confirmation email will be sent to the client.')">
+                <i class="fas fa-check-circle"></i> Approve & Confirm
+            </button>
+        </form>
+        <form action="{{ route('admin.bookings.status', $booking) }}" method="POST">
+            @csrf @method('PATCH')
+            <input type="hidden" name="status" value="cancelled">
+            <button type="submit" class="btn-reject"
+                    onclick="return confirm('Cancel this booking? This action cannot be undone.')">
+                <i class="fas fa-times-circle"></i> Reject / Cancel
+            </button>
+        </form>
+    </div>
+</div>
+@endif
 
 <div class="booking-admin-layout">
     <div>
@@ -337,6 +410,59 @@
     </div>
 
     <div>
+        <!-- Slot Availability -->
+        @if($schedule)
+        @php
+            $slotPct    = $schedule->available_seats > 0 ? ($schedule->booked_seats / $schedule->available_seats) * 100 : 100;
+            $slotAvail  = max(0, $schedule->available_seats - $schedule->booked_seats);
+            $slotColor  = $schedule->booked_seats > $schedule->available_seats ? '#dc2626'
+                        : ($slotPct >= 80 ? '#f59e0b' : '#16a34a');
+        @endphp
+        <div class="slot-avail-card">
+            <div class="slot-avail-head">
+                <i class="fas fa-layer-group"></i> Slot Availability
+                <a href="{{ route('admin.tours.schedules.index', $booking->tour) }}"
+                   style="margin-left:auto;color:#93c5fd;font-size:.8rem;font-weight:400;text-decoration:none">
+                    <i class="fas fa-external-link-alt"></i> Manage Slots
+                </a>
+            </div>
+            <div class="slot-avail-body">
+                <div class="slot-row">
+                    <span style="color:#64748b">Total Seats</span>
+                    <strong>{{ $schedule->available_seats }}</strong>
+                </div>
+                <div class="slot-row">
+                    <span style="color:#64748b">Occupied</span>
+                    <strong style="color:#f59e0b">{{ $schedule->booked_seats }}</strong>
+                </div>
+                <div class="slot-row">
+                    <span style="color:#64748b">Available</span>
+                    <strong style="color:{{ $slotAvail > 0 ? '#16a34a' : '#dc2626' }}">{{ $slotAvail }}</strong>
+                </div>
+                @if($schedule->notes)
+                <div style="margin-top:.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:.5rem;padding:.5rem .75rem;font-size:.8rem;color:#92400e">
+                    <i class="fas fa-sticky-note"></i> {{ $schedule->notes }}
+                </div>
+                @endif
+                <div class="seats-mini-bar" style="margin-top:.75rem">
+                    <div class="seats-mini-fill" style="width:{{ min(100,$slotPct) }}%;background:{{ $slotColor }}"></div>
+                </div>
+                <div style="font-size:.75rem;color:#94a3b8;margin-top:.25rem;text-align:right">
+                    {{ round($slotPct) }}% occupied
+                </div>
+                @if($schedule->booked_seats > $schedule->available_seats)
+                <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:.5rem;padding:.5rem .75rem;margin-top:.75rem;font-size:.8rem;color:#991b1b;font-weight:600">
+                    <i class="fas fa-exclamation-triangle"></i> OVERBOOKED — {{ abs($slotAvail) }} over capacity
+                </div>
+                @elseif($slotAvail === 0)
+                <div style="background:#fef9c3;border:1px solid #fde047;border-radius:.5rem;padding:.5rem .75rem;margin-top:.75rem;font-size:.8rem;color:#854d0e">
+                    <i class="fas fa-exclamation-circle"></i> No seats remaining
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Tour Info -->
         <div class="card mb-4">
             <div class="card-header"><h4>Tour</h4></div>

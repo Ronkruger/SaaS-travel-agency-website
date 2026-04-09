@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Models\Booking;
+use App\Observers\BookingObserver;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -17,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Register model observers
+        Booking::observe(BookingObserver::class);
+
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }

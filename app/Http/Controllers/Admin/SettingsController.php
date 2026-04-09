@@ -25,6 +25,16 @@ class SettingsController extends Controller
             'promoBannerLink' => Setting::get('promo_banner_link', ''),
             'fbEmbedItems'    => parse_setting_array(Setting::get('fb_embed_code', '')),
             'ytEmbedItems'    => parse_setting_array(Setting::get('yt_embed_url', '')),
+            // PDF Settings
+            'pdfLogoUrl'      => Setting::get('pdf_logo_url'),
+            'pdfAccentColor'  => Setting::get('pdf_accent_color', '#1e3a8a'),
+            'pdfHeaderText'   => Setting::get('pdf_header_text', 'OFFICIAL BOOKING CONFIRMATION'),
+            'pdfFooterText'   => Setting::get('pdf_footer_text', 'Thank you for choosing us. This document serves as your official booking confirmation.'),
+            'pdfShowPayments' => Setting::get('pdf_show_payments', '1'),
+            'pdfContactEmail' => Setting::get('pdf_contact_email', ''),
+            'pdfContactPhone' => Setting::get('pdf_contact_phone', ''),
+            'pdfContactAddr'  => Setting::get('pdf_contact_address', ''),
+            'pdfFacebookUrl'  => Setting::get('pdf_facebook_url', ''),
         ]);
     }
 
@@ -42,6 +52,16 @@ class SettingsController extends Controller
             'fb_embed_code.*'   => ['nullable', 'string', 'max:5000'],
             'yt_embed_url'      => ['nullable', 'array'],
             'yt_embed_url.*'    => ['nullable', 'url', 'max:500'],
+            // PDF settings
+            'pdf_logo'             => ['nullable', 'file', 'max:' . self::MAX_KB, 'mimes:png,jpg,jpeg,svg,webp'],
+            'pdf_accent_color'     => ['nullable', 'string', 'max:20'],
+            'pdf_header_text'      => ['nullable', 'string', 'max:200'],
+            'pdf_footer_text'      => ['nullable', 'string', 'max:500'],
+            'pdf_show_payments'    => ['nullable', 'boolean'],
+            'pdf_contact_email'    => ['nullable', 'email', 'max:200'],
+            'pdf_contact_phone'    => ['nullable', 'string', 'max:50'],
+            'pdf_contact_address'  => ['nullable', 'string', 'max:300'],
+            'pdf_facebook_url'     => ['nullable', 'string', 'max:200'],
         ]);
 
         if ($request->filled('company_name')) {
@@ -60,6 +80,24 @@ class SettingsController extends Controller
         if ($request->has('yt_embed_url')) {
             $ytItems = array_values(array_filter(array_map('trim', (array) $request->yt_embed_url)));
             Setting::set('yt_embed_url', json_encode($ytItems));
+        }
+
+        // PDF settings
+        $pdfTextFields = [
+            'pdf_accent_color', 'pdf_header_text', 'pdf_footer_text',
+            'pdf_contact_email', 'pdf_contact_phone', 'pdf_contact_address', 'pdf_facebook_url',
+        ];
+        foreach ($pdfTextFields as $field) {
+            if ($request->has($field)) {
+                Setting::set($field, $request->input($field));
+            }
+        }
+        Setting::set('pdf_show_payments', $request->has('pdf_show_payments') ? '1' : '0');
+        if ($request->hasFile('pdf_logo')) {
+            $error = $this->handleUpload($request, 'pdf_logo', 'pdf_logo_url', 'logos');
+            if ($error) {
+                return back()->with('warning', 'PDF logo upload failed: ' . $error)->withInput();
+            }
         }
 
         $uploadErrors = [];
@@ -86,7 +124,7 @@ class SettingsController extends Controller
 
     public function deleteLogo(Request $request)
     {
-        $key = $request->validate(['key' => 'required|in:logo_path,logo_dark_path,favicon_path,promo_banner_path'])['key'];
+        $key = $request->validate(['key' => 'required|in:logo_path,logo_dark_path,favicon_path,promo_banner_path,pdf_logo_url'])['key'];
 
         $existing = Setting::get($key);
         if ($existing) {

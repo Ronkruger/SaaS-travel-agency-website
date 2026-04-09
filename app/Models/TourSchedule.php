@@ -17,6 +17,7 @@ class TourSchedule extends Model
         'booked_seats',
         'price_override',
         'status',
+        'notes',
     ];
 
     protected $casts = [

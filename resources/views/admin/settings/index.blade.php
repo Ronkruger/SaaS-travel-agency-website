@@ -249,10 +249,138 @@
         <i class="fas fa-save"></i> Save Homepage Settings
     </button>
 </form>
+
+{{-- ══════════════════════════════════════════════════════
+     PDF BOOKING CONFIRMATION SETTINGS
+═══════════════════════════════════════════════════════ --}}
+<form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
+    @csrf @method('PUT')
+
+    <div class="card mb-4" style="margin-top:2rem">
+        <div class="card-header" style="background:#1e293b;color:#fff">
+            <h3 style="color:#fff"><i class="fas fa-file-pdf"></i> PDF Booking Confirmation Settings</h3>
+            <p style="margin:.25rem 0 0;font-size:.85rem;color:#94a3b8">Customize how generated booking confirmation PDFs look.</p>
+        </div>
+        <div class="card-body">
+
+            {{-- PDF Logo --}}
+            <div class="form-group mb-4">
+                <label><strong>PDF Logo</strong> <small style="color:#64748b">(appears in PDF header; separate from website logo)</small></label>
+                <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+                    <div id="preview-pdf-logo" style="background:#1e293b;padding:12px;border-radius:8px;min-width:100px;min-height:60px;display:flex;align-items:center;justify-content:center">
+                        @if(!empty($pdfLogoUrl))
+                            <img src="{{ $pdfLogoUrl }}" alt="PDF Logo" style="max-height:48px;max-width:120px;filter:brightness(0) invert(1)">
+                        @else
+                            @if($logoUrl ?? false)
+                                <img src="{{ $logoUrl }}" alt="Logo" style="max-height:48px;max-width:120px;filter:brightness(0) invert(1)">
+                                <div style="font-size:.7rem;color:#94a3b8;text-align:center">Using website logo</div>
+                            @else
+                                <span style="color:#94a3b8;font-size:.8rem">No logo</span>
+                            @endif
+                        @endif
+                    </div>
+                    <div style="flex:1">
+                        <input type="file" name="pdf_logo" id="input-pdf-logo"
+                               accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                               onchange="previewImg('input-pdf-logo','preview-pdf-logo','img')"
+                               class="form-control">
+                        <small style="color:#64748b">PNG, JPG, SVG, WebP — max 2 MB. Leave blank to use the main website logo.</small>
+                        @if(!empty($pdfLogoUrl))
+                            <br><button type="button" class="btn btn-sm btn-ghost text-danger mt-1"
+                                onclick="deleteLogo('pdf_logo_url')">
+                                <i class="fas fa-trash"></i> Remove PDF Logo
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Accent + Header/Footer --}}
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:1rem">
+                <div class="form-group">
+                    <label><strong>Accent Color</strong></label>
+                    <div style="display:flex;align-items:center;gap:.5rem">
+                        <input type="color" name="pdf_accent_color" value="{{ old('pdf_accent_color', $pdfAccentColor) }}"
+                               style="height:38px;width:60px;border:1px solid #e2e8f0;border-radius:.5rem;cursor:pointer">
+                        <input type="text" name="pdf_accent_color_text" placeholder="#1e3a8a" readonly
+                               value="{{ old('pdf_accent_color', $pdfAccentColor) }}"
+                               style="background:#f8fafc;border:1px solid #e2e8f0;padding:.4rem .6rem;border-radius:.5rem;font-family:monospace;font-size:.875rem;flex:1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><strong>Header Label</strong></label>
+                    <input type="text" name="pdf_header_text" class="form-control"
+                           value="{{ old('pdf_header_text', $pdfHeaderText) }}" maxlength="100"
+                           placeholder="OFFICIAL BOOKING CONFIRMATION">
+                </div>
+                <div class="form-group">
+                    <label><strong>Show Payment History</strong></label>
+                    <div style="display:flex;align-items:center;gap:.5rem;height:38px">
+                        <input type="checkbox" name="pdf_show_payments" id="pdfShowPayments"
+                               value="1" {{ ($pdfShowPayments ?? '1') == '1' ? 'checked' : '' }}
+                               style="width:18px;height:18px">
+                        <label for="pdfShowPayments" style="margin:0;cursor:pointer;font-weight:400">
+                            Include payment records / instalment schedule in PDF
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-4">
+                <label><strong>Footer / Disclaimer Text</strong></label>
+                <textarea name="pdf_footer_text" class="form-control" rows="2" maxlength="500"
+                          placeholder="Thank you for choosing us...">{{ old('pdf_footer_text', $pdfFooterText) }}</textarea>
+            </div>
+
+            {{-- Contact details for PDF footer --}}
+            <h4 style="font-size:.9rem;color:#475569;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.05em">PDF Footer Contact Details</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="pdf_contact_email" class="form-control"
+                           value="{{ old('pdf_contact_email', $pdfContactEmail) }}" maxlength="200">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" name="pdf_contact_phone" class="form-control"
+                           value="{{ old('pdf_contact_phone', $pdfContactPhone) }}" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label>Facebook / Website</label>
+                    <input type="text" name="pdf_facebook_url" class="form-control"
+                           value="{{ old('pdf_facebook_url', $pdfFacebookUrl) }}" maxlength="200">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="pdf_contact_address" class="form-control"
+                           value="{{ old('pdf_contact_address', $pdfContactAddr) }}" maxlength="300">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="min-width:200px">
+        <i class="fas fa-save"></i> Save PDF Settings
+    </button>
+</form>
+
 <form id="delete-logo-form" action="{{ route('admin.settings.delete-logo') }}" method="POST" style="display:none">
     @csrf @method('DELETE')
     <input type="hidden" name="key" id="delete-logo-key">
 </form>
+
+@push('scripts')
+<script>
+// Sync color picker <-> text input
+document.addEventListener('DOMContentLoaded', function() {
+    const colorPicker = document.querySelector('input[name="pdf_accent_color"]');
+    const colorText   = document.querySelector('input[name="pdf_accent_color_text"]');
+    if (colorPicker && colorText) {
+        colorPicker.addEventListener('input', () => { colorText.value = colorPicker.value; });
+    }
+});
+</script>
+@endpush
+
 @endsection
 
 @push('scripts')

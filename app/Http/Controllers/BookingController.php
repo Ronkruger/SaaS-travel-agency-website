@@ -6,8 +6,10 @@ use App\Models\Booking;
 use App\Models\Tour;
 use App\Models\TourSchedule;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Mail\BookingReservationMail;
 use App\Services\SecurityLogger;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -210,6 +212,39 @@ class BookingController extends Controller
 
         $booking->load(['tour', 'payment', 'review']);
         return view('booking.show', compact('booking'));
+    }
+
+    public function downloadPdf(Booking $booking)
+    {
+        if (Gate::denies('view', $booking)) {
+            SecurityLogger::logUnauthorizedAccess(request(), 'booking', $booking->id);
+            abort(403, 'You are not authorized to download this booking confirmation.');
+        }
+
+        $booking->load(['tour', 'payment', 'payments', 'schedule', 'user']);
+
+        $settings = [
+            'logo_url'     => Setting::get('pdf_logo_url'),
+            'accent_color' => Setting::get('pdf_accent_color', '#1e3a8a'),
+            'header_text'  => Setting::get('pdf_header_text', 'OFFICIAL BOOKING CONFIRMATION'),
+            'footer_text'  => Setting::get('pdf_footer_text', 'Thank you for choosing us. This document serves as your official booking confirmation.'),
+            'show_payments'=> (bool) Setting::get('pdf_show_payments', true),
+            'contact_email'=> Setting::get('pdf_contact_email', ''),
+            'contact_phone'=> Setting::get('pdf_contact_phone', ''),
+            'contact_address'=> Setting::get('pdf_contact_address', ''),
+            'facebook_url' => Setting::get('pdf_facebook_url', ''),
+        ];
+
+        $pdf = Pdf::loadView('admin.bookings.confirmation-pdf', compact('booking', 'settings'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont'          => 'DejaVu Sans',
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled'      => true,
+                'dpi'                  => 150,
+            ]);
+
+        return $pdf->download("booking-{$booking->booking_number}.pdf");
     }
 
     public function cancel(Booking $booking)

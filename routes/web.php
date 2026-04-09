@@ -20,6 +20,9 @@ use App\Http\Controllers\DIYTourController;
 use App\Http\Controllers\DIYTourApiController;
 use App\Http\Controllers\Admin\DIYTourController as AdminDIYTourController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\TourScheduleController as AdminTourScheduleController;
+use App\Http\Controllers\Admin\BookingPdfController;
+use App\Http\Controllers\Admin\BookingImportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\Auth\AdminAuth0Controller;
@@ -102,6 +105,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [BookingController::class, 'create'])->name('create');
         Route::post('/', [BookingController::class, 'store'])->name('store');
         Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+        Route::get('/{booking}/pdf', [BookingController::class, 'downloadPdf'])->name('pdf.download');
         Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
     });
 
@@ -165,6 +169,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::get('/live/stats', [DashboardController::class, 'liveStats'])->name('live.stats');
     Route::get('/live/bookings', [DashboardController::class, 'liveBookings'])->name('live.bookings');
 
+    // Slot Tracker (overview)
+    Route::get('/slot-tracker', [AdminTourScheduleController::class, 'overview'])->name('slot-tracker.index');
+
+    // Tour Schedule Slots (per-tour) — must be before generic {tour} routes
+    Route::get('/tours/{tour}/schedules', [AdminTourScheduleController::class, 'index'])->name('tours.schedules.index');
+    Route::post('/tours/{tour}/schedules', [AdminTourScheduleController::class, 'store'])->name('tours.schedules.store');
+    Route::put('/tours/{tour}/schedules/{schedule}', [AdminTourScheduleController::class, 'update'])->name('tours.schedules.update');
+    Route::delete('/tours/{tour}/schedules/{schedule}', [AdminTourScheduleController::class, 'destroy'])->name('tours.schedules.destroy');
+
     // Tours
     Route::get('/tours', [AdminTourController::class, 'index'])->name('tours.index');
     Route::get('/tours/create', [AdminTourController::class, 'create'])->name('tours.create');
@@ -190,6 +203,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::patch('/bookings/{booking}/payment-status', [AdminBookingController::class, 'updatePaymentStatus'])->name('bookings.payment-status');
     Route::patch('/bookings/{booking}/installment/{term}', [AdminBookingController::class, 'updateInstallmentTerm'])->name('bookings.installment-term');
     Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
+    // Booking PDF
+    Route::get('/bookings/{booking}/pdf', [BookingPdfController::class, 'preview'])->name('bookings.pdf.preview');
+    Route::get('/bookings/{booking}/pdf/download', [BookingPdfController::class, 'download'])->name('bookings.pdf.download');
+    Route::post('/bookings/{booking}/pdf/email', [BookingPdfController::class, 'email'])->name('bookings.pdf.email');
+
+    // Booking Import (CSV)
+    Route::get('/import', [BookingImportController::class, 'index'])->name('import.index');
+    Route::get('/import/template', [BookingImportController::class, 'template'])->name('import.template');
+    Route::post('/import/preview', [BookingImportController::class, 'preview'])->name('import.preview');
+    Route::post('/import/confirm', [BookingImportController::class, 'confirm'])->name('import.confirm');
 
     // Users
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');

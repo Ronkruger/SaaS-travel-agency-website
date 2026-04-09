@@ -47,7 +47,16 @@ class BookingController extends Controller
     public function show(Booking $booking)
     {
         $booking->load(['user', 'tour', 'payment', 'payments', 'schedule']);
-        return view('admin.bookings.show', compact('booking'));
+
+        // Resolve schedule for slot availability display
+        $schedule = $booking->schedule;
+        if (!$schedule && $booking->tour_date && $booking->tour_id) {
+            $schedule = \App\Models\TourSchedule::where('tour_id', $booking->tour_id)
+                ->whereDate('departure_date', $booking->tour_date)
+                ->first();
+        }
+
+        return view('admin.bookings.show', compact('booking', 'schedule'));
     }
 
     public function updateStatus(Request $request, Booking $booking)
