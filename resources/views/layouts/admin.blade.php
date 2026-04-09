@@ -49,9 +49,9 @@
             <div class="nav-section">BOOKINGS</div>
             <a href="{{ route('admin.bookings.index') }}" class="{{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
                 <i class="fas fa-calendar-check"></i> All Bookings
-                @php $pending = \App\Models\Booking::where('status','pending')->count(); @endphp
-                @if($pending > 0)
-                    <span class="badge">{{ $pending }}</span>
+                @php $totalBookings = \App\Models\Booking::count(); @endphp
+                @if($totalBookings > 0)
+                    <span class="badge">{{ $totalBookings }}</span>
                 @endif
             </a>
             <a href="{{ route('admin.slot-tracker.index') }}" class="{{ request()->routeIs('admin.slot-tracker.*') || request()->routeIs('admin.tours.schedules.*') ? 'active' : '' }}">

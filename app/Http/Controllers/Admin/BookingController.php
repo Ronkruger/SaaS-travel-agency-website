@@ -131,4 +131,22 @@ class BookingController extends Controller
         return redirect()->route('admin.bookings.index')
             ->with('success', "Booking {$bookingNumber} has been deleted.");
     }
+
+    public function destroyAll(Request $request)
+    {
+        $count = Booking::count();
+
+        if ($count === 0) {
+            return redirect()->route('admin.bookings.index')
+                ->with('warning', 'No bookings to delete.');
+        }
+
+        // Reset booked_seats on all schedules
+        \App\Models\TourSchedule::where('booked_seats', '>', 0)->update(['booked_seats' => 0]);
+
+        Booking::query()->delete();
+
+        return redirect()->route('admin.bookings.index')
+            ->with('success', "All {$count} bookings have been deleted.");
+    }
 }

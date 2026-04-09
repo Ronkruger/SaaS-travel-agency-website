@@ -11,6 +11,15 @@
         <h2>All Bookings</h2>
         <p>Manage tour reservations</p>
     </div>
+    <div>
+        <form action="{{ route('admin.bookings.destroy-all') }}" method="POST"
+              onsubmit="return confirm('⚠️ DELETE ALL {{ $bookings->total() }} BOOKINGS?\n\nThis will permanently remove every booking and reset all slot counts.\n\nThis cannot be undone. Are you sure?')">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Delete All Bookings ({{ $bookings->total() }})
+            </button>
+        </form>
+    </div>
 </div>
 
 <div class="card mb-4">
