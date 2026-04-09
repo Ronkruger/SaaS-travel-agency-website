@@ -14,6 +14,7 @@
         "laravel/socialite": "^5.26",
         "laravel/tinker": "^2.8",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "phpoffice/phpspreadsheet": "^5.5",
         "socialiteproviders/auth0": "^4.2",
         "xendit/xendit-php": "^7.0"
     },

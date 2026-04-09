@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class BookingImportController extends Controller
 {
@@ -56,14 +57,20 @@ class BookingImportController extends Controller
     public function preview(Request $request)
     {
         $request->validate([
-            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+            'csv_file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'max:10240'],
         ]);
 
-        $path   = $request->file('csv_file')->getRealPath();
-        $blocks = $this->parseSlotTrackerCsv($path);
+        $file = $request->file('csv_file');
+        $path = $file->getRealPath();
+        $ext  = strtolower($file->getClientOriginalExtension());
+
+        $rows   = in_array($ext, ['xlsx', 'xls'])
+            ? $this->readSpreadsheetRows($path)
+            : null;
+        $blocks = $this->parseSlotTrackerCsv($path, $rows);
 
         if (empty($blocks)) {
-            return back()->withErrors(['csv_file' => 'The CSV file is empty or could not be parsed.']);
+            return back()->withErrors(['csv_file' => 'The file is empty or could not be parsed.']);
         }
 
         $existingTours = Tour::select('id', 'title')
@@ -150,7 +157,7 @@ class BookingImportController extends Controller
 
         if (empty($preview)) {
             return redirect()->route('admin.import.index')
-                ->withErrors(['csv_file' => 'No import data found. Please upload the CSV again.']);
+                ->withErrors(['csv_file' => 'No import data found. Please upload the file again.']);
         }
 
         // Build available_seats map: "normalised_tour_name|YYYY-MM-DD" => total_seats
@@ -276,18 +283,45 @@ class BookingImportController extends Controller
     // =========================================================================
 
     /**
-     * Parse slot-tracker CSV into blocks, one per route+date section.
+     * Read an XLSX/XLS file into a plain array of rows (each row is an array of cell values).
+     */
+    private function readSpreadsheetRows(string $path): array
+    {
+        $spreadsheet = IOFactory::load($path);
+        $sheet       = $spreadsheet->getActiveSheet();
+        $rows        = [];
+        foreach ($sheet->toArray(null, true, true, false) as $row) {
+            $rows[] = array_map(fn($v) => $v !== null ? (string) $v : '', $row);
+        }
+        return $rows;
+    }
+
+    /**
+     * Parse slot-tracker CSV/XLSX into blocks, one per route+date section.
      *
      * Each block:
      *   route_name      string   (BUS suffix stripped for consistency)
      *   travel_date_raw string   "FEB 11 - 21, 2026"
      *   total_seats     int      from "Total Seats" metadata row
      *   clients         array    each: client_name, pax, status, terms, rate, pay1_date, pay2_notes
+     *
+     * @param string     $path CSV file path (used when $xlsxRows is null)
+     * @param array|null $xlsxRows Pre-read rows from XLSX (skips CSV reading when provided)
      */
-    private function parseSlotTrackerCsv(string $path): array
+    private function parseSlotTrackerCsv(string $path, ?array $xlsxRows = null): array
     {
-        $handle = fopen($path, 'r');
-        if (!$handle) return [];
+        // Build row iterator — either from pre-read xlsx rows or from CSV file
+        if ($xlsxRows !== null) {
+            $rowIterator = $xlsxRows;
+        } else {
+            $handle = fopen($path, 'r');
+            if (!$handle) return [];
+            $rowIterator = [];
+            while (($cols = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+                $rowIterator[] = $cols;
+            }
+            fclose($handle);
+        }
 
         $blocks  = [];
         $current = null;
@@ -297,7 +331,7 @@ class BookingImportController extends Controller
                   . '|january|february|march|april|june|july|august'
                   . '|september|october|november|december';
 
-        while (($cols = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+        foreach ($rowIterator as $cols) {
             $cols = array_pad($cols, 10, '');
             $c1   = trim($cols[1] ?? '');
             $c2   = trim($cols[2] ?? '');
@@ -358,7 +392,6 @@ class BookingImportController extends Controller
         }
 
         if ($current !== null) $blocks[] = $current;
-        fclose($handle);
 
         return array_values(array_filter($blocks, fn($b) => count($b['clients']) > 0));
     }

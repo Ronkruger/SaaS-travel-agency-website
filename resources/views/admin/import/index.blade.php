@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Import Bookings from CSV')
+@section('title', 'Import Bookings')
 
 @push('styles')
 <style>
@@ -131,16 +131,16 @@
 {{-- ── Upload Form ─────────────────────────────────────────────────────── --}}
 <div class="card mb-4">
     <div class="card-header">
-        <h4><i class="fas fa-upload"></i> Upload CSV File</h4>
+        <h4><i class="fas fa-upload"></i> Upload Spreadsheet</h4>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ route('admin.import.preview') }}" enctype="multipart/form-data" id="upload-form">
             @csrf
             <label for="csv_file" class="upload-card" id="drop-zone">
                 <i class="fas fa-cloud-upload-alt d-block"></i>
-                <p class="upload-cta">Click to browse or drag & drop your CSV file</p>
-                <p>Supported format: <strong>.csv</strong> &nbsp;|&nbsp; Max size: <strong>5 MB</strong></p>
-                <input type="file" id="csv_file" name="csv_file" accept=".csv,text/csv" class="d-none" required>
+                <p class="upload-cta">Click to browse or drag & drop your spreadsheet file</p>
+                <p>Supported formats: <strong>.xlsx, .xls, .csv</strong> &nbsp;|&nbsp; Max size: <strong>10 MB</strong></p>
+                <input type="file" id="csv_file" name="csv_file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="d-none" required>
                 <p id="file-name" class="mt-2 text-primary fw-semibold"></p>
             </label>
 
