@@ -215,6 +215,9 @@ class BookingImportController extends Controller
                     $rate  = $row['rate'] > 0 ? $row['rate'] : (float) ($tour->regular_price_per_person ?? 0);
                     $total = $rate * $row['pax'];
 
+                    // Map terms to valid payment_method enum: xendit, cash, installment
+                    $paymentMethod = $row['terms'] === 'installment' ? 'installment' : 'cash';
+
                     Booking::create([
                         'booking_number'    => Booking::generateBookingNumber(),
                         'tour_id'           => $tour->id,
@@ -232,7 +235,7 @@ class BookingImportController extends Controller
                         'total_amount'      => $total,
                         'status'            => $row['booking_status'],
                         'payment_status'    => $row['payment_status'],
-                        'payment_method'    => $row['terms'],
+                        'payment_method'    => $paymentMethod,
                         'contact_name'      => $row['client_name'],
                         'contact_email'     => null,
                         'contact_phone'     => null,
