@@ -144,7 +144,7 @@ class BookingController extends Controller
         // Reset booked_seats on all schedules
         \App\Models\TourSchedule::where('booked_seats', '>', 0)->update(['booked_seats' => 0]);
 
-        Booking::query()->delete();
+        Booking::withTrashed()->forceDelete();
 
         return redirect()->route('admin.bookings.index')
             ->with('success', "All {$count} bookings have been deleted.");

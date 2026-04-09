@@ -258,8 +258,14 @@ class BookingImportController extends Controller
         $errors     = [];
 
         $year           = date('Y');
-        $existingCount  = Booking::whereYear('created_at', $year)->count();
-        $bookingCounter = $existingCount;
+        $prefix         = 'DG-' . $year . '-';
+        $lastNumber     = Booking::withTrashed()
+            ->where('booking_number', 'like', $prefix . '%')
+            ->orderByRaw('CAST(SUBSTRING(booking_number, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
+            ->value('booking_number');
+        $bookingCounter = $lastNumber
+            ? (int) substr($lastNumber, strlen($prefix))
+            : 0;
 
         DB::transaction(function () use ($preview, $scheduleSeats, &$tourCache, &$schedCache, &$created, &$skipped, &$errors, $year, &$bookingCounter) {
             foreach ($preview as $idx => $row) {
