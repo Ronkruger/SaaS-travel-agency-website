@@ -58,7 +58,7 @@
                 <i class="fas fa-layer-group"></i> Slot Tracker
             </a>
             <a href="{{ route('admin.import.index') }}" class="{{ request()->routeIs('admin.import.*') ? 'active' : '' }}">
-                <i class="fas fa-file-import"></i> Import CSV
+                <i class="fas fa-file-import"></i> Import
             </a>
             <a href="{{ route('admin.diy.index') }}" class="{{ request()->routeIs('admin.diy.*') ? 'active' : '' }}">
                 <i class="fas fa-magic"></i> DIY Tours

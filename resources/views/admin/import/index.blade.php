@@ -13,19 +13,17 @@
     align-items: center;
     gap: 1.5rem;
 }
-.import-hero-icon {
-    font-size: 3rem;
-    opacity: .85;
-}
+.import-hero-icon { font-size: 3rem; opacity: .85; }
 .import-hero h2 { margin: 0 0 .25rem; font-size: 1.5rem; }
 .import-hero p  { margin: 0; opacity: .85; }
 
 /* Upload card */
 .upload-card {
+    display: block;
     background: #fff;
     border-radius: 12px;
     border: 2px dashed #cbd5e1;
-    padding: 2.5rem;
+    padding: 3rem 2rem;
     text-align: center;
     cursor: pointer;
     transition: border-color .2s, background .2s;
@@ -34,16 +32,33 @@
     border-color: #2563eb;
     background: #eff6ff;
 }
-.upload-card i { font-size: 2.5rem; color: #94a3b8; margin-bottom: .75rem; }
-.upload-card p { margin: .25rem 0; color: #64748b; }
-.upload-card .upload-cta { font-weight: 600; color: #2563eb; }
-
-/* Template download */
-.template-tip {
-    margin-top: 1rem;
-    font-size: .875rem;
-    color: #64748b;
+.upload-card .upload-icon {
+    display: block;
+    font-size: 3rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
 }
+.upload-card p { margin: .4rem 0; color: #64748b; font-size: .9rem; }
+.upload-card .upload-cta { font-weight: 600; color: #2563eb; font-size: 1rem; }
+.upload-card .file-input-hidden { position: absolute; width: 0; height: 0; opacity: 0; overflow: hidden; }
+.upload-card .file-name-display {
+    margin-top: .75rem;
+    font-weight: 600;
+    color: #2563eb;
+    font-size: .95rem;
+}
+
+/* Upload actions row */
+.upload-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+}
+.template-tip { font-size: .875rem; color: #64748b; }
+.template-tip a { color: #2563eb; text-decoration: none; font-weight: 500; }
+.template-tip a:hover { text-decoration: underline; }
 
 /* Warnings */
 .warning-list {
@@ -54,6 +69,7 @@
     margin-bottom: 1.5rem;
 }
 .warning-list h5 { margin: 0 0 .5rem; color: #92400e; }
+.warning-list ul { margin: 0; padding-left: 1.25rem; }
 .warning-list li { color: #78350f; font-size: .875rem; margin-bottom: .2rem; }
 
 /* Preview table */
@@ -77,7 +93,7 @@
 .preview-table tr.skipped td { background: #fef2f2; color: #9ca3af; text-decoration: line-through; }
 .preview-table tr.has-warn td { background: #fffbeb; }
 
-/* Status badges (reuse existing) */
+/* Status badges */
 .badge-pending   { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 99px; font-size: .75rem; font-weight: 600; }
 .badge-confirmed { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 99px; font-size: .75rem; font-weight: 600; }
 .badge-cancelled { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 99px; font-size: .75rem; font-weight: 600; }
@@ -95,23 +111,51 @@
 .import-summary-item { text-align: center; }
 .import-summary-item .num { font-size: 1.5rem; font-weight: 700; color: #1e3a8a; }
 .import-summary-item .lbl { font-size: .75rem; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Column ref table */
+.col-ref-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.col-ref-table thead th {
+    background: #f1f5f9;
+    padding: .75rem 1rem;
+    text-align: left;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+}
+.col-ref-table td {
+    padding: .6rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+.col-ref-table tbody tr:last-child td { border-bottom: none; }
+.col-ref-table tbody tr:hover { background: #f8fafc; }
+.col-ref-footer {
+    padding: .75rem 1rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    font-size: .8rem;
+    color: #64748b;
+}
 </style>
 @endpush
 
 @section('content')
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-title-row">
     <div>
-        <h1><i class="fas fa-file-import"></i> Import Bookings</h1>
-        <p>Upload a CSV file to bulk-import bookings from your spreadsheet into the system.</p>
+        <h2>Import Bookings</h2>
+        <p>Upload a spreadsheet to bulk-import bookings into the system.</p>
     </div>
 </div>
 
 {{-- Success flash --}}
 @if(session('success'))
-    <div class="alert alert-success mb-4">
+    <div class="alert alert-success" style="margin-bottom:1.5rem;">
         <i class="fas fa-check-circle"></i> {{ session('success') }}
         @if(session('import_errors'))
-            <ul class="mb-0 mt-2">
+            <ul style="margin:.5rem 0 0;padding-left:1.25rem;">
                 @foreach(session('import_errors') as $err)
                     <li>{{ $err }}</li>
                 @endforeach
@@ -129,7 +173,7 @@
 </div>
 
 {{-- ── Upload Form ─────────────────────────────────────────────────────── --}}
-<div class="card mb-4">
+<div class="card">
     <div class="card-header">
         <h4><i class="fas fa-upload"></i> Upload Spreadsheet</h4>
     </div>
@@ -137,41 +181,41 @@
         <form method="POST" action="{{ route('admin.import.preview') }}" enctype="multipart/form-data" id="upload-form">
             @csrf
             <label for="csv_file" class="upload-card" id="drop-zone">
-                <i class="fas fa-cloud-upload-alt d-block"></i>
-                <p class="upload-cta">Click to browse or drag & drop your spreadsheet file</p>
+                <span class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></span>
+                <p class="upload-cta">Click to browse or drag &amp; drop your spreadsheet file</p>
                 <p>Supported formats: <strong>.xlsx, .xls, .csv</strong> &nbsp;|&nbsp; Max size: <strong>10 MB</strong></p>
-                <input type="file" id="csv_file" name="csv_file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="d-none" required>
-                <p id="file-name" class="mt-2 text-primary fw-semibold"></p>
+                <input type="file" id="csv_file" name="csv_file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="file-input-hidden" required>
+                <span id="file-name" class="file-name-display"></span>
             </label>
 
             @error('csv_file')
                 <div class="alert alert-danger mt-2">{{ $message }}</div>
             @enderror
 
-            <div class="d-flex align-items-center gap-3 mt-3">
+            <div class="upload-actions">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-search"></i> Preview Import
                 </button>
-                <div class="template-tip">
+                <span class="template-tip">
                     Don't have a CSV yet?
                     <a href="{{ route('admin.import.template') }}">
                         <i class="fas fa-download"></i> Download blank template
                     </a>
-                </div>
+                </span>
             </div>
         </form>
     </div>
 </div>
 
 {{-- Column mapping reference --}}
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0"><i class="fas fa-columns"></i> Slot Tracker CSV Columns</h4>
-        <small class="text-muted">Columns are positional (A–J). The importer handles block-grouped routes and repeated header rows automatically.</small>
+<div class="card">
+    <div class="card-header">
+        <h4><i class="fas fa-columns"></i> Slot Tracker Columns</h4>
+        <small style="color:#64748b;">Positional (A–J) · Block-grouped routes handled automatically</small>
     </div>
-    <div class="card-body p-0">
-        <table class="table table-sm mb-0">
-            <thead class="table-light">
+    <div class="card-body" style="padding:0;">
+        <table class="col-ref-table">
+            <thead>
                 <tr>
                     <th>Col</th>
                     <th>Header</th>
@@ -181,18 +225,18 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td>B</td><td><code>Route Name</code></td><td>Tour title (BUS suffix auto-stripped for matching)</td><td>ROUTE K DELUXE</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td>C</td><td><code>Travel Date</code></td><td>Date range — start date is used for the schedule</td><td>FEB 11 - 21, 2026</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td>D</td><td><code>Names of Clients</code></td><td>Primary contact / lead traveler name</td><td>JUAN DELA CRUZ</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td>E</td><td><code>PAX</code></td><td>Number of guests (defaults to 1 if empty)</td><td>2</td><td>No</td></tr>
-                <tr><td>F</td><td><code>Status</code></td><td><strong>Paid</strong> → confirmed booking + paid/partial payment status. Others → pending.</td><td>Paid</td><td>No</td></tr>
-                <tr><td>G</td><td><code>Payment Terms</code></td><td>Full Cash / Downpayment / Instalment / Travel Fund</td><td>Full Cash</td><td>No</td></tr>
-                <tr><td>H</td><td><code>Package Rate Per Person</code></td><td>Price per pax (₱ sign and commas ignored)</td><td>₱180,000.00</td><td>No (uses tour price)</td></tr>
-                <tr><td>I</td><td><code>1st Payment Date</code></td><td>Date of first payment (stored as booking note)</td><td>Apr 1, 2026</td><td>No</td></tr>
-                <tr><td>J</td><td><code>2nd Payment / Notes</code></td><td>Free-text notes (CONFIRMED DEPARTURE, REFUND, etc.)</td><td>CONFIRMED DEPARTURE</td><td>No</td></tr>
+                <tr><td><strong>B</strong></td><td><code>Route Name</code></td><td>Tour title (BUS suffix auto-stripped for matching)</td><td>ROUTE K DELUXE</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td><strong>C</strong></td><td><code>Travel Date</code></td><td>Date range — start date is used for the schedule</td><td>FEB 11 - 21, 2026</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td><strong>D</strong></td><td><code>Names of Clients</code></td><td>Primary contact / lead traveler name</td><td>JUAN DELA CRUZ</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td><strong>E</strong></td><td><code>PAX</code></td><td>Number of guests (defaults to 1 if empty)</td><td>2</td><td>No</td></tr>
+                <tr><td><strong>F</strong></td><td><code>Status</code></td><td><strong>Paid</strong> → confirmed + paid/partial. Others → pending.</td><td>Paid</td><td>No</td></tr>
+                <tr><td><strong>G</strong></td><td><code>Payment Terms</code></td><td>Full Cash / Downpayment / Instalment / Travel Fund</td><td>Full Cash</td><td>No</td></tr>
+                <tr><td><strong>H</strong></td><td><code>Rate Per Person</code></td><td>Price per pax (₱ sign and commas ignored)</td><td>₱180,000.00</td><td>No (uses tour price)</td></tr>
+                <tr><td><strong>I</strong></td><td><code>1st Payment Date</code></td><td>Date of first payment (stored as booking note)</td><td>Apr 1, 2026</td><td>No</td></tr>
+                <tr><td><strong>J</strong></td><td><code>2nd Payment / Notes</code></td><td>Free-text notes (CONFIRMED DEPARTURE, REFUND, etc.)</td><td>CONFIRMED DEPARTURE</td><td>No</td></tr>
             </tbody>
         </table>
-        <div class="px-3 py-2 bg-light border-top" style="font-size:.82rem;color:#64748b;">
+        <div class="col-ref-footer">
             <i class="fas fa-info-circle text-primary"></i>
             <strong>Format supported:</strong> The DiscoverGRP "DG SLOTS TRACKER" spreadsheet format — block-grouped routes with repeated section headers and mixed metadata/client rows are all handled automatically.
             Rows with blank column D (Names of Clients) are treated as route headers or metadata and skipped.
@@ -205,7 +249,7 @@
     @if($warnings)
         <div class="warning-list">
             <h5><i class="fas fa-exclamation-triangle"></i> Warnings ({{ count($warnings) }})</h5>
-            <ul class="mb-0 ps-3">
+            <ul>
                 @foreach($warnings as $w)
                     <li>{{ $w }}</li>
                 @endforeach
@@ -283,9 +327,9 @@
                             <td>
                                 @php
                                     $ps = $row['payment_status'];
-                                    $psColor = match($ps) { 'paid' => 'success', 'partial' => 'warning', default => 'secondary' };
+                                    $psColors = match($ps) { 'paid' => ['#d1fae5','#065f46'], 'partial' => ['#fef3c7','#92400e'], default => ['#f1f5f9','#475569'] };
                                 @endphp
-                                <span class="badge bg-{{ $psColor }} text-{{ $ps === 'partial' ? 'dark' : 'white' }}" style="font-size:.7rem;">{{ ucfirst($ps) }}</span>
+                                <span style="background:{{ $psColors[0] }};color:{{ $psColors[1] }};padding:2px 8px;border-radius:99px;font-size:.7rem;font-weight:600;">{{ ucfirst($ps) }}</span>
                             </td>
                             <td>{{ ucfirst($row['terms']) }}</td>
                             <td>{{ $row['rate'] > 0 ? '₱' . number_format($row['rate'], 0) : '—' }}</td>
@@ -308,16 +352,16 @@
         </div>
 
         @if($importable > 0)
-            <div class="mt-4 d-flex gap-3 align-items-center">
+            <div class="upload-actions" style="margin-top:1.5rem;">
                 <form method="POST" action="{{ route('admin.import.confirm') }}">
                     @csrf
-                    <button type="submit" class="btn btn-success btn-lg"
+                    <button type="submit" class="btn btn-primary" style="background:#059669;border-color:#059669;"
                             onclick="return confirm('Import {{ $importable }} booking(s) into the database?')">
                         <i class="fas fa-database"></i>
                         Confirm &amp; Import {{ $importable }} Booking{{ $importable !== 1 ? 's' : '' }}
                     </button>
                 </form>
-                <a href="{{ route('admin.import.index') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('admin.import.index') }}" class="btn btn-outline">
                     <i class="fas fa-redo"></i> Start Over
                 </a>
             </div>
