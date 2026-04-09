@@ -290,8 +290,8 @@
                 @endif
 
                 {{-- Per-term schedule --}}
-                @php $schedule = $booking->installment_schedule ?? []; @endphp
-                @if(count($schedule))
+                @php $installTerms = $booking->installment_schedule ?? []; @endphp
+                @if(count($installTerms))
                 <h5 style="margin-bottom:.75rem">Installment Schedule</h5>
                 <div style="overflow-x:auto">
                 <table style="width:100%;border-collapse:collapse;font-size:.9rem">
@@ -305,7 +305,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($schedule as $term)
+                        @foreach($installTerms as $term)
                         <tr style="border-bottom:1px solid #e2e8f0{{ $term['type'] === 'downpayment' ? ';background:#f0fdf4' : '' }}">
                             <td style="padding:.6rem .75rem">
                                 @if($term['type'] === 'downpayment')
@@ -350,7 +350,7 @@
                     <tfoot>
                         <tr style="font-weight:700;background:#f8fafc">
                             <td colspan="2" style="padding:.6rem .75rem">Total</td>
-                            <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format(collect($schedule)->sum('amount'), 2) }}</td>
+                            <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format(collect($installTerms)->sum('amount'), 2) }}</td>
                             <td colspan="2"></td>
                         </tr>
                     </tfoot>
