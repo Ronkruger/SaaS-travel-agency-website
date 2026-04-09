@@ -415,6 +415,66 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* --- Global responsive hardening -------------- */
+
+/* --- Pagination ------------------------------- */
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+    padding: 1rem 1.25rem;
+}
+.admin-pagination-info {
+    font-size: .875rem;
+    color: #64748b;
+}
+.admin-pagination-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.admin-pagination-list li span,
+.admin-pagination-list li a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 .625rem;
+    font-size: .8125rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    text-decoration: none;
+    transition: all .15s;
+}
+.admin-pagination-list li a:hover {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+.admin-pagination-list li.active span {
+    background: #1e3a8a;
+    border-color: #1e3a8a;
+    color: #fff;
+}
+.admin-pagination-list li.disabled span {
+    color: #cbd5e1;
+    cursor: default;
+    background: #f8fafc;
+}
+@media (max-width: 640px) {
+    .admin-pagination { flex-direction: column; align-items: stretch; text-align: center; }
+    .admin-pagination-list { justify-content: center; }
+}
+
+/* --- Global responsive hardening -------------- */
 html, body { max-width: 100%; overflow-x: hidden; }
 iframe, video, canvas, svg { max-width: 100%; }
 .form-control, .btn { max-width: 100%; }
