@@ -61,13 +61,16 @@ class BookingImportController extends Controller
         ]);
 
         $file = $request->file('csv_file');
-        $path = $file->getRealPath();
         $ext  = strtolower($file->getClientOriginalExtension());
 
-        $rows   = in_array($ext, ['xlsx', 'xls'])
-            ? $this->readSpreadsheetRows($path)
+        // Save the uploaded file to storage so we can re-read it during confirm
+        $storedPath = $file->store('imports', 'local');
+
+        $fullPath = storage_path('app/' . $storedPath);
+        $rows     = in_array($ext, ['xlsx', 'xls'])
+            ? $this->readSpreadsheetRows($fullPath)
             : null;
-        $blocks = $this->parseSlotTrackerCsv($path, $rows);
+        $blocks   = $this->parseSlotTrackerCsv($fullPath, $rows);
 
         if (empty($blocks)) {
             return back()->withErrors(['csv_file' => 'The file is empty or could not be parsed.']);
@@ -92,11 +95,18 @@ class BookingImportController extends Controller
             $willCreateTour = ($tour === null);
             $tourTitle      = $tour?->title ?? $this->toTitleCase($rawRoute);
 
+            // Determine block-level rate: most common non-zero rate among clients
+            $blockRate = $this->resolveBlockRate($block['clients']);
+
             foreach ($block['clients'] as $client) {
                 $rowNum++;
                 $pax           = max(1, (int) ($client['pax'] ?: 1));
                 $terms         = $this->normalizeTerms($client['terms']);
-                $rate          = (float) preg_replace('/[^\d.]/', '', $client['rate'] ?? '0');
+                $clientRate    = (float) preg_replace('/[^\d.]/', '', $client['rate'] ?? '0');
+                // Fall back to block rate, then tour price
+                $rate          = $clientRate > 0
+                    ? $clientRate
+                    : ($blockRate > 0 ? $blockRate : (float) ($tour?->regular_price_per_person ?? 0));
                 $total         = $rate > 0 ? $rate * $pax : 0;
                 $csvStatus     = trim($client['status'] ?? '');
                 $bookingStatus = $this->normalizeBookingStatus($csvStatus);
@@ -109,8 +119,10 @@ class BookingImportController extends Controller
                 if (!$departure) {
                     $rowWarnings[] = 'Cannot parse travel date "' . $dateRaw . '" — row will be skipped.';
                 }
-                if ($rate <= 0) {
-                    $rowWarnings[] = 'No rate — will store as ₱0.';
+                if ($clientRate <= 0 && $rate > 0) {
+                    $rowWarnings[] = 'No rate in CSV — using ₱' . number_format($rate, 0) . ' from tour/block.';
+                } elseif ($rate <= 0) {
+                    $rowWarnings[] = 'No rate available — will store as ₱0.';
                 }
 
                 $preview[] = [
@@ -135,7 +147,7 @@ class BookingImportController extends Controller
                     'warnings'         => $rowWarnings,
                 ];
 
-                $realWarnings = array_filter($rowWarnings, fn($w) => !str_contains($w, 'auto-created'));
+                $realWarnings = array_filter($rowWarnings, fn($w) => !str_contains($w, 'auto-created') && !str_contains($w, 'from tour/block'));
                 if ($realWarnings) {
                     $warnings[] = "Row {$rowNum}: " . implode(' | ', $realWarnings);
                 }
@@ -143,7 +155,12 @@ class BookingImportController extends Controller
         }
 
         $importable = collect($preview)->where('skipped', false)->count();
-        session(['import_preview' => $preview]);
+
+        // Store file path + extension in session (small data), NOT the full preview array
+        session([
+            'import_file_path' => $storedPath,
+            'import_file_ext'  => $ext,
+        ]);
 
         return view('admin.import.index', compact('preview', 'warnings', 'importable'));
     }
@@ -153,37 +170,99 @@ class BookingImportController extends Controller
      * --------------------------------------------------------------------- */
     public function confirm(Request $request)
     {
-        $preview = session('import_preview');
+        $storedPath = session('import_file_path');
+        $ext        = session('import_file_ext', 'csv');
 
-        if (empty($preview)) {
+        if (!$storedPath || !file_exists(storage_path('app/' . $storedPath))) {
             return redirect()->route('admin.import.index')
                 ->withErrors(['csv_file' => 'No import data found. Please upload the file again.']);
         }
 
-        // Build available_seats map: "normalised_tour_name|YYYY-MM-DD" => total_seats
+        $fullPath = storage_path('app/' . $storedPath);
+
+        // Re-parse the file from disk (instead of reading from session)
+        $rows   = in_array($ext, ['xlsx', 'xls'])
+            ? $this->readSpreadsheetRows($fullPath)
+            : null;
+        $blocks = $this->parseSlotTrackerCsv($fullPath, $rows);
+
+        if (empty($blocks)) {
+            return redirect()->route('admin.import.index')
+                ->withErrors(['csv_file' => 'Could not re-parse the uploaded file.']);
+        }
+
+        // Build preview rows from blocks (same logic as preview, but simplified)
+        $existingTours = Tour::select('id', 'title', 'regular_price_per_person')
+            ->get()
+            ->keyBy(fn($t) => $this->normalizeRouteName($t->title));
+
+        $preview       = [];
         $scheduleSeats = [];
-        foreach ($preview as $row) {
-            if ($row['skipped']) continue;
-            $key = $this->normalizeRouteName($row['tour_name']) . '|' . $row['travel_date'];
-            if (!isset($scheduleSeats[$key])) {
-                $scheduleSeats[$key] = $row['total_seats'] > 0 ? $row['total_seats'] : 40;
+
+        foreach ($blocks as $block) {
+            $rawRoute   = $block['route_name'];
+            $matchKey   = $this->normalizeRouteName($rawRoute);
+            $dateRaw    = $block['travel_date_raw'];
+            $totalSeats = $block['total_seats'];
+            $departure  = $this->parseDateRange($dateRaw, 'start');
+            $returnDate = $this->parseDateRange($dateRaw, 'end');
+            $tour       = $this->resolveTour($matchKey, $existingTours);
+            $tourTitle  = $tour?->title ?? $this->toTitleCase($rawRoute);
+            $blockRate  = $this->resolveBlockRate($block['clients']);
+
+            if (!$departure) continue; // skip unparseable date blocks
+
+            $schedKey = $matchKey . '|' . $departure->format('Y-m-d');
+            if (!isset($scheduleSeats[$schedKey])) {
+                $scheduleSeats[$schedKey] = $totalSeats > 0 ? $totalSeats : 40;
+            }
+
+            foreach ($block['clients'] as $client) {
+                $pax        = max(1, (int) ($client['pax'] ?: 1));
+                $terms      = $this->normalizeTerms($client['terms']);
+                $clientRate = (float) preg_replace('/[^\d.]/', '', $client['rate'] ?? '0');
+                $rate       = $clientRate > 0
+                    ? $clientRate
+                    : ($blockRate > 0 ? $blockRate : (float) ($tour?->regular_price_per_person ?? 0));
+
+                $csvStatus     = trim($client['status'] ?? '');
+                $bookingStatus = $this->normalizeBookingStatus($csvStatus);
+                $paymentStatus = $this->derivePaymentStatus($csvStatus, $terms);
+
+                $preview[] = [
+                    'tour_name'      => $tourTitle,
+                    'travel_date'    => $departure->format('Y-m-d'),
+                    'return_date'    => ($returnDate ?? $departure)->format('Y-m-d'),
+                    'total_seats'    => $totalSeats,
+                    'client_name'    => $client['client_name'],
+                    'pax'            => $pax,
+                    'booking_status' => $bookingStatus,
+                    'payment_status' => $paymentStatus,
+                    'terms'          => $terms,
+                    'rate'           => $rate,
+                    'total_amount'   => $rate * $pax,
+                    'pay1_date'      => $client['pay1_date'],
+                    'notes'          => $client['pay2_notes'],
+                ];
             }
         }
 
-        $tourCache  = Tour::select('id', 'title')->get()->keyBy(fn($t) => $this->normalizeRouteName($t->title));
+        if (empty($preview)) {
+            return redirect()->route('admin.import.index')
+                ->withErrors(['csv_file' => 'No importable rows found in file.']);
+        }
+
+        $tourCache  = $existingTours;
         $schedCache = [];
         $created    = $skipped = 0;
         $errors     = [];
 
-        // Pre-calculate booking number base to avoid duplicates inside the transaction
         $year           = date('Y');
         $existingCount  = Booking::whereYear('created_at', $year)->count();
         $bookingCounter = $existingCount;
 
         DB::transaction(function () use ($preview, $scheduleSeats, &$tourCache, &$schedCache, &$created, &$skipped, &$errors, $year, &$bookingCounter) {
-            foreach ($preview as $row) {
-                if ($row['skipped']) { $skipped++; continue; }
-
+            foreach ($preview as $idx => $row) {
                 try {
                     // 1. Resolve or auto-create Tour
                     $normKey = $this->normalizeRouteName($row['tour_name']);
@@ -214,7 +293,6 @@ class BookingImportController extends Controller
                                 'status'          => 'active',
                             ]
                         );
-                        // Sync available_seats from CSV even if schedule existed before
                         if (!$schedule->wasRecentlyCreated && $availSeats > 0
                             && $schedule->available_seats !== $availSeats) {
                             $schedule->update(['available_seats' => $availSeats]);
@@ -227,25 +305,21 @@ class BookingImportController extends Controller
                     $rate  = $row['rate'] > 0 ? $row['rate'] : (float) ($tour->regular_price_per_person ?? 0);
                     $total = $rate * $row['pax'];
 
-                    // Map terms to valid payment_method enum: xendit, cash, installment
                     $isInstallment = in_array($row['terms'], ['installment', 'downpayment']);
                     $paymentMethod = $isInstallment ? 'installment' : 'cash';
 
-                    // Build installment schedule for downpayment/installment bookings
-                    $downpaymentAmount  = null;
-                    $installmentMonths  = null;
+                    $downpaymentAmount   = null;
+                    $installmentMonths   = null;
                     $installmentSchedule = null;
 
                     if ($isInstallment && $total > 0) {
-                        $tourDate      = Carbon::parse($row['travel_date']);
-                        $firstPayDate  = $this->parseLooseDate($row['pay1_date'] ?? '');
-                        $bookingDate   = $firstPayDate ?? now();
+                        $tourDate     = Carbon::parse($row['travel_date']);
+                        $firstPayDate = $this->parseLooseDate($row['pay1_date'] ?? '');
+                        $bookingDate  = $firstPayDate ?? now();
 
-                        // Calculate months remaining until tour
-                        $monthsUntilTour = max(1, (int) $bookingDate->diffInMonths($tourDate));
+                        $monthsUntilTour   = max(1, (int) $bookingDate->diffInMonths($tourDate));
                         $installmentMonths = min($monthsUntilTour, 12);
 
-                        // Downpayment = rate per person (one pax worth), rest split monthly
                         $downpaymentAmount = $rate;
                         $remaining         = max(0, $total - $downpaymentAmount);
                         $monthlyAmount     = $installmentMonths > 1
@@ -253,8 +327,7 @@ class BookingImportController extends Controller
                             : $remaining;
 
                         $payTerms = [];
-                        // Downpayment term
-                        $dpPaid = in_array($row['payment_status'], ['paid', 'partial']);
+                        $dpPaid   = in_array($row['payment_status'], ['paid', 'partial']);
                         $payTerms[] = [
                             'type'     => 'downpayment',
                             'term'     => 0,
@@ -264,11 +337,9 @@ class BookingImportController extends Controller
                             'paid_at'  => $dpPaid ? ($firstPayDate ?? $bookingDate)->toDateString() : null,
                         ];
 
-                        // Monthly installments
                         $termCount = max(1, $installmentMonths - 1);
                         for ($i = 1; $i <= $termCount; $i++) {
                             $dueDate = $bookingDate->copy()->addMonths($i);
-                            // Don't schedule past the tour date
                             if ($dueDate->gt($tourDate)) {
                                 $dueDate = $tourDate->copy()->subDays(7);
                             }
@@ -286,33 +357,32 @@ class BookingImportController extends Controller
                     }
 
                     Booking::create([
-                        'booking_number'    => 'DG-' . $year . '-' . str_pad(++$bookingCounter, 6, '0', STR_PAD_LEFT),
-                        'tour_id'           => $tour->id,
-                        'schedule_id'       => $schedule->id,
-                        'tour_date'         => $row['travel_date'],
-                        'adults'            => $row['pax'],
-                        'children'          => 0,
-                        'infants'           => 0,
-                        'total_guests'      => $row['pax'],
-                        'price_per_adult'   => $rate,
-                        'price_per_child'   => 0,
-                        'subtotal'          => $total,
-                        'discount_amount'   => 0,
-                        'tax_amount'        => 0,
-                        'total_amount'      => $total,
-                        'status'            => $row['booking_status'],
-                        'payment_status'    => $row['payment_status'],
-                        'payment_method'    => $paymentMethod,
-                        'contact_name'      => $row['client_name'],
-                        'contact_email'     => null,
-                        'contact_phone'     => null,
-                        'special_requests'  => $row['notes'] ?: null,
-                        'downpayment_amount'=> $downpaymentAmount,
-                        'installment_months'=> $installmentMonths,
+                        'booking_number'       => 'DG-' . $year . '-' . str_pad(++$bookingCounter, 6, '0', STR_PAD_LEFT),
+                        'tour_id'              => $tour->id,
+                        'schedule_id'          => $schedule->id,
+                        'tour_date'            => $row['travel_date'],
+                        'adults'               => $row['pax'],
+                        'children'             => 0,
+                        'infants'              => 0,
+                        'total_guests'         => $row['pax'],
+                        'price_per_adult'      => $rate,
+                        'price_per_child'      => 0,
+                        'subtotal'             => $total,
+                        'discount_amount'      => 0,
+                        'tax_amount'           => 0,
+                        'total_amount'         => $total,
+                        'status'               => $row['booking_status'],
+                        'payment_status'       => $row['payment_status'],
+                        'payment_method'       => $paymentMethod,
+                        'contact_name'         => $row['client_name'],
+                        'contact_email'        => null,
+                        'contact_phone'        => null,
+                        'special_requests'     => $row['notes'] ?: null,
+                        'downpayment_amount'   => $downpaymentAmount,
+                        'installment_months'   => $installmentMonths,
                         'installment_schedule' => $installmentSchedule,
                     ]);
 
-                    // 4. Sync booked_seats (BookingObserver only fires on update, not create)
                     if ($row['booking_status'] === 'confirmed') {
                         $schedule->increment('booked_seats', $row['pax']);
                         $schedCache[$schedKey] = $schedule->fresh();
@@ -323,17 +393,19 @@ class BookingImportController extends Controller
 
                     $created++;
                 } catch (\Throwable $e) {
-                    Log::error('BookingImport row ' . $row['row'] . ' failed', [
+                    Log::error('BookingImport row ' . ($idx + 1) . ' failed', [
                         'error' => $e->getMessage(),
-                        'row'   => $row,
+                        'client' => $row['client_name'] ?? 'unknown',
                     ]);
-                    $errors[] = "Row {$row['row']}: " . $e->getMessage();
+                    $errors[] = ($row['client_name'] ?? 'Row ' . ($idx + 1)) . ': ' . Str::limit($e->getMessage(), 120);
                     $skipped++;
                 }
             }
         });
 
-        session()->forget('import_preview');
+        // Cleanup stored file and session
+        @unlink($fullPath);
+        session()->forget(['import_file_path', 'import_file_ext']);
 
         return redirect()->route('admin.import.index')
             ->with('success', "Import complete — {$created} booking(s) created, {$skipped} skipped.")
@@ -543,6 +615,19 @@ class BookingImportController extends Controller
             if ($d < $bestDist) { $bestDist = $d; $bestTour = $t; }
         }
         return $bestTour;
+    }
+
+    private function resolveBlockRate(array $clients): float
+    {
+        $rates = [];
+        foreach ($clients as $c) {
+            $r = (float) preg_replace('/[^\d.]/', '', $c['rate'] ?? '0');
+            if ($r > 0) $rates[] = (string) $r;
+        }
+        if (empty($rates)) return 0;
+        $counts = array_count_values($rates);
+        arsort($counts);
+        return (float) array_key_first($counts);
     }
 
     private function normalizeRouteName(string $name): string
