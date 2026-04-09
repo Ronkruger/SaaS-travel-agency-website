@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Payment;
 use App\Models\Tour;
 use App\Models\TourSchedule;
 use Carbon\Carbon;
@@ -21,7 +20,6 @@ class BookingImportController extends Controller
 
     /* -----------------------------------------------------------------------
      | GET /admin/import
-     | Show upload form & download template link
      * --------------------------------------------------------------------- */
     public function index()
     {
@@ -30,43 +28,19 @@ class BookingImportController extends Controller
 
     /* -----------------------------------------------------------------------
      | GET /admin/import/template
-     | Download blank CSV template matching spreadsheet columns
      * --------------------------------------------------------------------- */
     public function template()
     {
         $headers = [
-            'Route Name',
-            'Travel Date',       // YYYY-MM-DD
-            'Names of Clients',
-            'PAX',               // integer
-            'Status',            // pending / confirmed / cancelled
-            'Payment Terms',     // full / installment / downpayment
-            'Package Rate Per Person',
-            '1st Payment Amount',
-            '1st Payment Date',  // YYYY-MM-DD
-            '2nd Payment Amount',
-            '2nd Payment Date',  // YYYY-MM-DD
-            'Contact Email',
-            'Contact Phone',
+            'Route Name', 'Travel Date', 'Names of Clients', 'PAX',
+            'Status', 'Payment Terms', 'Package Rate Per Person',
+            '1st Payment Date', 'Notes',
         ];
-
         $example = [
-            'Route K Deluxe',
-            '2026-05-15',
-            'Juan dela Cruz',
-            '2',
-            'confirmed',
-            'full',
-            '15000',
-            '30000',
-            '2026-04-01',
-            '',
-            '',
-            'juan@example.com',
-            '+63-912-345-6789',
+            'Route K Deluxe', 'FEB 11 - 21, 2026', 'Juan dela Cruz', '2',
+            'Paid', 'Full Cash', '₱180,000.00', 'Apr 1, 2026', 'Confirmed departure',
         ];
-
-        $csv = implode(',', array_map([$this, 'csvCell'], $headers)) . "\r\n";
+        $csv  = implode(',', array_map([$this, 'csvCell'], $headers)) . "\r\n";
         $csv .= implode(',', array_map([$this, 'csvCell'], $example)) . "\r\n";
 
         return response($csv, 200, [
@@ -77,16 +51,15 @@ class BookingImportController extends Controller
 
     /* -----------------------------------------------------------------------
      | POST /admin/import/preview
-     | Parse uploaded CSV → preview table stored in session
      * --------------------------------------------------------------------- */
     public function preview(Request $request)
     {
         $request->validate([
-            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
         ]);
 
         $path = $request->file('csv_file')->getRealPath();
-        $rows = $this->parseCsv($path);
+        $rows = $this->parseSlotTrackerCsv($path);
 
         if (empty($rows)) {
             return back()->withErrors(['csv_file' => 'The CSV file is empty or could not be parsed.']);
@@ -97,59 +70,66 @@ class BookingImportController extends Controller
         $warnings = [];
 
         foreach ($rows as $i => $row) {
-            $rowNum    = $i + 2; // 1-based, row 1 is header
-            $tourName  = strtolower(trim($row['route name'] ?? ''));
-            $tour      = $tours->get($tourName);
+            $rowNum = $i + 1;
 
-            // Fuzzy fallback: check if any tour title contains the cell value
-            if (!$tour && $tourName !== '') {
-                $tour = $tours->first(fn($t) => str_contains(strtolower($t->title), $tourName)
-                    || str_contains($tourName, strtolower($t->title)));
+            // Strip "BUS 1 / BUS 2 / (BUS 1)" suffix for matching
+            $rawRoute   = $row['route_name'];
+            $matchRoute = strtolower(trim(preg_replace('/\s*(BUS\s*[\d\/]+|\(BUS\s*[\d]+\))\s*[-–\s]*/i', '', $rawRoute)));
+            $matchRoute = preg_replace('/\s+/', ' ', trim($matchRoute));
+
+            // Exact → contains → Levenshtein typo correction
+            $tour = $tours->get($matchRoute)
+                 ?? $tours->get(strtolower(trim($rawRoute)))
+                 ?? $tours->first(fn($t) => str_contains(strtolower($t->title), $matchRoute)
+                                         || str_contains($matchRoute, strtolower($t->title)));
+
+            if (!$tour) {
+                $bestDist = 4;
+                $bestTour = null;
+                foreach ($tours as $title => $t) {
+                    $d = levenshtein($matchRoute, $title);
+                    if ($d < $bestDist) { $bestDist = $d; $bestTour = $t; }
+                }
+                $tour = $bestTour;
             }
 
-            $travelDate = $this->parseDate($row['travel date'] ?? '');
-            $pax        = max(1, (int) ($row['pax'] ?? 1));
-            $status     = $this->normalizeStatus($row['status'] ?? 'pending');
-            $terms      = $this->normalizeTerms($row['payment terms'] ?? 'full');
-            $rate       = (float) preg_replace('/[^\d.]/', '', $row['package rate per person'] ?? '0');
-            $pay1Amt    = (float) preg_replace('/[^\d.]/', '', $row['1st payment amount'] ?? '0');
-            $pay1Date   = $this->parseDate($row['1st payment date'] ?? '');
-            $pay2Amt    = (float) preg_replace('/[^\d.]/', '', $row['2nd payment amount'] ?? '0');
-            $pay2Date   = $this->parseDate($row['2nd payment date'] ?? '');
-            $email      = strtolower(trim($row['contact email'] ?? ''));
-            $phone      = trim($row['contact phone'] ?? '');
-            $name       = trim($row['names of clients'] ?? 'Unknown');
+            $travelDate    = $this->parseDateRange($row['travel_date_raw']);
+            $pax           = max(1, (int) ($row['pax'] ?: 1));
+            $terms         = $this->normalizeTerms($row['terms']);
+            $rate          = (float) preg_replace('/[^\d.]/', '', $row['rate'] ?? '0');
+            $total         = $rate > 0 ? $rate * $pax : 0;
+            $csvStatus     = trim($row['status'] ?? '');
+            $bookingStatus = $this->normalizeBookingStatus($csvStatus);
+            $paymentStatus = $this->derivePaymentStatus($csvStatus, $terms);
 
             $rowWarnings = [];
             if (!$tour) {
-                $rowWarnings[] = "Tour \"{$tourName}\" not found — row will be skipped.";
+                $rowWarnings[] = "Tour \"{$rawRoute}\" not found — row will be skipped.";
             }
             if (!$travelDate) {
-                $rowWarnings[] = "Invalid travel date \"" . ($row['travel date'] ?? '') . "\" — row will be skipped.";
+                $rowWarnings[] = 'Cannot parse travel date "' . ($row['travel_date_raw'] ?? '') . '" — row will be skipped.';
             }
             if ($rate <= 0) {
-                $rowWarnings[] = "Rate is 0 — will use tour's current price.";
+                $rowWarnings[] = 'No rate — will use tour\'s current price.';
             }
 
             $preview[] = [
-                'row'          => $rowNum,
-                'tour_id'      => $tour?->id,
-                'tour_name'    => $tour?->title ?? ($row['route name'] ?? ''),
-                'travel_date'  => $travelDate?->format('Y-m-d'),
-                'client_name'  => $name,
-                'pax'          => $pax,
-                'status'       => $status,
-                'terms'        => $terms,
-                'rate'         => $rate,
-                'total_amount' => $rate * $pax,
-                'pay1_amount'  => $pay1Amt,
-                'pay1_date'    => $pay1Date?->format('Y-m-d'),
-                'pay2_amount'  => $pay2Amt,
-                'pay2_date'    => $pay2Date?->format('Y-m-d'),
-                'email'        => $email,
-                'phone'        => $phone,
-                'skipped'      => !$tour || !$travelDate,
-                'warnings'     => $rowWarnings,
+                'row'             => $rowNum,
+                'tour_id'         => $tour?->id,
+                'tour_name'       => $tour?->title ?? $rawRoute,
+                'travel_date'     => $travelDate?->format('Y-m-d'),
+                'travel_date_raw' => $row['travel_date_raw'],
+                'client_name'     => $row['client_name'],
+                'pax'             => $pax,
+                'booking_status'  => $bookingStatus,
+                'payment_status'  => $paymentStatus,
+                'terms'           => $terms,
+                'rate'            => $rate,
+                'total_amount'    => $total,
+                'pay1_date'       => $row['pay1_date'],
+                'notes'           => $row['pay2_notes'],
+                'skipped'         => !$tour || !$travelDate,
+                'warnings'        => $rowWarnings,
             ];
 
             if ($rowWarnings) {
@@ -158,8 +138,6 @@ class BookingImportController extends Controller
         }
 
         $importable = collect($preview)->where('skipped', false)->count();
-
-        // Store in session — 2048-char limit safe with 100-row CSV
         session(['import_preview' => $preview]);
 
         return view('admin.import.index', compact('preview', 'warnings', 'importable'));
@@ -167,7 +145,6 @@ class BookingImportController extends Controller
 
     /* -----------------------------------------------------------------------
      | POST /admin/import/confirm
-     | Persist previewed rows to the database
      * --------------------------------------------------------------------- */
     public function confirm(Request $request)
     {
@@ -178,95 +155,64 @@ class BookingImportController extends Controller
                 ->withErrors(['csv_file' => 'No import data found. Please upload the CSV again.']);
         }
 
-        $created  = 0;
-        $skipped  = 0;
-        $errors   = [];
+        $created = $skipped = 0;
+        $errors  = [];
 
         DB::transaction(function () use ($preview, &$created, &$skipped, &$errors) {
             foreach ($preview as $row) {
-                if ($row['skipped']) {
-                    $skipped++;
-                    continue;
-                }
+                if ($row['skipped']) { $skipped++; continue; }
 
                 try {
                     $tour = Tour::find($row['tour_id']);
-                    if (!$tour) {
-                        $skipped++;
-                        continue;
-                    }
+                    if (!$tour) { $skipped++; continue; }
 
-                    // Find or create the TourSchedule for this date
                     $travelDate = Carbon::parse($row['travel_date']);
                     $schedule   = TourSchedule::firstOrCreate(
                         ['tour_id' => $tour->id, 'departure_date' => $travelDate->toDateString()],
-                        [
-                            'available_seats' => 40,
-                            'booked_seats'    => 0,
-                            'status'          => 'active',
-                        ]
+                        ['available_seats' => 40, 'booked_seats' => 0, 'status' => 'active']
                     );
 
-                    $rate = $row['rate'] > 0
-                        ? $row['rate']
-                        : (float) ($tour->effective_price ?? 0);
-
+                    $rate  = $row['rate'] > 0 ? $row['rate'] : (float) ($tour->effective_price ?? 0);
                     $total = $rate * $row['pax'];
 
-                    $booking = Booking::create([
-                        'booking_number'  => Booking::generateBookingNumber(),
-                        'tour_id'         => $tour->id,
-                        'schedule_id'     => $schedule->id,
-                        'tour_date'       => $travelDate,
-                        'adults'          => $row['pax'],
-                        'children'        => 0,
-                        'infants'         => 0,
-                        'total_guests'    => $row['pax'],
-                        'price_per_adult' => $rate,
-                        'price_per_child' => 0,
-                        'subtotal'        => $total,
-                        'discount_amount' => 0,
-                        'tax_amount'      => 0,
-                        'total_amount'    => $total,
-                        'status'          => $row['status'],
-                        'payment_status'  => $this->derivePaymentStatus($row),
-                        'payment_method'  => $row['terms'],
-                        'contact_name'    => $row['client_name'],
-                        'contact_email'   => $row['email'] ?: null,
-                        'contact_phone'   => $row['phone'] ?: null,
-                        'downpayment_amount' => $row['pay1_amount'] > 0 ? $row['pay1_amount'] : null,
+                    Booking::create([
+                        'booking_number'     => Booking::generateBookingNumber(),
+                        'tour_id'            => $tour->id,
+                        'schedule_id'        => $schedule->id,
+                        'tour_date'          => $travelDate,
+                        'adults'             => $row['pax'],
+                        'children'           => 0,
+                        'infants'            => 0,
+                        'total_guests'       => $row['pax'],
+                        'price_per_adult'    => $rate,
+                        'price_per_child'    => 0,
+                        'subtotal'           => $total,
+                        'discount_amount'    => 0,
+                        'tax_amount'         => 0,
+                        'total_amount'       => $total,
+                        'status'             => $row['booking_status'],
+                        'payment_status'     => $row['payment_status'],
+                        'payment_method'     => $row['terms'],
+                        'contact_name'       => $row['client_name'],
+                        'contact_email'      => null,
+                        'contact_phone'      => null,
+                        'special_requests'   => $row['notes'] ?: null,
+                        'downpayment_amount' => null,
                     ]);
 
-                    // Record 1st payment
-                    if ($row['pay1_amount'] > 0) {
-                        Payment::create([
-                            'booking_id'     => $booking->id,
-                            'amount'         => $row['pay1_amount'],
-                            'method'         => $row['terms'] === 'installment' ? 'installment' : 'cash',
-                            'status'         => 'paid',
-                            'transaction_id' => 'IMPORT-' . $booking->booking_number . '-P1',
-                            'paid_at'        => $row['pay1_date'] ? Carbon::parse($row['pay1_date']) : now(),
-                        ]);
-                    }
-
-                    // Record 2nd payment
-                    if ($row['pay2_amount'] > 0) {
-                        Payment::create([
-                            'booking_id'     => $booking->id,
-                            'amount'         => $row['pay2_amount'],
-                            'method'         => 'installment',
-                            'status'         => 'paid',
-                            'transaction_id' => 'IMPORT-' . $booking->booking_number . '-P2',
-                            'paid_at'        => $row['pay2_date'] ? Carbon::parse($row['pay2_date']) : now(),
-                        ]);
+                    // Sync seat count (observer only fires on update, not create)
+                    if ($row['booking_status'] === 'confirmed') {
+                        $schedule->increment('booked_seats', $row['pax']);
+                        $schedule->refresh();
+                        if ($schedule->booked_seats >= $schedule->available_seats) {
+                            $schedule->update(['status' => 'sold_out']);
+                        }
                     }
 
                     $created++;
-
                 } catch (\Throwable $e) {
-                    Log::error('BookingImport: row ' . $row['row'] . ' failed', [
-                        'error' => $e->getMessage(),
-                        'row'   => $row,
+                    Log::error('BookingImport row ' . $row['row'] . ' failed', [
+                        'error' => $e->getMessage(), 'row' => $row,
                     ]);
                     $errors[] = "Row {$row['row']}: " . $e->getMessage();
                     $skipped++;
@@ -281,89 +227,146 @@ class BookingImportController extends Controller
             ->with('import_errors', $errors);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Parser ────────────────────────────────────────────────────────────────
 
-    private function parseCsv(string $path): array
+    /**
+     * Parse the DiscoverGRP slot-tracker block-format CSV.
+     *
+     * Column layout (0-indexed):
+     *   [0] row counter (ignored)    [1] route name / meta key / empty
+     *   [2] travel date / meta value [3] Names of Clients  ← KEY COLUMN
+     *   [4] PAX  [5] Status  [6] Payment Terms  [7] Rate  [8] 1st Payment Date  [9] Notes
+     *
+     * Route block headers: col[1] has tour name, col[2] has date range, col[3] empty/BUS label.
+     * Client rows:         col[3] is a non-empty, non-system string (the client name).
+     * Metadata rows:       col[1] is "Total Seats", "Occupied Slots", etc. — skip unless col[3] has a name.
+     */
+    private function parseSlotTrackerCsv(string $path): array
     {
         $handle = fopen($path, 'r');
-        if (!$handle) {
-            return [];
-        }
+        if (!$handle) return [];
 
-        $rows    = [];
-        $headers = null;
+        $rows           = [];
+        $currentRoute   = null;
+        $currentDateRaw = null;
 
-        while (($line = fgetcsv($handle)) !== false) {
-            if ($headers === null) {
-                // Normalize header keys: lowercase, strip BOM
-                $headers = array_map(
-                    fn($h) => strtolower(trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $h))),
-                    $line
-                );
+        $metaKeys = ['total seats', 'occupied slots', 'available slots', 'route name'];
+        $monthRx  = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec'
+                  . '|january|february|march|april|june|july|august'
+                  . '|september|october|november|december';
+
+        while (($cols = fgetcsv($handle)) !== false) {
+            $cols = array_pad($cols, 10, '');
+
+            $c1 = trim($cols[1] ?? '');
+            $c2 = trim($cols[2] ?? '');
+            $c3 = trim($cols[3] ?? '');
+
+            // Skip fully blank rows
+            if (trim(implode('', $cols)) === '') continue;
+
+            // Skip month-section headers: "FEB 2026", "MAR 2026" …
+            if (preg_match('/^(' . $monthRx . ')\w*\s+\d{4}$/i', $c1)) continue;
+
+            // Skip column-header rows
+            if (strtolower($c1) === 'route name') continue;
+
+            // ── Route block header detection ────────────────────────────────
+            // c1 = tour name, c2 = date range ("FEB 11 - 21, 2026"), c3 = empty or "BUS X"
+            $isDateRange  = preg_match('/\b(' . $monthRx . ')\b/i', $c2)
+                         && preg_match('/\d{4}/', $c2);
+            $c3IsBusLabel = preg_match('/^bus\s*[\d\/]+$/i', $c3);
+
+            if ($c1 !== ''
+                && !in_array(strtolower($c1), $metaKeys)
+                && $isDateRange
+                && ($c3 === '' || $c3IsBusLabel)
+            ) {
+                $currentRoute   = $c1;
+                $currentDateRaw = $c2;
                 continue;
             }
 
-            if (count($line) < 2 || implode('', $line) === '') {
-                continue; // skip blank rows
-            }
+            // ── Client row ──────────────────────────────────────────────────
+            if ($c3 === '') continue;
+            $c3Lower = strtolower($c3);
+            if (in_array($c3Lower, ['names of clients', 'route name', 'travel date'])) continue;
+            if (preg_match('/^bus\s*[\d\/]+$/i', $c3)) continue;
+            if (!$currentRoute || !$currentDateRaw) continue;
 
-            $padded = array_pad($line, count($headers), '');
-            $rows[] = array_combine($headers, array_slice($padded, 0, count($headers)));
+            $rows[] = [
+                'route_name'      => $currentRoute,
+                'travel_date_raw' => $currentDateRaw,
+                'client_name'     => $c3,
+                'pax'             => trim($cols[4] ?? ''),
+                'status'          => trim($cols[5] ?? ''),
+                'terms'           => trim($cols[6] ?? ''),
+                'rate'            => trim($cols[7] ?? ''),
+                'pay1_date'       => trim($cols[8] ?? ''),
+                'pay2_notes'      => trim($cols[9] ?? ''),
+            ];
         }
 
         fclose($handle);
         return $rows;
     }
 
-    private function parseDate(string $value): ?Carbon
+    /**
+     * Extract the departure (start) date from a date range string.
+     * "FEB 11 - 21, 2026" → Feb 11 2026
+     * "MAR 18 - APRIL 2, 2026" → Mar 18 2026
+     * "APR 01-16, 2026"   → Apr 01 2026
+     */
+    private function parseDateRange(string $range): ?Carbon
     {
-        if (trim($value) === '') {
-            return null;
-        }
+        $range = trim($range);
+        if ($range === '') return null;
+
+        $monthRx = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec'
+                 . '|january|february|march|april|june|july|august'
+                 . '|september|october|november|december';
+
+        if (!preg_match('/\b(\d{4})\b/', $range, $ym)) return null;
+        $year = $ym[1];
+
+        if (!preg_match('/\b(' . $monthRx . ')\s+(\d{1,2})\b/i', $range, $dm)) return null;
+
         try {
-            return Carbon::parse($value);
+            return Carbon::parse($dm[1] . ' ' . $dm[2] . ' ' . $year);
         } catch (\Throwable) {
             return null;
         }
     }
 
-    private function normalizeStatus(string $raw): string
-    {
-        return match (strtolower(trim($raw))) {
-            'confirmed', 'confirm', 'approved' => 'confirmed',
-            'cancelled', 'canceled'             => 'cancelled',
-            default                             => 'pending',
-        };
-    }
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private function normalizeTerms(string $raw): string
     {
         $lower = strtolower(trim($raw));
-        if (str_contains($lower, 'install')) {
-            return 'installment';
-        }
-        if (str_contains($lower, 'down')) {
-            return 'downpayment';
-        }
+        if (str_contains($lower, 'install')) return 'installment';
+        if (str_contains($lower, 'down'))    return 'downpayment';
+        if (str_contains($lower, 'cash'))    return 'cash';
         return 'cash';
     }
 
-    private function derivePaymentStatus(array $row): string
+    private function normalizeBookingStatus(string $csvStatus): string
     {
-        $paid = $row['pay1_amount'] + $row['pay2_amount'];
-        if ($paid <= 0) {
-            return 'unpaid';
+        return strtolower(trim($csvStatus)) === 'paid' ? 'confirmed' : 'pending';
+    }
+
+    private function derivePaymentStatus(string $csvStatus, string $normalizedTerms): string
+    {
+        $s = strtolower(trim($csvStatus));
+        if ($s === 'paid') {
+            return $normalizedTerms === 'cash' ? 'paid' : 'partial';
         }
-        if ($paid >= $row['total_amount'] - 0.01) {
-            return 'paid';
-        }
-        return 'partial';
+        if (str_contains($s, 'travel fund')) return 'partial';
+        return 'unpaid';
     }
 
     private function csvCell(string $value): string
     {
-        // Escape quotes; wrap in quotes if contains comma, newline, or quote
-        $escaped = str_replace('"', '""', $value);
-        return '"' . $escaped . '"';
+        return '"' . str_replace('"', '""', $value) . '"';
     }
 }
+

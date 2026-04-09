@@ -139,7 +139,7 @@
             <label for="csv_file" class="upload-card" id="drop-zone">
                 <i class="fas fa-cloud-upload-alt d-block"></i>
                 <p class="upload-cta">Click to browse or drag & drop your CSV file</p>
-                <p>Supported format: <strong>.csv</strong> &nbsp;|&nbsp; Max size: <strong>2 MB</strong></p>
+                <p>Supported format: <strong>.csv</strong> &nbsp;|&nbsp; Max size: <strong>5 MB</strong></p>
                 <input type="file" id="csv_file" name="csv_file" accept=".csv,text/csv" class="d-none" required>
                 <p id="file-name" class="mt-2 text-primary fw-semibold"></p>
             </label>
@@ -165,35 +165,38 @@
 
 {{-- Column mapping reference --}}
 <div class="card mb-4">
-    <div class="card-header">
-        <h4><i class="fas fa-columns"></i> Expected CSV Columns</h4>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-columns"></i> Slot Tracker CSV Columns</h4>
+        <small class="text-muted">Columns are positional (A–J). The importer handles block-grouped routes and repeated header rows automatically.</small>
     </div>
     <div class="card-body p-0">
         <table class="table table-sm mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Column Header</th>
+                    <th>Col</th>
+                    <th>Header</th>
                     <th>Description</th>
                     <th>Example</th>
                     <th>Required?</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td><code>Route Name</code></td><td>Must match an existing tour title</td><td>Route K Deluxe</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td><code>Travel Date</code></td><td>Departure date</td><td>2026-05-15</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td><code>Names of Clients</code></td><td>Primary contact name</td><td>Juan dela Cruz</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td><code>PAX</code></td><td>Number of guests</td><td>2</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td><code>Status</code></td><td>pending / confirmed / cancelled</td><td>confirmed</td><td>No (default: pending)</td></tr>
-                <tr><td><code>Payment Terms</code></td><td>full / installment / downpayment</td><td>installment</td><td>No (default: full)</td></tr>
-                <tr><td><code>Package Rate Per Person</code></td><td>Price per pax in PHP</td><td>15000</td><td>No (uses tour price)</td></tr>
-                <tr><td><code>1st Payment Amount</code></td><td>Initial payment received</td><td>30000</td><td>No</td></tr>
-                <tr><td><code>1st Payment Date</code></td><td>Date of 1st payment</td><td>2026-04-01</td><td>No</td></tr>
-                <tr><td><code>2nd Payment Amount</code></td><td>Subsequent payment</td><td>15000</td><td>No</td></tr>
-                <tr><td><code>2nd Payment Date</code></td><td>Date of 2nd payment</td><td>2026-05-01</td><td>No</td></tr>
-                <tr><td><code>Contact Email</code></td><td>Client email</td><td>juan@example.com</td><td>No</td></tr>
-                <tr><td><code>Contact Phone</code></td><td>Client phone</td><td>+63-912-345-6789</td><td>No</td></tr>
+                <tr><td>B</td><td><code>Route Name</code></td><td>Tour title (BUS suffix auto-stripped for matching)</td><td>ROUTE K DELUXE</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td>C</td><td><code>Travel Date</code></td><td>Date range — start date is used for the schedule</td><td>FEB 11 - 21, 2026</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td>D</td><td><code>Names of Clients</code></td><td>Primary contact / lead traveler name</td><td>JUAN DELA CRUZ</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td>E</td><td><code>PAX</code></td><td>Number of guests (defaults to 1 if empty)</td><td>2</td><td>No</td></tr>
+                <tr><td>F</td><td><code>Status</code></td><td><strong>Paid</strong> → confirmed booking + paid/partial payment status. Others → pending.</td><td>Paid</td><td>No</td></tr>
+                <tr><td>G</td><td><code>Payment Terms</code></td><td>Full Cash / Downpayment / Instalment / Travel Fund</td><td>Full Cash</td><td>No</td></tr>
+                <tr><td>H</td><td><code>Package Rate Per Person</code></td><td>Price per pax (₱ sign and commas ignored)</td><td>₱180,000.00</td><td>No (uses tour price)</td></tr>
+                <tr><td>I</td><td><code>1st Payment Date</code></td><td>Date of first payment (stored as booking note)</td><td>Apr 1, 2026</td><td>No</td></tr>
+                <tr><td>J</td><td><code>2nd Payment / Notes</code></td><td>Free-text notes (CONFIRMED DEPARTURE, REFUND, etc.)</td><td>CONFIRMED DEPARTURE</td><td>No</td></tr>
             </tbody>
         </table>
+        <div class="px-3 py-2 bg-light border-top" style="font-size:.82rem;color:#64748b;">
+            <i class="fas fa-info-circle text-primary"></i>
+            <strong>Format supported:</strong> The DiscoverGRP "DG SLOTS TRACKER" spreadsheet format — block-grouped routes with repeated section headers and mixed metadata/client rows are all handled automatically.
+            Rows with blank column D (Names of Clients) are treated as route headers or metadata and skipped.
+        </div>
     </div>
 </div>
 
@@ -225,8 +228,12 @@
                 <div class="lbl">Will Skip</div>
             </div>
             <div class="import-summary-item">
-                <div class="num">₱{{ number_format(collect($preview)->where('skipped', false)->sum('total_amount'), 2) }}</div>
-                <div class="lbl">Total Value</div>
+                <div class="num">{{ collect($preview)->where('skipped', false)->where('booking_status', 'confirmed')->count() }}</div>
+                <div class="lbl">Confirmed</div>
+            </div>
+            <div class="import-summary-item">
+                <div class="num">{{ collect($preview)->where('skipped', false)->where('booking_status', 'pending')->count() }}</div>
+                <div class="lbl">Pending</div>
             </div>
         </div>
 
@@ -241,13 +248,14 @@
                         <th>Travel Date</th>
                         <th>Client Name</th>
                         <th>PAX</th>
-                        <th>Status</th>
+                        <th>Booking</th>
+                        <th>Payment</th>
                         <th>Terms</th>
                         <th>Rate/Person</th>
                         <th>Total</th>
-                        <th>1st Payment</th>
-                        <th>2nd Payment</th>
+                        <th>1st Pmt Date</th>
                         <th>Notes</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -266,37 +274,27 @@
                                     <span class="text-danger">Invalid</span>
                                 @else
                                     {{ \Carbon\Carbon::parse($row['travel_date'])->format('M d, Y') }}
+                                    <br><small class="text-muted" style="font-size:.72rem;">{{ $row['travel_date_raw'] }}</small>
                                 @endif
                             </td>
                             <td>{{ $row['client_name'] }}</td>
                             <td>{{ $row['pax'] }}</td>
-                            <td><span class="badge-{{ $row['status'] }}">{{ ucfirst($row['status']) }}</span></td>
+                            <td><span class="badge-{{ $row['booking_status'] }}">{{ ucfirst($row['booking_status']) }}</span></td>
+                            <td>
+                                @php
+                                    $ps = $row['payment_status'];
+                                    $psColor = match($ps) { 'paid' => 'success', 'partial' => 'warning', default => 'secondary' };
+                                @endphp
+                                <span class="badge bg-{{ $psColor }} text-{{ $ps === 'partial' ? 'dark' : 'white' }}" style="font-size:.7rem;">{{ ucfirst($ps) }}</span>
+                            </td>
                             <td>{{ ucfirst($row['terms']) }}</td>
-                            <td>{{ $row['rate'] > 0 ? '₱' . number_format($row['rate'], 2) : '—' }}</td>
-                            <td>{{ $row['total_amount'] > 0 ? '₱' . number_format($row['total_amount'], 2) : '—' }}</td>
-                            <td>
-                                @if($row['pay1_amount'] > 0)
-                                    ₱{{ number_format($row['pay1_amount'], 2) }}
-                                    @if($row['pay1_date'])
-                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($row['pay1_date'])->format('M d, Y') }}</small>
-                                    @endif
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td>
-                                @if($row['pay2_amount'] > 0)
-                                    ₱{{ number_format($row['pay2_amount'], 2) }}
-                                    @if($row['pay2_date'])
-                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($row['pay2_date'])->format('M d, Y') }}</small>
-                                    @endif
-                                @else
-                                    —
-                                @endif
-                            </td>
+                            <td>{{ $row['rate'] > 0 ? '₱' . number_format($row['rate'], 0) : '—' }}</td>
+                            <td>{{ $row['total_amount'] > 0 ? '₱' . number_format($row['total_amount'], 0) : '—' }}</td>
+                            <td>{{ $row['pay1_date'] ?: '—' }}</td>
+                            <td style="max-width:160px;white-space:normal;">{{ Str::limit($row['notes'] ?? '', 50) }}</td>
                             <td>
                                 @if($row['skipped'])
-                                    <span class="text-danger fw-semibold">SKIP</span>
+                                    <i class="fas fa-times-circle text-danger" title="{{ implode(' | ', $row['warnings']) }}"></i>
                                 @elseif(count($row['warnings']))
                                     <i class="fas fa-exclamation-triangle text-warning" title="{{ implode(' | ', $row['warnings']) }}"></i>
                                 @else
