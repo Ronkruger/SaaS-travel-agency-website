@@ -60,8 +60,8 @@
             <div style="font-weight:700;font-size:1rem;color:#166534">This booking is waiting for approval</div>
             <div style="font-size:.85rem;color:#4b5563">
                 {{ $booking->contact_name }} &bull; {{ $booking->total_guests }} pax &bull;
-                {{ $booking->tour->title }} &bull;
-                {{ $booking->tour_date->format('M d, Y') }}
+                {{ $booking->tour?->title ?? 'Unknown Tour' }} &bull;
+                {{ $booking->tour_date?->format('M d, Y') ?? '—' }}
             </div>
         </div>
     </div>
@@ -421,10 +421,12 @@
         <div class="slot-avail-card">
             <div class="slot-avail-head">
                 <i class="fas fa-layer-group"></i> Slot Availability
+                @if($booking->tour)
                 <a href="{{ route('admin.tours.schedules.index', $booking->tour) }}"
                    style="margin-left:auto;color:#93c5fd;font-size:.8rem;font-weight:400;text-decoration:none">
                     <i class="fas fa-external-link-alt"></i> Manage Slots
                 </a>
+                @endif
             </div>
             <div class="slot-avail-body">
                 <div class="slot-row">
@@ -464,19 +466,27 @@
         @endif
 
         <!-- Tour Info -->
+        @if($booking->tour)
         <div class="card mb-4">
             <div class="card-header"><h4>Tour</h4></div>
             <div class="card-body">
+                @if($booking->tour->main_image)
                 <img src="{{ cdn_url($booking->tour->main_image) }}"
                      alt="{{ $booking->tour->title }}" class="img-fluid rounded mb-3">
+                @endif
                 <h5>{{ $booking->tour->title }}</h5>
+                @if($booking->tour->destination)
                 <p><i class="fas fa-map-marker-alt"></i> {{ $booking->tour->destination }}, {{ $booking->tour->country }}</p>
+                @endif
+                @if($booking->tour->duration_days)
                 <p><i class="fas fa-clock"></i> {{ $booking->tour->duration_days }}D / {{ $booking->tour->duration_nights }}N</p>
+                @endif
                 <a href="{{ route('admin.tours.edit', $booking->tour) }}" class="btn btn-sm btn-outline">
                     Edit Tour
                 </a>
             </div>
         </div>
+        @endif
 
         <!-- Payment Summary -->
         <div class="card">
