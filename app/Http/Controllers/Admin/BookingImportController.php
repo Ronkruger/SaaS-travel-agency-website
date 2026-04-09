@@ -228,7 +228,62 @@ class BookingImportController extends Controller
                     $total = $rate * $row['pax'];
 
                     // Map terms to valid payment_method enum: xendit, cash, installment
-                    $paymentMethod = $row['terms'] === 'installment' ? 'installment' : 'cash';
+                    $isInstallment = in_array($row['terms'], ['installment', 'downpayment']);
+                    $paymentMethod = $isInstallment ? 'installment' : 'cash';
+
+                    // Build installment schedule for downpayment/installment bookings
+                    $downpaymentAmount  = null;
+                    $installmentMonths  = null;
+                    $installmentSchedule = null;
+
+                    if ($isInstallment && $total > 0) {
+                        $tourDate      = Carbon::parse($row['travel_date']);
+                        $firstPayDate  = $this->parseLooseDate($row['pay1_date'] ?? '');
+                        $bookingDate   = $firstPayDate ?? now();
+
+                        // Calculate months remaining until tour
+                        $monthsUntilTour = max(1, (int) $bookingDate->diffInMonths($tourDate));
+                        $installmentMonths = min($monthsUntilTour, 12);
+
+                        // Downpayment = rate per person (one pax worth), rest split monthly
+                        $downpaymentAmount = $rate;
+                        $remaining         = max(0, $total - $downpaymentAmount);
+                        $monthlyAmount     = $installmentMonths > 1
+                            ? (float) ceil($remaining / ($installmentMonths - 1))
+                            : $remaining;
+
+                        $payTerms = [];
+                        // Downpayment term
+                        $dpPaid = in_array($row['payment_status'], ['paid', 'partial']);
+                        $payTerms[] = [
+                            'type'     => 'downpayment',
+                            'term'     => 0,
+                            'due_date' => ($firstPayDate ?? $bookingDate)->toDateString(),
+                            'amount'   => (float) $downpaymentAmount,
+                            'status'   => $dpPaid ? 'paid' : 'pending',
+                            'paid_at'  => $dpPaid ? ($firstPayDate ?? $bookingDate)->toDateString() : null,
+                        ];
+
+                        // Monthly installments
+                        $termCount = max(1, $installmentMonths - 1);
+                        for ($i = 1; $i <= $termCount; $i++) {
+                            $dueDate = $bookingDate->copy()->addMonths($i);
+                            // Don't schedule past the tour date
+                            if ($dueDate->gt($tourDate)) {
+                                $dueDate = $tourDate->copy()->subDays(7);
+                            }
+                            $amt = ($i === $termCount) ? max(0, $remaining - ($monthlyAmount * ($termCount - 1))) : $monthlyAmount;
+                            $payTerms[] = [
+                                'type'     => 'installment',
+                                'term'     => $i,
+                                'due_date' => $dueDate->toDateString(),
+                                'amount'   => (float) max(0, $amt),
+                                'status'   => 'pending',
+                            ];
+                        }
+
+                        $installmentSchedule = $payTerms;
+                    }
 
                     Booking::create([
                         'booking_number'    => 'DG-' . $year . '-' . str_pad(++$bookingCounter, 6, '0', STR_PAD_LEFT),
@@ -252,7 +307,9 @@ class BookingImportController extends Controller
                         'contact_email'     => null,
                         'contact_phone'     => null,
                         'special_requests'  => $row['notes'] ?: null,
-                        'downpayment_amount'=> null,
+                        'downpayment_amount'=> $downpaymentAmount,
+                        'installment_months'=> $installmentMonths,
+                        'installment_schedule' => $installmentSchedule,
                     ]);
 
                     // 4. Sync booked_seats (BookingObserver only fires on update, not create)
@@ -448,6 +505,20 @@ class BookingImportController extends Controller
 
         try {
             return Carbon::parse($m . ' ' . $d . ' ' . $year);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Parse a loose date string like "October 15, 2025", "Jun 5, 2025", "February 2026", etc.
+     */
+    private function parseLooseDate(string $raw): ?Carbon
+    {
+        $raw = trim($raw);
+        if ($raw === '') return null;
+        try {
+            return Carbon::parse($raw);
         } catch (\Throwable) {
             return null;
         }
