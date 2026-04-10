@@ -230,7 +230,7 @@
                 <tr><td><strong>D</strong></td><td><code>Names of Clients</code></td><td>Primary contact / lead traveler name</td><td>JUAN DELA CRUZ</td><td><span class="text-danger">Yes</span></td></tr>
                 <tr><td><strong>E</strong></td><td><code>PAX</code></td><td>Number of guests (defaults to 1 if empty)</td><td>2</td><td>No</td></tr>
                 <tr><td><strong>F</strong></td><td><code>Status</code></td><td><strong>Paid</strong> → confirmed + paid/partial. Others → pending.</td><td>Paid</td><td>No</td></tr>
-                <tr><td><strong>G</strong></td><td><code>Payment Terms</code></td><td>Full Cash / Downpayment / Instalment / Travel Fund</td><td>Full Cash</td><td>No</td></tr>
+                <tr><td><strong>G</strong></td><td><code>Payment Terms</code></td><td>Full Cash / Downpayment / Instalment / Travel Fund / FOC</td><td>Full Cash</td><td>No</td></tr>
                 <tr><td><strong>H</strong></td><td><code>Rate Per Person</code></td><td>Price per pax (₱ sign and commas ignored)</td><td>₱180,000.00</td><td>No (uses tour price)</td></tr>
                 <tr><td><strong>I</strong></td><td><code>1st Payment Date</code></td><td>Date of first payment (stored as booking note)</td><td>Apr 1, 2026</td><td>No</td></tr>
                 <tr><td><strong>J</strong></td><td><code>2nd Payment / Notes</code></td><td>Free-text notes (CONFIRMED DEPARTURE, REFUND, etc.)</td><td>CONFIRMED DEPARTURE</td><td>No</td></tr>
@@ -321,7 +321,15 @@
                                     <br><small class="text-muted" style="font-size:.72rem;">{{ $row['travel_date_raw'] }}</small>
                                 @endif
                             </td>
-                            <td>{{ $row['client_name'] }}</td>
+                            <td>
+                                {{ $row['client_name'] }}
+                                @if(!empty($row['rebooked_from']))
+                                    <br><small style="background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:99px;font-size:.68rem;font-weight:600;">Rebooked from {{ $row['rebooked_from'] }}</small>
+                                @endif
+                                @if(!empty($row['is_foc']))
+                                    <br><small style="background:#fce7f3;color:#9d174d;padding:1px 6px;border-radius:99px;font-size:.68rem;font-weight:600;">FOC</small>
+                                @endif
+                            </td>
                             <td>{{ $row['pax'] }}</td>
                             <td><span class="badge-{{ $row['booking_status'] }}">{{ ucfirst($row['booking_status']) }}</span></td>
                             <td>
@@ -331,7 +339,7 @@
                                 @endphp
                                 <span style="background:{{ $psColors[0] }};color:{{ $psColors[1] }};padding:2px 8px;border-radius:99px;font-size:.7rem;font-weight:600;">{{ ucfirst($ps) }}</span>
                             </td>
-                            <td>{{ ucfirst($row['terms']) }}</td>
+                            <td>{{ ucfirst(str_replace('_', ' ', $row['terms'])) }}</td>
                             <td>{{ $row['rate'] > 0 ? '₱' . number_format($row['rate'], 0) : '—' }}</td>
                             <td>{{ $row['total_amount'] > 0 ? '₱' . number_format($row['total_amount'], 0) : '—' }}</td>
                             <td>{{ $row['pay1_date'] ?: '—' }}</td>

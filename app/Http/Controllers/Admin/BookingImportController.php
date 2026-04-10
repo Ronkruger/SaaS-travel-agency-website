@@ -38,12 +38,22 @@ class BookingImportController extends Controller
             'Status', 'Payment Terms', 'Package Rate Per Person',
             '1st Payment Date', 'Notes',
         ];
-        $example = [
+        $example1 = [
             'Route K Deluxe', 'FEB 11 - 21, 2026', 'Juan dela Cruz', '2',
             'Paid', 'Full Cash', '₱180,000.00', 'Apr 1, 2026', 'Confirmed departure',
         ];
+        $example2 = [
+            '', '', 'Maria Santos (rebooked from MAY)', '1',
+            'Paid', 'Downpayment', '₱150,000.00', 'Jan 15, 2026', '',
+        ];
+        $example3 = [
+            '', '', 'Pedro Reyes', '2',
+            'Paid', 'FOC', '', '', 'Free of Charge guest',
+        ];
         $csv  = implode(',', array_map([$this, 'csvCell'], $headers)) . "\r\n";
-        $csv .= implode(',', array_map([$this, 'csvCell'], $example)) . "\r\n";
+        $csv .= implode(',', array_map([$this, 'csvCell'], $example1)) . "\r\n";
+        $csv .= implode(',', array_map([$this, 'csvCell'], $example2)) . "\r\n";
+        $csv .= implode(',', array_map([$this, 'csvCell'], $example3)) . "\r\n";
 
         return response($csv, 200, [
             'Content-Type'        => 'text/csv',
@@ -102,15 +112,49 @@ class BookingImportController extends Controller
                 $rowNum++;
                 $pax           = max(1, (int) ($client['pax'] ?: 1));
                 $terms         = $this->normalizeTerms($client['terms']);
+                $isFoc         = strtolower(trim($client['terms'])) === 'foc'
+                              || str_contains(strtolower(trim($client['terms'])), 'free of charge');
                 $clientRate    = (float) preg_replace('/[^\d.]/', '', $client['rate'] ?? '0');
-                // Fall back to block rate, then tour price
-                $rate          = $clientRate > 0
-                    ? $clientRate
-                    : ($blockRate > 0 ? $blockRate : (float) ($tour?->regular_price_per_person ?? 0));
-                $total         = $rate > 0 ? $rate * $pax : 0;
+
+                // FOC (Free of Charge) bookings are complimentary — always ₱0
+                if ($isFoc) {
+                    $rate  = 0;
+                    $total = 0;
+                } else {
+                    // Fall back to block rate, then tour price
+                    $rate  = $clientRate > 0
+                        ? $clientRate
+                        : ($blockRate > 0 ? $blockRate : (float) ($tour?->regular_price_per_person ?? 0));
+                    $total = $rate > 0 ? $rate * $pax : 0;
+                }
+
                 $csvStatus     = trim($client['status'] ?? '');
                 $bookingStatus = $this->normalizeBookingStatus($csvStatus);
-                $paymentStatus = $this->derivePaymentStatus($csvStatus, $terms);
+                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms);
+
+                // Extract "(rebooked from MONTH)" annotation from client name
+                $rawName   = $client['client_name'];
+                $rebooked  = null;
+                if (preg_match('/\(rebooked\s+from\s+([^)]+)\)/i', $rawName, $rbMatch)) {
+                    $rebooked = trim($rbMatch[1]);
+                    $rawName  = trim(preg_replace('/\s*\(rebooked\s+from\s+[^)]+\)/i', '', $rawName));
+                }
+
+                // Extract parenthetical notes like "(Sir Godwin)" from client name
+                $clientNote = null;
+                if (preg_match('/\(([^)]+)\)/', $rawName, $cnMatch)) {
+                    $clientNote = trim($cnMatch[1]);
+                    $rawName    = trim(preg_replace('/\s*\([^)]+\)/', '', $rawName));
+                }
+
+                // Build combined notes
+                $noteParts = array_filter([
+                    $client['pay2_notes'] ?? null,
+                    $rebooked  ? 'Rebooked from ' . $rebooked : null,
+                    $isFoc     ? 'FOC (Free of Charge)' : null,
+                    $clientNote ? $clientNote : null,
+                ]);
+                $combinedNotes = implode(' | ', $noteParts) ?: null;
 
                 $rowWarnings = [];
                 if ($willCreateTour) {
@@ -119,9 +163,9 @@ class BookingImportController extends Controller
                 if (!$departure) {
                     $rowWarnings[] = 'Cannot parse travel date "' . $dateRaw . '" — row will be skipped.';
                 }
-                if ($clientRate <= 0 && $rate > 0) {
+                if (!$isFoc && $clientRate <= 0 && $rate > 0) {
                     $rowWarnings[] = 'No rate in CSV — using ₱' . number_format($rate, 0) . ' from tour/block.';
-                } elseif ($rate <= 0) {
+                } elseif (!$isFoc && $rate <= 0) {
                     $rowWarnings[] = 'No rate available — will store as ₱0.';
                 }
 
@@ -134,15 +178,18 @@ class BookingImportController extends Controller
                     'return_date'      => ($returnDate ?? $departure)?->format('Y-m-d'),
                     'travel_date_raw'  => $dateRaw,
                     'total_seats'      => $totalSeats,
-                    'client_name'      => $client['client_name'],
+                    'client_name'      => $rawName,
                     'pax'              => $pax,
                     'booking_status'   => $bookingStatus,
                     'payment_status'   => $paymentStatus,
                     'terms'            => $terms,
+                    'terms_raw'        => trim($client['terms']),
                     'rate'             => $rate,
                     'total_amount'     => $total,
                     'pay1_date'        => $client['pay1_date'],
-                    'notes'            => $client['pay2_notes'],
+                    'notes'            => $combinedNotes,
+                    'rebooked_from'    => $rebooked,
+                    'is_foc'           => $isFoc,
                     'skipped'          => !$departure,
                     'warnings'         => $rowWarnings,
                 ];
@@ -220,29 +267,59 @@ class BookingImportController extends Controller
             foreach ($block['clients'] as $client) {
                 $pax        = max(1, (int) ($client['pax'] ?: 1));
                 $terms      = $this->normalizeTerms($client['terms']);
+                $isFoc      = strtolower(trim($client['terms'])) === 'foc'
+                           || str_contains(strtolower(trim($client['terms'])), 'free of charge');
                 $clientRate = (float) preg_replace('/[^\d.]/', '', $client['rate'] ?? '0');
-                $rate       = $clientRate > 0
-                    ? $clientRate
-                    : ($blockRate > 0 ? $blockRate : (float) ($tour?->regular_price_per_person ?? 0));
+
+                if ($isFoc) {
+                    $rate  = 0;
+                    $total = 0;
+                } else {
+                    $rate  = $clientRate > 0
+                        ? $clientRate
+                        : ($blockRate > 0 ? $blockRate : (float) ($tour?->regular_price_per_person ?? 0));
+                    $total = $rate * $pax;
+                }
 
                 $csvStatus     = trim($client['status'] ?? '');
                 $bookingStatus = $this->normalizeBookingStatus($csvStatus);
-                $paymentStatus = $this->derivePaymentStatus($csvStatus, $terms);
+                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms);
+
+                // Extract "(rebooked from MONTH)" and other parenthetical notes
+                $rawName   = $client['client_name'];
+                $rebooked  = null;
+                if (preg_match('/\(rebooked\s+from\s+([^)]+)\)/i', $rawName, $rbMatch)) {
+                    $rebooked = trim($rbMatch[1]);
+                    $rawName  = trim(preg_replace('/\s*\(rebooked\s+from\s+[^)]+\)/i', '', $rawName));
+                }
+                $clientNote = null;
+                if (preg_match('/\(([^)]+)\)/', $rawName, $cnMatch)) {
+                    $clientNote = trim($cnMatch[1]);
+                    $rawName    = trim(preg_replace('/\s*\([^)]+\)/', '', $rawName));
+                }
+
+                $noteParts = array_filter([
+                    $client['pay2_notes'] ?? null,
+                    $rebooked  ? 'Rebooked from ' . $rebooked : null,
+                    $isFoc     ? 'FOC (Free of Charge)' : null,
+                    $clientNote ? $clientNote : null,
+                ]);
 
                 $preview[] = [
                     'tour_name'      => $tourTitle,
                     'travel_date'    => $departure->format('Y-m-d'),
                     'return_date'    => ($returnDate ?? $departure)->format('Y-m-d'),
                     'total_seats'    => $totalSeats,
-                    'client_name'    => $client['client_name'],
+                    'client_name'    => $rawName,
                     'pax'            => $pax,
                     'booking_status' => $bookingStatus,
                     'payment_status' => $paymentStatus,
                     'terms'          => $terms,
                     'rate'           => $rate,
-                    'total_amount'   => $rate * $pax,
+                    'total_amount'   => $total,
                     'pay1_date'      => $client['pay1_date'],
-                    'notes'          => $client['pay2_notes'],
+                    'notes'          => implode(' | ', $noteParts) ?: null,
+                    'is_foc'         => $isFoc,
                 ];
             }
         }
@@ -308,11 +385,17 @@ class BookingImportController extends Controller
                     $schedule = $schedCache[$schedKey];
 
                     // 3. Create Booking
-                    $rate  = $row['rate'] > 0 ? $row['rate'] : (float) ($tour->regular_price_per_person ?? 0);
-                    $total = $rate * $row['pax'];
+                    $isFoc = $row['is_foc'] ?? false;
+                    if ($isFoc) {
+                        $rate  = 0;
+                        $total = 0;
+                    } else {
+                        $rate  = $row['rate'] > 0 ? $row['rate'] : (float) ($tour->regular_price_per_person ?? 0);
+                        $total = $rate * $row['pax'];
+                    }
 
-                    $isInstallment = in_array($row['terms'], ['installment', 'downpayment']);
-                    $paymentMethod = $isInstallment ? 'installment' : 'cash';
+                    $isInstallment = !$isFoc && in_array($row['terms'], ['installment', 'downpayment', 'travel_fund']);
+                    $paymentMethod = $isFoc ? 'cash' : ($isInstallment ? 'installment' : 'cash');
 
                     $downpaymentAmount   = null;
                     $installmentMonths   = null;
@@ -362,6 +445,12 @@ class BookingImportController extends Controller
                         $installmentSchedule = $payTerms;
                     }
 
+                    // Build special_requests with first payment date + notes
+                    $noteFragments = array_filter([
+                        $row['pay1_date'] ? '1st Payment: ' . $row['pay1_date'] : null,
+                        $row['notes'] ?: null,
+                    ]);
+
                     Booking::create([
                         'booking_number'       => 'DG-' . $year . '-' . str_pad(++$bookingCounter, 6, '0', STR_PAD_LEFT),
                         'tour_id'              => $tour->id,
@@ -378,12 +467,12 @@ class BookingImportController extends Controller
                         'tax_amount'           => 0,
                         'total_amount'         => $total,
                         'status'               => $row['booking_status'],
-                        'payment_status'       => $row['payment_status'],
+                        'payment_status'       => $isFoc ? 'paid' : $row['payment_status'],
                         'payment_method'       => $paymentMethod,
                         'contact_name'         => $row['client_name'],
                         'contact_email'        => null,
                         'contact_phone'        => null,
-                        'special_requests'     => $row['notes'] ?: null,
+                        'special_requests'     => implode(' | ', $noteFragments) ?: null,
                         'downpayment_amount'   => $downpaymentAmount,
                         'installment_months'   => $installmentMonths,
                         'installment_schedule' => $installmentSchedule,
@@ -666,10 +755,11 @@ class BookingImportController extends Controller
     private function normalizeTerms(string $raw): string
     {
         $lower = strtolower(trim($raw));
+        if ($lower === 'foc' || str_contains($lower, 'free of charge')) return 'foc';
         if (str_contains($lower, 'install'))     return 'installment';
         if (str_contains($lower, 'down'))        return 'downpayment';
-        if (str_contains($lower, 'travel fund')) return 'downpayment';
-        if (str_contains($lower, 'foc'))         return 'cash';
+        if (str_contains($lower, 'travel fund')) return 'travel_fund';
+        if (str_contains($lower, 'full cash'))   return 'cash';
         return 'cash';
     }
 
@@ -682,8 +772,9 @@ class BookingImportController extends Controller
     private function derivePaymentStatus(string $csvStatus, string $normalizedTerms): string
     {
         $s = strtolower(trim($csvStatus));
+        if ($normalizedTerms === 'foc') return 'paid';
         if ($s === 'paid') {
-            return $normalizedTerms === 'cash' ? 'paid' : 'partial';
+            return in_array($normalizedTerms, ['cash', 'travel_fund']) ? 'paid' : 'partial';
         }
         if (str_contains($s, 'travel fund'))          return 'partial';
         if (str_contains($s, 'booking confirmation')) return 'partial';
