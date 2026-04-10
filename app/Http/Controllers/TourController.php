@@ -90,7 +90,7 @@ class TourController extends Controller
     {
         $tour = Tour::where('slug', $slug)
             ->active()
-            ->with(['reviews.user'])
+            ->with(['reviews.user', 'schedules'])
             ->firstOrFail();
 
         $relatedTours = Tour::active()
@@ -140,7 +140,38 @@ class TourController extends Controller
     /** Live-polling endpoint: current departure slot availability as JSON */
     public function liveDepartures(string $slug)
     {
-        $tour  = Tour::where('slug', $slug)->active()->firstOrFail();
+        $tour  = Tour::where('slug', $slug)->active()->with('schedules')->firstOrFail();
+
+        // Prefer tour_schedules (populated by imports & slot tracker) over static JSON
+        if ($tour->schedules->isNotEmpty()) {
+            $result = [];
+            foreach ($tour->schedules as $sched) {
+                $remaining = $sched->available_seats - $sched->booked_seats;
+                $isFull    = $remaining <= 0 || $sched->status === 'sold_out';
+
+                if ($isFull) {
+                    $badgeClass = 'seats-full';
+                    $badgeText  = 'FULL';
+                } elseif ($remaining <= 5) {
+                    $badgeClass = 'seats-low';
+                    $badgeText  = $remaining . ' slot' . ($remaining === 1 ? '' : 's') . ' left';
+                } else {
+                    $badgeClass = 'seats-open';
+                    $badgeText  = $remaining . ' slots open';
+                }
+
+                $result[] = [
+                    'start'      => $sched->departure_date->format('Y-m-d'),
+                    'end'        => ($sched->return_date ?? $sched->departure_date)->format('Y-m-d'),
+                    'isFull'     => $isFull,
+                    'badgeClass' => $badgeClass,
+                    'badgeText'  => $badgeText,
+                ];
+            }
+            return response()->json($result);
+        }
+
+        // Fallback: legacy static departure_dates JSON
         $dates = $tour->departure_dates ?? [];
 
         $result = [];

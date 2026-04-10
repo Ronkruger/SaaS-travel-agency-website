@@ -601,6 +601,34 @@
                     @endif
 
                     <!-- Departure Dates -->
+                    @if($tour->schedules->isNotEmpty())
+                        {{-- Live data from tour_schedules (slot tracker / imports) --}}
+                        <div class="departure-dates-list" id="departureDatesList" data-tour-slug="{{ $tour->slug }}">
+                            <h5><i class="fas fa-calendar"></i> Available Departures <span class="live-dot" id="depLiveDot" title="Updates automatically"></span></h5>
+                            @foreach($tour->schedules as $sched)
+                                @php
+                                    $remaining = $sched->available_seats - $sched->booked_seats;
+                                    $isFull    = $remaining <= 0 || $sched->status === 'sold_out';
+                                @endphp
+                                <div class="departure-date-row {{ $isFull ? 'departure-date-row--full' : '' }}" data-start="{{ $sched->departure_date->format('Y-m-d') }}">
+                                    <span class="dep-date-label">
+                                        {{ $sched->departure_date->format('M d') }}
+                                        &ndash;
+                                        {{ ($sched->return_date ?? $sched->departure_date)->format('M d, Y') }}
+                                    </span>
+                                    @if($isFull)
+                                        <span class="seats-badge seats-full">FULL</span>
+                                    @elseif($remaining <= 5)
+                                        <span class="seats-badge seats-low">{{ $remaining }} slot{{ $remaining == 1 ? '' : 's' }} left</span>
+                                    @elseif($remaining > 5)
+                                        <span class="seats-badge seats-open">{{ $remaining }} slots open</span>
+                                    @else
+                                        <span class="seats-badge seats-open">Available</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
                     @php $dates = $tour->departure_dates ?? []; @endphp
                     @if(count($dates) > 0)
                         <div class="departure-dates-list" id="departureDatesList" data-tour-slug="{{ $tour->slug }}">
@@ -631,6 +659,7 @@
                                 </div>
                             @endforeach
                         </div>
+                    @endif
                     @endif
 
                     <!-- Book Now Button (internal) -->
