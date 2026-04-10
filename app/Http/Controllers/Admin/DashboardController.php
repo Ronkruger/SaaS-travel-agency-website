@@ -58,8 +58,8 @@ class DashboardController extends Controller
 
         return response()->json($bookings->map(fn ($b) => [
             'booking_number' => $b->booking_number,
-            'customer'       => $b->user->name,
-            'tour'           => Str::limit($b->tour->title, 30),
+            'customer'       => $b->user->name ?? $b->contact_name ?? '—',
+            'tour'           => Str::limit($b->tour->title ?? '', 30),
             'url'            => route('admin.bookings.show', $b),
             'date'           => $b->tour_date->format('M d, Y'),
             'amount'         => '₱' . number_format($b->total_amount, 2),

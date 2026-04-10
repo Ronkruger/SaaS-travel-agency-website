@@ -81,8 +81,8 @@
                     @foreach($recentBookings as $booking)
                         <tr data-booking="{{ $booking->booking_number }}">
                             <td><code>{{ $booking->booking_number }}</code></td>
-                            <td>{{ $booking->user->name }}</td>
-                            <td>{{ Str::limit($booking->tour->title, 30) }}</td>
+                            <td>{{ $booking->user->name ?? $booking->contact_name ?? '—' }}</td>
+                            <td>{{ Str::limit($booking->tour->title ?? '', 30) }}</td>
                             <td>{{ $booking->tour_date->format('M d, Y') }}</td>
                             <td>₱{{ number_format($booking->total_amount, 2) }}</td>
                             <td><span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span></td>
