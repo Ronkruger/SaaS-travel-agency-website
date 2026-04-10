@@ -110,7 +110,7 @@
                     </div>
 
                     <div class="pagination-wrap">
-                        {{ $tours->links() }}
+                        {{ $tours->links('vendor.pagination.public') }}
                     </div>
                 @else
                     <div class="empty-state large">

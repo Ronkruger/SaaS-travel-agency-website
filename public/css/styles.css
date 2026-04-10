@@ -416,10 +416,11 @@ h4 { font-size: 1.25rem; }
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 4rem 2rem; text-align: center; }
 .empty-state.large { padding: 5rem 2rem; }
 .pagination-wrap { margin-top: 2.5rem; display: flex; justify-content: center; }
-.pagination-wrap .pagination { display: flex; gap: .5rem; }
-.pagination-wrap .page-link { padding: .5rem .875rem; border-radius: var(--radius); border: 1px solid var(--gray-300); color: var(--gray-700); font-weight: 500; transition: all var(--transition); }
+.pagination-wrap .pagination { display: flex; gap: .5rem; list-style: none; flex-wrap: wrap; align-items: center; padding: 0; margin: 0; }
+.pagination-wrap .page-link { display: inline-block; padding: .5rem .875rem; border-radius: var(--radius); border: 1px solid var(--gray-300); color: var(--gray-700); font-weight: 500; transition: all var(--transition); text-decoration: none; font-size: .9rem; }
 .pagination-wrap .page-link:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
 .pagination-wrap .page-item.active .page-link { background: var(--primary); color: var(--white); border-color: var(--primary); }
+.pagination-wrap .page-item.disabled .page-link { color: var(--gray-400); border-color: var(--gray-200); background: var(--gray-50); cursor: default; pointer-events: none; }
 
 /* --- Tour Detail ------------------------------ */
 .tour-hero { position: relative; padding-top: 70px; }
