@@ -351,10 +351,14 @@
                     <td style="font-size:.8rem;color:#64748b;white-space:nowrap">
                         {{ $bk->created_at->format('M d, Y') }}
                     </td>
-                    <td>
+                    <td style="white-space:nowrap">
                         <a href="{{ route('admin.bookings.show', $bk) }}"
                            class="btn btn-xs btn-outline" title="View Booking">
                             <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ route('admin.bookings.transfer', $bk) }}"
+                           class="btn btn-xs btn-warning" title="Transfer">
+                            <i class="fas fa-exchange-alt"></i>
                         </a>
                     </td>
                 </tr>

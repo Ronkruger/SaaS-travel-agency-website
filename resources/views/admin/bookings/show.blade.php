@@ -34,6 +34,9 @@
            class="btn btn-outline" title="Preview PDF">
             <i class="fas fa-file-pdf" style="color:#dc2626"></i> Preview PDF
         </a>
+        <a href="{{ route('admin.bookings.transfer', $booking) }}" class="btn btn-warning" title="Transfer to another tour">
+            <i class="fas fa-exchange-alt"></i> Transfer
+        </a>
         <a href="{{ route('admin.bookings.pdf.download', $booking) }}"
            class="btn btn-outline" title="Download PDF">
             <i class="fas fa-download"></i> Download PDF

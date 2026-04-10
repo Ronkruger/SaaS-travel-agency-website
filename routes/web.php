@@ -198,12 +198,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/schedules-for-tour', [AdminBookingController::class, 'schedulesForTour'])->name('bookings.schedules-for-tour');
     Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
     Route::patch('/bookings/{booking}/payment-status', [AdminBookingController::class, 'updatePaymentStatus'])->name('bookings.payment-status');
     Route::patch('/bookings/{booking}/installment/{term}', [AdminBookingController::class, 'updateInstallmentTerm'])->name('bookings.installment-term');
     Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
     Route::delete('/bookings', [AdminBookingController::class, 'destroyAll'])->name('bookings.destroy-all');
+    // Booking Transfer
+    Route::get('/bookings/{booking}/transfer', [AdminBookingController::class, 'showTransfer'])->name('bookings.transfer');
+    Route::post('/bookings/{booking}/transfer', [AdminBookingController::class, 'transfer'])->name('bookings.transfer.execute');
     // Booking PDF
     Route::get('/bookings/{booking}/pdf', [BookingPdfController::class, 'preview'])->name('bookings.pdf.preview');
     Route::get('/bookings/{booking}/pdf/download', [BookingPdfController::class, 'download'])->name('bookings.pdf.download');

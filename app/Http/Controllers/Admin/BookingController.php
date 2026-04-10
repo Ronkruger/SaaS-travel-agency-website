@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Tour;
+use App\Models\TourSchedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -148,5 +151,116 @@ class BookingController extends Controller
 
         return redirect()->route('admin.bookings.index')
             ->with('success', "All {$count} bookings have been deleted.");
+    }
+
+    /* -------------------------------------------------------------------
+     | GET /admin/bookings/{booking}/transfer
+     * ----------------------------------------------------------------- */
+    public function showTransfer(Booking $booking)
+    {
+        $booking->load(['tour', 'schedule']);
+
+        $tours = Tour::active()
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
+        // Pre-load schedules for the current tour so the form can show them
+        $currentTourSchedules = TourSchedule::where('tour_id', $booking->tour_id)
+            ->where('status', '!=', 'cancelled')
+            ->orderBy('departure_date')
+            ->get();
+
+        return view('admin.bookings.transfer', compact('booking', 'tours', 'currentTourSchedules'));
+    }
+
+    /* -------------------------------------------------------------------
+     | POST /admin/bookings/{booking}/transfer
+     * ----------------------------------------------------------------- */
+    public function transfer(Request $request, Booking $booking)
+    {
+        $validated = $request->validate([
+            'tour_id'     => ['required', 'exists:tours,id'],
+            'schedule_id' => ['required', 'exists:tour_schedules,id'],
+            'reason'      => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $newSchedule = TourSchedule::where('id', $validated['schedule_id'])
+            ->where('tour_id', $validated['tour_id'])
+            ->firstOrFail();
+
+        $oldTourName     = $booking->tour?->title ?? 'Unknown';
+        $oldScheduleDate = $booking->tour_date?->format('M d, Y') ?? '—';
+
+        DB::transaction(function () use ($booking, $newSchedule, $validated, $oldTourName, $oldScheduleDate) {
+            // Decrement booked_seats on old schedule
+            if ($booking->schedule_id) {
+                $oldSchedule = TourSchedule::find($booking->schedule_id);
+                if ($oldSchedule) {
+                    $oldSchedule->decrement('booked_seats', $booking->total_guests);
+                    if ($oldSchedule->booked_seats < $oldSchedule->available_seats
+                        && $oldSchedule->status === 'sold_out') {
+                        $oldSchedule->update(['status' => 'active']);
+                    }
+                }
+            }
+
+            // Update booking to new tour + schedule
+            $newRate = $newSchedule->price_override
+                ?? Tour::where('id', $validated['tour_id'])->value('regular_price_per_person')
+                ?? $booking->price_per_adult;
+
+            $booking->update([
+                'tour_id'         => $validated['tour_id'],
+                'schedule_id'     => $newSchedule->id,
+                'tour_date'       => $newSchedule->departure_date,
+                'price_per_adult' => $newRate,
+                'subtotal'        => $newRate * $booking->total_guests,
+                'total_amount'    => $newRate * $booking->total_guests,
+                'special_requests' => trim(
+                    ($booking->special_requests ? $booking->special_requests . ' | ' : '')
+                    . 'Transferred from ' . $oldTourName
+                    . ' (' . $oldScheduleDate . ')'
+                    . ($validated['reason'] ? ' — ' . $validated['reason'] : '')
+                ),
+            ]);
+
+            // Increment booked_seats on new schedule
+            $newSchedule->increment('booked_seats', $booking->total_guests);
+            if ($newSchedule->booked_seats >= $newSchedule->available_seats) {
+                $newSchedule->update(['status' => 'sold_out']);
+            }
+        });
+
+        $newTourName = Tour::where('id', $validated['tour_id'])->value('title');
+
+        return redirect()->route('admin.bookings.show', $booking)
+            ->with('success', "Booking transferred from {$oldTourName} ({$oldScheduleDate}) to {$newTourName} ({$newSchedule->departure_date->format('M d, Y')}).");
+    }
+
+    /* -------------------------------------------------------------------
+     | GET /admin/bookings/schedules-for-tour (AJAX)
+     * ----------------------------------------------------------------- */
+    public function schedulesForTour(Request $request)
+    {
+        $request->validate(['tour_id' => ['required', 'integer', 'exists:tours,id']]);
+
+        $schedules = TourSchedule::where('tour_id', $request->tour_id)
+            ->where('status', '!=', 'cancelled')
+            ->orderBy('departure_date')
+            ->get()
+            ->map(fn ($s) => [
+                'id'              => $s->id,
+                'departure_date'  => $s->departure_date->format('Y-m-d'),
+                'return_date'     => $s->return_date?->format('Y-m-d'),
+                'label'           => $s->departure_date->format('M d, Y')
+                                   . ($s->return_date ? ' – ' . $s->return_date->format('M d, Y') : ''),
+                'available_seats' => $s->available_seats,
+                'booked_seats'    => $s->booked_seats,
+                'remaining'       => $s->available_seats - $s->booked_seats,
+                'status'          => $s->status,
+                'price_override'  => $s->price_override,
+            ]);
+
+        return response()->json($schedules);
     }
 }
