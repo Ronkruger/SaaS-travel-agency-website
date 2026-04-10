@@ -216,6 +216,10 @@ class BookingController extends Controller
                 'price_per_adult' => $newRate,
                 'subtotal'        => $newRate * $booking->total_guests,
                 'total_amount'    => $newRate * $booking->total_guests,
+                'payment_status'      => 'pending',
+                'downpayment_amount'  => null,
+                'installment_months'  => null,
+                'installment_schedule' => null,
                 'special_requests' => trim(
                     ($booking->special_requests ? $booking->special_requests . ' | ' : '')
                     . 'Transferred from ' . $oldTourName
