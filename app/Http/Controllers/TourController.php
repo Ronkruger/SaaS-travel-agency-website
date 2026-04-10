@@ -20,7 +20,7 @@ class TourController extends Controller
             $search = strip_tags(trim($search));
             $search = substr($search, 0, 200); // cap length
             $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search);
-            $query->where(function ($q) use ($escaped) {
+            $query->where(function ($q) use ($escaped, $search) {
                 $q->where('title', 'like', "%{$escaped}%")
                   ->orWhereJsonContains('full_stops', ['city' => $search])
                   ->orWhereJsonContains('full_stops', ['country' => $search]);
