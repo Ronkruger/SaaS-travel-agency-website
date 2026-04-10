@@ -74,7 +74,7 @@
             <li><a href="{{ route('tours.index', ['sort' => 'popular']) }}">Popular</a></li>
             <li><a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About Us</a></li>
             <li><a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a></li>
-            <li><a href="{{ route('diy.index') }}" class="{{ request()->routeIs('diy.*') ? 'active' : '' }}" style="color:#28A2DC;font-weight:600;">✨ Build My Tour</a></li>
+            <li><a href="{{ route('diy.index') }}" class="{{ request()->routeIs('diy.*') ? 'active' : '' }}" style="color:#28A2DC;font-weight:600;">✨ Build My Tour <sup style="font-size:.6em;background:#28A2DC;color:#fff;padding:1px 5px;border-radius:4px;vertical-align:super;">BETA</sup></a></li>
         </ul>
 
         <div class="navbar-actions">
