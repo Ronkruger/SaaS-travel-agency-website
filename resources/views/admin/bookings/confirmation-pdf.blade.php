@@ -5,6 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>Booking Confirmation — {{ $booking->booking_number }}</title>
 <style>
+    @page { size: A4 portrait; margin: 0; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
         font-family: 'DejaVu Sans', Arial, sans-serif;
