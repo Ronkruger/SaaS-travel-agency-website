@@ -39,6 +39,7 @@ class Booking extends Model
         'installment_months',
         'downpayment_amount',
         'installment_schedule',
+        'second_payment_status',
     ];
 
     protected $casts = [

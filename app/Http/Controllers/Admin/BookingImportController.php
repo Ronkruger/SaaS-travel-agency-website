@@ -149,7 +149,6 @@ class BookingImportController extends Controller
 
                 // Build combined notes
                 $noteParts = array_filter([
-                    $client['pay2_notes'] ?? null,
                     $rebooked  ? 'Rebooked from ' . $rebooked : null,
                     $isFoc     ? 'FOC (Free of Charge)' : null,
                     $clientNote ? $clientNote : null,
@@ -187,6 +186,7 @@ class BookingImportController extends Controller
                     'rate'             => $rate,
                     'total_amount'     => $total,
                     'pay1_date'        => $client['pay1_date'],
+                    'pay2_status'      => trim($client['pay2_notes'] ?? '') ?: null,
                     'notes'            => $combinedNotes,
                     'rebooked_from'    => $rebooked,
                     'is_foc'           => $isFoc,
@@ -299,12 +299,10 @@ class BookingImportController extends Controller
                 }
 
                 $noteParts = array_filter([
-                    $client['pay2_notes'] ?? null,
                     $rebooked  ? 'Rebooked from ' . $rebooked : null,
                     $isFoc     ? 'FOC (Free of Charge)' : null,
                     $clientNote ? $clientNote : null,
                 ]);
-
                 $preview[] = [
                     'tour_name'      => $tourTitle,
                     'travel_date'    => $departure->format('Y-m-d'),
@@ -318,6 +316,7 @@ class BookingImportController extends Controller
                     'rate'           => $rate,
                     'total_amount'   => $total,
                     'pay1_date'      => $client['pay1_date'],
+                    'pay2_status'    => trim($client['pay2_notes'] ?? '') ?: null,
                     'notes'          => implode(' | ', $noteParts) ?: null,
                     'is_foc'         => $isFoc,
                 ];
@@ -475,9 +474,10 @@ class BookingImportController extends Controller
                         'contact_email'        => null,
                         'contact_phone'        => null,
                         'special_requests'     => implode(' | ', $noteFragments) ?: null,
-                        'downpayment_amount'   => $downpaymentAmount,
-                        'installment_months'   => $installmentMonths,
-                        'installment_schedule' => $installmentSchedule,
+                        'downpayment_amount'      => $downpaymentAmount,
+                        'installment_months'      => $installmentMonths,
+                        'installment_schedule'    => $installmentSchedule,
+                        'second_payment_status'   => $row['pay2_status'] ?? null,
                     ]);
 
                     if ($row['booking_status'] === 'confirmed') {

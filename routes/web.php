@@ -203,6 +203,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
     Route::patch('/bookings/{booking}/payment-status', [AdminBookingController::class, 'updatePaymentStatus'])->name('bookings.payment-status');
     Route::patch('/bookings/{booking}/installment/{term}', [AdminBookingController::class, 'updateInstallmentTerm'])->name('bookings.installment-term');
+    Route::patch('/bookings/{booking}/second-payment-status', [AdminBookingController::class, 'updateSecondPaymentStatus'])->name('bookings.second-payment-status');
     Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
     Route::delete('/bookings', [AdminBookingController::class, 'destroyAll'])->name('bookings.destroy-all');
     // Booking Transfer

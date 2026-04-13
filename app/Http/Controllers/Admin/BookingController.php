@@ -126,6 +126,17 @@ class BookingController extends Controller
         return back()->with('success', 'Term ' . $term . ' marked as ' . $validated['status'] . '.');
     }
 
+    public function updateSecondPaymentStatus(Request $request, Booking $booking)
+    {
+        $validated = $request->validate([
+            'second_payment_status' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $booking->update(['second_payment_status' => $validated['second_payment_status'] ?: null]);
+
+        return back()->with('success', '2nd payment status updated.');
+    }
+
     public function destroy(Booking $booking)
     {
         $user = auth('admin')->user();

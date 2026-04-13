@@ -368,6 +368,92 @@
         </div>
         @endif
 
+        {{-- ── 2ND PAYMENT STATUS ─────────────────────────────────── --}}
+        <div class="card mb-4" style="border:2px solid #c4b5fd">
+            <div class="card-header" style="background:#f5f3ff">
+                <h4 style="color:#5b21b6"><i class="fas fa-file-invoice-dollar"></i> 2nd Payment Status</h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.bookings.second-payment-status', $booking) }}" method="POST" id="secondPaymentForm">
+                    @csrf @method('PATCH')
+
+                    @php
+                        $presetOptions = [
+                            ''                    => '— Select Status —',
+                            'Confirmed Departure' => 'Confirmed Departure',
+                            'Travel Fund'         => 'Travel Fund',
+                            'Float'               => 'Float',
+                            'Floating'            => 'Floating',
+                            'Pending'             => 'Pending',
+                            'Pending Refund'      => 'Pending Refund',
+                            'Refund'              => 'Refund',
+                            'Refund, But Working to TF' => 'Refund, But Working to TF',
+                            'Refund But Working On It'  => 'Refund But Working On It',
+                            'No BC'               => 'No BC',
+                            '__custom__'          => '✏️ Custom (type your own)',
+                        ];
+                        $currentVal = $booking->second_payment_status;
+                        $isCustom = $currentVal && !array_key_exists($currentVal, $presetOptions);
+                    @endphp
+
+                    <div style="display:flex;gap:.75rem;align-items:flex-start;flex-wrap:wrap">
+                        <div style="flex:1;min-width:200px">
+                            <select id="secondPaymentSelect" class="form-control" style="margin-bottom:.5rem"
+                                    onchange="toggleCustomField(this)">
+                                @foreach($presetOptions as $val => $label)
+                                    <option value="{{ $val }}"
+                                        {{ (!$isCustom && $currentVal === $val) ? 'selected' : '' }}
+                                        {{ ($isCustom && $val === '__custom__') ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <input type="text" id="secondPaymentCustom" name="second_payment_status"
+                                   class="form-control" placeholder="Type custom status..."
+                                   value="{{ $isCustom ? $currentVal : ($currentVal ?? '') }}"
+                                   style="display:{{ $isCustom ? 'block' : 'none' }};margin-top:.5rem">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="white-space:nowrap">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+
+                    @if($currentVal)
+                    <div style="margin-top:.75rem;padding:.5rem .75rem;border-radius:.5rem;font-size:.9rem;
+                        {{ in_array($currentVal, ['Confirmed Departure']) ? 'background:#dcfce7;color:#166534;border:1px solid #86efac' :
+                           (in_array($currentVal, ['Pending', 'Floating', 'Float', 'Pending Refund']) ? 'background:#fef9c3;color:#854d0e;border:1px solid #fde047' :
+                           (str_contains(strtolower($currentVal), 'refund') ? 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5' :
+                           'background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe')) }}">
+                        <strong>Current:</strong> {{ $currentVal }}
+                    </div>
+                    @endif
+                </form>
+            </div>
+        </div>
+
+        <script>
+        function toggleCustomField(select) {
+            var customInput = document.getElementById('secondPaymentCustom');
+            if (select.value === '__custom__') {
+                customInput.style.display = 'block';
+                customInput.value = '';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = select.value;
+            }
+        }
+        document.getElementById('secondPaymentForm').addEventListener('submit', function() {
+            var select = document.getElementById('secondPaymentSelect');
+            var customInput = document.getElementById('secondPaymentCustom');
+            if (select.value !== '__custom__') {
+                customInput.value = select.value;
+            }
+        });
+        </script>
+
         <!-- Booking Info -->
         <div class="card mb-4">
             <div class="card-header"><h4>Booking Information</h4></div>
