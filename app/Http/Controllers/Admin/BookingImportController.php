@@ -552,6 +552,36 @@ class BookingImportController extends Controller
             fclose($handle);
         }
 
+        // Auto-detect column offset.
+        // The DG SLOTS TRACKER spreadsheet has data starting at col B (index 1),
+        // but template CSVs have data starting at col A (index 0).
+        // Detect by checking if "route name" header appears at col 0 vs col 1,
+        // or if col 1 contains a date-range pattern (meaning col 0 is the route).
+        $needsShift = false;
+        $dateHintRx = '/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b.*\d{4}/i';
+        foreach (array_slice($rowIterator, 0, 15) as $checkRow) {
+            $checkRow = array_pad($checkRow, 10, '');
+            $c0 = strtolower(trim($checkRow[0] ?? ''));
+            $c1L = strtolower(trim($checkRow[1] ?? ''));
+            // Header row: "Route Name" in col 0 → template CSV format
+            if ($c0 === 'route name') {
+                $needsShift = true;
+                break;
+            }
+            // Header row: "Route Name" in col 1 → SLOTS TRACKER format (no shift)
+            if ($c1L === 'route name') {
+                break;
+            }
+            // Data row: col 0 non-empty, col 1 looks like a date range → template CSV
+            if ($c0 !== '' && preg_match($dateHintRx, trim($checkRow[1] ?? ''))) {
+                $needsShift = true;
+                break;
+            }
+        }
+        if ($needsShift) {
+            $rowIterator = array_map(fn($row) => array_merge([''], (array) $row), $rowIterator);
+        }
+
         $blocks  = [];
         $current = null;
 
