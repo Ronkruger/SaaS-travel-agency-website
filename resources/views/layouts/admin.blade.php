@@ -152,12 +152,38 @@
                 </div>
             @endif
 
-            @yield('content')
+            {{-- Page skeleton (shown while content loads) --}}
+            @hasSection('skeleton')
+                <div class="page-skeleton" id="pageSkeleton">
+                    @yield('skeleton')
+                </div>
+            @endif
+
+            <div class="@hasSection('skeleton') page-content @endif" id="pageContent">
+                @yield('content')
+            </div>
         </div>
     </div>
 </div>
 
 <script src="{{ asset('js/admin.js') }}"></script>
+<script>
+// Skeleton → real content reveal
+(function() {
+    var sk = document.getElementById('pageSkeleton');
+    var pc = document.getElementById('pageContent');
+    if (sk && pc) {
+        // Show real content and hide skeleton once DOM is ready
+        function reveal() {
+            sk.classList.add('loaded');
+            pc.classList.add('loaded');
+            setTimeout(function() { sk.style.display = 'none'; }, 300);
+        }
+        if (document.readyState === 'complete') { reveal(); }
+        else { window.addEventListener('load', reveal); }
+    }
+})();
+</script>
 @stack('scripts')
 </body>
 </html>

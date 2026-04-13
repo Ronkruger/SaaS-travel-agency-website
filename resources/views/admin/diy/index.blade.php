@@ -6,6 +6,10 @@
     DIY Tours
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-table', ['showAction' => false, 'filterCount' => 2, 'cols' => 7, 'rows' => 6])
+@endsection
+
 @section('content')
 <div class="admin-content">
 

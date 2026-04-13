@@ -2,6 +2,10 @@
 
 @section('title', 'DIY Session #' . $diySession->id)
 
+@section('skeleton')
+    @include('admin.partials.skeleton-detail')
+@endsection
+
 @section('breadcrumb')
     <a href="{{ route('admin.diy.index') }}">DIY Tours</a> / Session #{{ $diySession->id }}
 @endsection

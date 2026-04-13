@@ -5,6 +5,10 @@
     <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Reviews
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-table', ['showAction' => false, 'filterCount' => 1, 'cols' => 6, 'rows' => 6])
+@endsection
+
 @section('content')
 <div class="page-title-row">
     <h2>Reviews</h2>

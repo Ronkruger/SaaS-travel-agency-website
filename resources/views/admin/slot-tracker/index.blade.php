@@ -5,6 +5,10 @@
     Slot Tracker
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-slot-tracker')
+@endsection
+
 @push('styles')
 <style>
 .slot-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:1.5rem; }

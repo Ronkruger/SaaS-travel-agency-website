@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', 'Add New Tour')
 
+@section('skeleton')
+    @include('admin.partials.skeleton-form')
+@endsection
+
 @section('breadcrumb')
     <a href="{{ route('admin.dashboard') }}">Dashboard</a> /
     <a href="{{ route('admin.tours.index') }}">Tours</a> / Add New

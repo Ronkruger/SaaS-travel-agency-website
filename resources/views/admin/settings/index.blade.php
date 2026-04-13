@@ -5,6 +5,10 @@
     <span>Settings</span> / <span>Branding</span>
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-form')
+@endsection
+
 @section('content')
 <div class="page-title">
     <h2>Branding &amp; Logo Settings</h2>

@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', 'Monthly Performance Report')
 
+@section('skeleton')
+    @include('admin.partials.skeleton-report')
+@endsection
+
 @section('content')
 <div class="admin-page-header">
     <div>

@@ -5,6 +5,10 @@
     <span>Dashboard</span>
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-dashboard')
+@endsection
+
 @section('content')
 <div class="page-title">
     <h2>Dashboard <span class="live-dot" id="liveDot" title="Live data — updates every 30 s"></span></h2>

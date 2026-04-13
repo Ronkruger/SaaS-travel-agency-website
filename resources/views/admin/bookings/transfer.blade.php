@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', 'Transfer Booking ' . $booking->booking_number)
 
+@section('skeleton')
+    @include('admin.partials.skeleton-form')
+@endsection
+
 @section('breadcrumb')
     <a href="{{ route('admin.bookings.index') }}">Bookings</a>
     / <a href="{{ route('admin.bookings.show', $booking) }}">{{ $booking->booking_number }}</a>

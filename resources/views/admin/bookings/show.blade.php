@@ -5,6 +5,10 @@
     <a href="{{ route('admin.bookings.index') }}">Bookings</a> / {{ $booking->booking_number }}
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-detail')
+@endsection
+
 @push('styles')
 <style>
 .approve-bar { border-radius:.75rem; padding:1.25rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }

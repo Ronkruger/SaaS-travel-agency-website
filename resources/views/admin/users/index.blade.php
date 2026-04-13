@@ -5,6 +5,10 @@
     <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Users
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-table', ['showAction' => false, 'filterCount' => 1, 'cols' => 5, 'rows' => 8])
+@endsection
+
 @section('content')
 <div class="page-title-row">
     <h2>Users</h2>

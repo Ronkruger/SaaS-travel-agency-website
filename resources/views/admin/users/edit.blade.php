@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', 'Edit User — Admin')
 
+@section('skeleton')
+    @include('admin.partials.skeleton-form')
+@endsection
+
 @section('breadcrumb')
     <a href="{{ route('admin.dashboard') }}">Dashboard</a> /
     <a href="{{ route('admin.users.index') }}">Users</a> /

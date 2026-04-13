@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', 'Import Bookings')
 
+@section('skeleton')
+    @include('admin.partials.skeleton-import')
+@endsection
+
 @push('styles')
 <style>
 .import-hero {
@@ -192,7 +196,18 @@
                 <div class="alert alert-danger mt-2">{{ $message }}</div>
             @enderror
 
-            <div class="upload-actions">
+            {{-- Upload progress bar --}}
+            <div class="upload-progress-wrap" id="upload-progress">
+                <div class="upload-progress-bar">
+                    <div class="upload-progress-fill" id="upload-progress-fill"></div>
+                </div>
+                <div class="upload-progress-text">
+                    <span id="upload-progress-label">Uploading file…</span>
+                    <span class="pct" id="upload-progress-pct">0%</span>
+                </div>
+            </div>
+
+            <div class="upload-actions" id="upload-actions">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-search"></i> Preview Import
                 </button>
@@ -361,10 +376,9 @@
 
         @if($importable > 0)
             <div class="upload-actions" style="margin-top:1.5rem;">
-                <form method="POST" action="{{ route('admin.import.confirm') }}">
+                <form method="POST" action="{{ route('admin.import.confirm') }}" id="confirm-form">
                     @csrf
-                    <button type="submit" class="btn btn-primary" style="background:#059669;border-color:#059669;"
-                            onclick="return confirm('Import {{ $importable }} booking(s) into the database?')">
+                    <button type="submit" class="btn btn-primary" id="confirm-btn" style="background:#059669;border-color:#059669;">
                         <i class="fas fa-database"></i>
                         Confirm &amp; Import {{ $importable }} Booking{{ $importable !== 1 ? 's' : '' }}
                     </button>
@@ -372,6 +386,16 @@
                 <a href="{{ route('admin.import.index') }}" class="btn btn-outline">
                     <i class="fas fa-redo"></i> Start Over
                 </a>
+            </div>
+            {{-- Import confirm progress --}}
+            <div class="upload-progress-wrap" id="confirm-progress">
+                <div class="upload-progress-bar">
+                    <div class="upload-progress-fill processing" id="confirm-progress-fill" style="width:100%"></div>
+                </div>
+                <div class="upload-progress-text">
+                    <span id="confirm-progress-label">Importing bookings into database…</span>
+                    <span class="pct">Please wait</span>
+                </div>
             </div>
         @else
             <div class="alert alert-warning mt-4">
@@ -406,5 +430,77 @@ zone.addEventListener('drop', e => {
         document.getElementById('file-name').textContent = '📄 ' + dt.files[0].name;
     }
 });
+
+// Upload with progress
+document.getElementById('upload-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = this;
+    const fileInput = document.getElementById('csv_file');
+    if (!fileInput.files.length) return;
+
+    const formData = new FormData(form);
+    const xhr = new XMLHttpRequest();
+
+    const progressWrap = document.getElementById('upload-progress');
+    const progressFill = document.getElementById('upload-progress-fill');
+    const progressPct  = document.getElementById('upload-progress-pct');
+    const progressLabel = document.getElementById('upload-progress-label');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const actionsRow = document.getElementById('upload-actions');
+
+    progressWrap.classList.add('active');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading…';
+
+    xhr.upload.addEventListener('progress', function (e) {
+        if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            progressFill.style.width = pct + '%';
+            progressPct.textContent = pct + '%';
+            if (pct >= 100) {
+                progressLabel.textContent = 'Processing spreadsheet…';
+                progressFill.classList.add('processing');
+            } else {
+                const sizeMB = (e.loaded / 1024 / 1024).toFixed(1);
+                const totalMB = (e.total / 1024 / 1024).toFixed(1);
+                progressLabel.textContent = 'Uploading ' + sizeMB + ' MB / ' + totalMB + ' MB';
+            }
+        }
+    });
+
+    xhr.addEventListener('load', function () {
+        // Replace the entire page with the response (preview page or error page)
+        document.open();
+        document.write(xhr.responseText);
+        document.close();
+    });
+
+    xhr.addEventListener('error', function () {
+        progressWrap.classList.remove('active');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-search"></i> Preview Import';
+        alert('Upload failed. Please check your connection and try again.');
+    });
+
+    xhr.open('POST', form.action);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send(formData);
+});
+
+// Confirm import with progress
+const confirmForm = document.getElementById('confirm-form');
+if (confirmForm) {
+    confirmForm.addEventListener('submit', function (e) {
+        if (!confirm('Import bookings into the database?')) {
+            e.preventDefault();
+            return;
+        }
+        const btn = document.getElementById('confirm-btn');
+        const progressWrap = document.getElementById('confirm-progress');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing…';
+        progressWrap.classList.add('active');
+    });
+}
 </script>
 @endpush

@@ -5,6 +5,10 @@
     <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Categories
 @endsection
 
+@section('skeleton')
+    @include('admin.partials.skeleton-table', ['showAction' => true, 'filterCount' => 0, 'cols' => 4, 'rows' => 6])
+@endsection
+
 @section('content')
 <div class="page-title-row">
     <h2>Tour Categories</h2>

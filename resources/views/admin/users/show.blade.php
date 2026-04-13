@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', 'User Detail — Admin')
 
+@section('skeleton')
+    @include('admin.partials.skeleton-detail')
+@endsection
+
 @section('content')
 <div class="page-title-row">
     <div>

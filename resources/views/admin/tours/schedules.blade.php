@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', $tour->title . ' — Slot Tracker')
 
+@section('skeleton')
+    @include('admin.partials.skeleton-table', ['showAction' => true, 'filterCount' => 0, 'cols' => 7, 'rows' => 6])
+@endsection
+
 @section('breadcrumb')
     <a href="{{ route('admin.tours.index') }}">Tours</a> /
     <a href="{{ route('admin.tours.edit', $tour) }}">{{ $tour->title }}</a> /
