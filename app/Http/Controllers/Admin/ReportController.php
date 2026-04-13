@@ -18,11 +18,14 @@ class ReportController extends Controller
         $startOfMonth = Carbon::create($year, $month, 1)->startOfMonth();
         $endOfMonth   = $startOfMonth->copy()->endOfMonth();
 
-        $dailySalesRaw = Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        // Use tour_date (actual travel date) for all booking queries,
+        // NOT created_at (which reflects when the record was imported/created).
+        $dailySalesRaw = Booking::whereDate('tour_date', '>=', $startOfMonth)
+            ->whereDate('tour_date', '<=', $endOfMonth)
             ->whereNotIn('status', ['cancelled'])
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as bookings, SUM(total_amount) as revenue')
-            ->groupByRaw('DATE(created_at)')
-            ->orderByRaw('DATE(created_at)')
+            ->selectRaw('DATE(tour_date) as date, COUNT(*) as bookings, SUM(total_amount) as revenue')
+            ->groupByRaw('DATE(tour_date)')
+            ->orderByRaw('DATE(tour_date)')
             ->get()
             ->keyBy('date');
 
@@ -38,16 +41,17 @@ class ReportController extends Controller
         }
 
         $monthSummary = [
-            'total_bookings' => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
-            'new_bookings'   => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->whereNotIn('status', ['cancelled'])->count(),
-            'cancelled'      => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->where('status', 'cancelled')->count(),
-            'total_revenue'  => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->whereNotIn('status', ['cancelled'])->sum('total_amount'),
-            'cash_revenue'   => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->where('payment_method', 'cash')->where('payment_status', 'paid')->sum('total_amount'),
-            'online_revenue' => Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])->where('payment_method', 'xendit')->where('payment_status', 'paid')->sum('total_amount'),
+            'total_bookings' => Booking::whereDate('tour_date', '>=', $startOfMonth)->whereDate('tour_date', '<=', $endOfMonth)->count(),
+            'new_bookings'   => Booking::whereDate('tour_date', '>=', $startOfMonth)->whereDate('tour_date', '<=', $endOfMonth)->whereNotIn('status', ['cancelled'])->count(),
+            'cancelled'      => Booking::whereDate('tour_date', '>=', $startOfMonth)->whereDate('tour_date', '<=', $endOfMonth)->where('status', 'cancelled')->count(),
+            'total_revenue'  => Booking::whereDate('tour_date', '>=', $startOfMonth)->whereDate('tour_date', '<=', $endOfMonth)->whereNotIn('status', ['cancelled'])->sum('total_amount'),
+            'cash_revenue'   => Booking::whereDate('tour_date', '>=', $startOfMonth)->whereDate('tour_date', '<=', $endOfMonth)->where('payment_method', 'cash')->where('payment_status', 'paid')->sum('total_amount'),
+            'online_revenue' => Booking::whereDate('tour_date', '>=', $startOfMonth)->whereDate('tour_date', '<=', $endOfMonth)->where('payment_method', 'xendit')->where('payment_status', 'paid')->sum('total_amount'),
             'new_users'      => User::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
         ];
 
-        $topTours = Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        $topTours = Booking::whereDate('tour_date', '>=', $startOfMonth)
+            ->whereDate('tour_date', '<=', $endOfMonth)
             ->whereNotIn('status', ['cancelled'])
             ->with('tour:id,title')
             ->selectRaw('tour_id, COUNT(*) as booking_count, SUM(total_amount) as revenue, SUM(total_guests) as guests')
@@ -56,7 +60,8 @@ class ReportController extends Controller
             ->take(5)
             ->get();
 
-        $paymentBreakdown = Booking::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        $paymentBreakdown = Booking::whereDate('tour_date', '>=', $startOfMonth)
+            ->whereDate('tour_date', '<=', $endOfMonth)
             ->whereNotIn('status', ['cancelled'])
             ->selectRaw('payment_method, COUNT(*) as count, SUM(total_amount) as revenue')
             ->groupBy('payment_method')
@@ -67,10 +72,10 @@ class ReportController extends Controller
             $trendMonths->push(Carbon::now()->subMonths($i)->format('Y-m'));
         }
         $trendRaw = Booking::whereNotIn('status', ['cancelled'])
-            ->where('created_at', '>=', Carbon::now()->subMonths(11)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, SUM(total_amount) as revenue, COUNT(*) as bookings")
-            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
-            ->orderByRaw("DATE_FORMAT(created_at, '%Y-%m')")
+            ->whereDate('tour_date', '>=', Carbon::now()->subMonths(11)->startOfMonth())
+            ->selectRaw("DATE_FORMAT(tour_date, '%Y-%m') as ym, SUM(total_amount) as revenue, COUNT(*) as bookings")
+            ->groupByRaw("DATE_FORMAT(tour_date, '%Y-%m')")
+            ->orderByRaw("DATE_FORMAT(tour_date, '%Y-%m')")
             ->get()
             ->keyBy('ym');
         $revenueTrend = $trendMonths->map(fn($ym) => [

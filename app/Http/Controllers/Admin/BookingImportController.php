@@ -394,7 +394,7 @@ class BookingImportController extends Controller
                         $total = $rate * $row['pax'];
                     }
 
-                    $isInstallment = !$isFoc && in_array($row['terms'], ['installment', 'downpayment', 'travel_fund']);
+                    $isInstallment = !$isFoc && in_array($row['terms'], ['installment', 'downpayment']);
                     $paymentMethod = $isFoc ? 'cash' : ($isInstallment ? 'installment' : 'cash');
 
                     $downpaymentAmount   = null;
@@ -427,19 +427,21 @@ class BookingImportController extends Controller
                         ];
 
                         $termCount = max(1, $installmentMonths - 1);
-                        for ($i = 1; $i <= $termCount; $i++) {
-                            $dueDate = $bookingDate->copy()->addMonths($i);
-                            if ($dueDate->gt($tourDate)) {
-                                $dueDate = $tourDate->copy()->subDays(7);
+                        if ($remaining > 0) {
+                            for ($i = 1; $i <= $termCount; $i++) {
+                                $dueDate = $bookingDate->copy()->addMonths($i);
+                                if ($dueDate->gt($tourDate)) {
+                                    $dueDate = $tourDate->copy()->subDays(7);
+                                }
+                                $amt = ($i === $termCount) ? max(0, $remaining - ($monthlyAmount * ($termCount - 1))) : $monthlyAmount;
+                                $payTerms[] = [
+                                    'type'     => 'installment',
+                                    'term'     => $i,
+                                    'due_date' => $dueDate->toDateString(),
+                                    'amount'   => (float) max(0, $amt),
+                                    'status'   => 'pending',
+                                ];
                             }
-                            $amt = ($i === $termCount) ? max(0, $remaining - ($monthlyAmount * ($termCount - 1))) : $monthlyAmount;
-                            $payTerms[] = [
-                                'type'     => 'installment',
-                                'term'     => $i,
-                                'due_date' => $dueDate->toDateString(),
-                                'amount'   => (float) max(0, $amt),
-                                'status'   => 'pending',
-                            ];
                         }
 
                         $installmentSchedule = $payTerms;
@@ -802,11 +804,11 @@ class BookingImportController extends Controller
     private function derivePaymentStatus(string $csvStatus, string $normalizedTerms): string
     {
         $s = strtolower(trim($csvStatus));
-        if ($normalizedTerms === 'foc') return 'paid';
+        if ($normalizedTerms === 'foc')        return 'paid';
+        if ($normalizedTerms === 'travel_fund') return 'paid'; // Travel Fund = fully paid
         if ($s === 'paid') {
-            return in_array($normalizedTerms, ['cash', 'travel_fund']) ? 'paid' : 'partial';
+            return in_array($normalizedTerms, ['cash']) ? 'paid' : 'partial';
         }
-        if (str_contains($s, 'travel fund'))          return 'partial';
         if (str_contains($s, 'booking confirmation')) return 'partial';
         return 'unpaid';
     }
