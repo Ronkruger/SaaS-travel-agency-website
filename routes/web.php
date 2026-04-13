@@ -219,6 +219,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::post('/import/preview', [BookingImportController::class, 'preview'])->name('import.preview');
     Route::post('/import/confirm', [BookingImportController::class, 'confirm'])->name('import.confirm');
 
+    // Deletion Requests
+    Route::get('/deletion-requests', [\App\Http\Controllers\Admin\DeletionRequestController::class, 'index'])->name('deletion-requests.index');
+    Route::post('/deletion-requests', [\App\Http\Controllers\Admin\DeletionRequestController::class, 'store'])->name('deletion-requests.store');
+    Route::post('/deletion-requests/{deletionRequest}/approve', [\App\Http\Controllers\Admin\DeletionRequestController::class, 'approve'])->name('deletion-requests.approve');
+    Route::post('/deletion-requests/{deletionRequest}/reject', [\App\Http\Controllers\Admin\DeletionRequestController::class, 'reject'])->name('deletion-requests.reject');
+
     // Users
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');

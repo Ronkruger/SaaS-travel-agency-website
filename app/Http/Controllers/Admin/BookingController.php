@@ -128,6 +128,11 @@ class BookingController extends Controller
 
     public function destroy(Booking $booking)
     {
+        $user = auth('admin')->user();
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Only super admins can delete bookings directly.');
+        }
+
         $bookingNumber = $booking->booking_number;
         $booking->delete();
 
@@ -137,6 +142,11 @@ class BookingController extends Controller
 
     public function destroyAll(Request $request)
     {
+        $user = auth('admin')->user();
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Only super admins can delete all bookings.');
+        }
+
         $count = Booking::count();
 
         if ($count === 0) {

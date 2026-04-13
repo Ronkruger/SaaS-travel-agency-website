@@ -60,6 +60,13 @@
             <a href="{{ route('admin.import.index') }}" class="{{ request()->routeIs('admin.import.*') ? 'active' : '' }}">
                 <i class="fas fa-file-import"></i> Import
             </a>
+            <a href="{{ route('admin.deletion-requests.index') }}" class="{{ request()->routeIs('admin.deletion-requests.*') ? 'active' : '' }}">
+                <i class="fas fa-hand-paper"></i> Deletion Requests
+                @php $pendingDeletions = \App\Models\DeletionRequest::where('status','pending')->count(); @endphp
+                @if($pendingDeletions > 0)
+                    <span class="badge">{{ $pendingDeletions }}</span>
+                @endif
+            </a>
             <a href="{{ route('admin.diy.index') }}" class="{{ request()->routeIs('admin.diy.*') ? 'active' : '' }}">
                 <i class="fas fa-magic"></i> DIY Tours
                 @php $pendingDiy = \App\Models\DIYTourSession::where('status','pending_review')->count(); @endphp

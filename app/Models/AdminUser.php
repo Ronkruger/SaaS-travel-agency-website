@@ -19,6 +19,7 @@ class AdminUser extends Authenticatable
         'avatar',
         'department',
         'position',
+        'role',
         'is_onboarded',
     ];
 
@@ -36,6 +37,16 @@ class AdminUser extends Authenticatable
     public function isAdmin(): bool
     {
         return true; // All AdminUser records are admins by definition
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function deletionRequests()
+    {
+        return $this->hasMany(DeletionRequest::class, 'requested_by');
     }
 
     public function getDepartmentLabelAttribute(): string
