@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>Booking Confirmation — {{ $booking->booking_number }}</title>
 <style>
-    @page { size: A4 portrait; margin: 0; }
+    @page { size: A4 portrait; margin: 0 0 120px 0; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
         font-family: 'DejaVu Sans', Arial, sans-serif;
@@ -174,7 +174,8 @@
         color: #fff;
         padding: 20px 40px;
         position: fixed;
-        bottom: 0;
+        bottom: -120px;
+        height: 120px;
         left: 0;
         right: 0;
     }
@@ -191,6 +192,30 @@
 </style>
 </head>
 <body>
+
+{{-- ── FOOTER (Fixed to bottom margin of all pages) ─────────── --}}
+<div class="footer">
+    <table style="width:100%;border-collapse:collapse">
+        <tr>
+            <td style="vertical-align:middle;font-size:9pt;color:#94a3b8">
+                <strong style="color:#fff;font-size:11pt">{{ $settings['company_name'] }}</strong><br>
+                @if(!empty($settings['contact_address'])) {{ $settings['contact_address'] }}<br>@endif
+                @if(!empty($settings['contact_email'])) {{ $settings['contact_email'] }}@endif
+                @if(!empty($settings['contact_phone'])) &nbsp;|&nbsp; {{ $settings['contact_phone'] }}@endif
+            </td>
+            <td style="vertical-align:middle;text-align:right;font-size:9pt;color:#94a3b8">
+                @if(!empty($settings['facebook_url']))
+                    Facebook: <strong style="color:#93c5fd">{{ $settings['facebook_url'] }}</strong><br>
+                @endif
+                <span style="font-size:8pt">Generated: {{ now()->format('F d, Y h:i A') }}</span>
+            </td>
+        </tr>
+    </table>
+    <div class="footer-disclaimer">
+        {{ $settings['footer_text'] }}
+    </div>
+</div>
+
 <div class="page">
 
     {{-- ── HEADER ──────────────────────────────────────────────── --}}
@@ -461,30 +486,6 @@
         </div>
 
     </div>{{-- /content --}}
-
-    {{-- ── FOOTER ───────────────────────────────────────────────── --}}
-    <div class="footer">
-        <table style="width:100%;border-collapse:collapse">
-            <tr>
-                <td style="vertical-align:middle;font-size:9pt;color:#94a3b8">
-                    <strong style="color:#fff;font-size:11pt">{{ $settings['company_name'] }}</strong><br>
-                    @if(!empty($settings['contact_address'])) {{ $settings['contact_address'] }}<br>@endif
-                    @if(!empty($settings['contact_email'])) {{ $settings['contact_email'] }}@endif
-                    @if(!empty($settings['contact_phone'])) &nbsp;|&nbsp; {{ $settings['contact_phone'] }}@endif
-                </td>
-                <td style="vertical-align:middle;text-align:right;font-size:9pt;color:#94a3b8">
-                    @if(!empty($settings['facebook_url']))
-                        Facebook: <strong style="color:#93c5fd">{{ $settings['facebook_url'] }}</strong><br>
-                    @endif
-                    <span style="font-size:8pt">Generated: {{ now()->format('F d, Y h:i A') }}</span>
-                </td>
-            </tr>
-        </table>
-        <div class="footer-disclaimer">
-            {{ $settings['footer_text'] }}
-        </div>
-    </div>
-
 </div>
 </body>
 </html>
