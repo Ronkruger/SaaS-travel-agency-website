@@ -330,7 +330,7 @@ class BookingImportController extends Controller
 
         $tourCache  = $existingTours;
         $schedCache = [];
-        $created    = $skipped = 0;
+        $created    = $skipped = $updated = 0;
         $errors     = [];
 
         $year           = date('Y');
@@ -343,7 +343,7 @@ class BookingImportController extends Controller
             ? (int) substr($lastNumber, strlen($prefix))
             : 0;
 
-        DB::transaction(function () use ($preview, $scheduleSeats, &$tourCache, &$schedCache, &$created, &$skipped, &$errors, $year, &$bookingCounter) {
+        DB::transaction(function () use ($preview, $scheduleSeats, &$tourCache, &$schedCache, &$created, &$skipped, &$updated, &$errors, $year, &$bookingCounter) {
             foreach ($preview as $idx => $row) {
                 try {
                     // 1. Resolve or auto-create Tour
@@ -452,6 +452,32 @@ class BookingImportController extends Controller
                         $row['notes'] ?: null,
                     ]);
 
+                    // Skip duplicate: same client name + tour + tour_date
+                    $existingBooking = Booking::where('contact_name', $row['client_name'])
+                        ->where('tour_id', $tour->id)
+                        ->whereDate('tour_date', $row['travel_date'])
+                        ->where('total_guests', $row['pax'])
+                        ->first();
+
+                    if ($existingBooking) {
+                        // Update fields that may have changed (payment status, 2nd payment, etc.)
+                        $existingBooking->update([
+                            'status'                  => $row['booking_status'],
+                            'payment_status'          => $isFoc ? 'paid' : $row['payment_status'],
+                            'payment_method'          => $paymentMethod,
+                            'total_amount'            => $total,
+                            'price_per_adult'         => $rate,
+                            'subtotal'                => $total,
+                            'special_requests'        => implode(' | ', $noteFragments) ?: null,
+                            'downpayment_amount'      => $downpaymentAmount,
+                            'installment_months'      => $installmentMonths,
+                            'installment_schedule'    => $installmentSchedule,
+                            'second_payment_status'   => $row['pay2_status'] ?? null,
+                        ]);
+                        $updated++;
+                        continue;
+                    }
+
                     Booking::create([
                         'booking_number'       => 'DG-' . $year . '-' . str_pad(++$bookingCounter, 6, '0', STR_PAD_LEFT),
                         'tour_id'              => $tour->id,
@@ -505,7 +531,7 @@ class BookingImportController extends Controller
         session()->forget(['import_file_path', 'import_file_ext']);
 
         return redirect()->route('admin.import.index')
-            ->with('success', "Import complete — {$created} booking(s) created, {$skipped} skipped.")
+            ->with('success', "Import complete — {$created} created, {$updated} updated, {$skipped} skipped.")
             ->with('import_errors', $errors);
     }
 
