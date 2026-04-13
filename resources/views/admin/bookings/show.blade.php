@@ -368,7 +368,8 @@
         </div>
         @endif
 
-        {{-- ── 2ND PAYMENT STATUS ─────────────────────────────────── --}}
+        {{-- ── 2ND PAYMENT STATUS (only show when not fully paid) ── --}}
+        @if($booking->payment_status !== 'paid')
         <div class="card mb-4" style="border:2px solid #c4b5fd">
             <div class="card-header" style="background:#f5f3ff">
                 <h4 style="color:#5b21b6"><i class="fas fa-file-invoice-dollar"></i> 2nd Payment Status</h4>
@@ -453,6 +454,7 @@
             }
         });
         </script>
+        @endif
 
         <!-- Booking Info -->
         <div class="card mb-4">
