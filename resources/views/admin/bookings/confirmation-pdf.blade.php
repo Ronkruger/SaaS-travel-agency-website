@@ -25,9 +25,9 @@
         padding: 30px 40px 26px;
     }
     .header-inner { display: table; width: 100%; }
-    .header-logo-cell { display: table-cell; vertical-align: middle; width: 140px; }
+    .header-logo-cell { display: table-cell; vertical-align: middle; width: 1%; padding-right: 18px; }
     .header-logo-cell img { max-width: 130px; max-height: 60px; filter: brightness(0) invert(1); }
-    .header-text-cell { display: table-cell; vertical-align: middle; padding-left: 22px; }
+    .header-text-cell { display: table-cell; vertical-align: middle; }
     .header-company { font-size: 20pt; font-weight: bold; letter-spacing: 0.04em; }
     .header-tagline { font-size: 10pt; color: rgba(255,255,255,0.8); margin-top: 4px; }
     .header-doc-title {
@@ -39,8 +39,7 @@
     .header-doc-title span {
         font-size: 12pt;
         font-weight: bold;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        letter-spacing: 0.05em;
         border: 2px solid rgba(255,255,255,0.6);
         border-radius: 4px;
         padding: 8px 16px;
@@ -236,7 +235,7 @@
             </div>
             {{-- Document title --}}
             <div class="header-doc-title">
-                <span>{{ $settings['header_text'] }}</span>
+                <span>Booking confirmation</span>
             </div>
         </div>
     </div>
