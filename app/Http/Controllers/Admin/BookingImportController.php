@@ -67,20 +67,31 @@ class BookingImportController extends Controller
     public function preview(Request $request)
     {
         $request->validate([
-            'csv_file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'max:10240'],
+            'csv_file' => ['required', 'file', 'max:10240'],
         ]);
 
         $file = $request->file('csv_file');
         $ext  = strtolower($file->getClientOriginalExtension());
 
+        if (!in_array($ext, ['csv', 'txt', 'xlsx', 'xls'])) {
+            return back()->withErrors(['csv_file' => 'Invalid file type. Please upload a CSV, XLSX, or XLS file.']);
+        }
+
         // Save the uploaded file to storage so we can re-read it during confirm
         $storedPath = $file->store('imports', 'local');
 
         $fullPath = storage_path('app/' . $storedPath);
-        $rows     = in_array($ext, ['xlsx', 'xls'])
-            ? $this->readSpreadsheetRows($fullPath)
-            : null;
-        $blocks   = $this->parseSlotTrackerCsv($fullPath, $rows);
+
+        try {
+            $rows = in_array($ext, ['xlsx', 'xls'])
+                ? $this->readSpreadsheetRows($fullPath)
+                : null;
+        } catch (\Throwable $e) {
+            Log::error('XLSX read failed', ['error' => $e->getMessage()]);
+            return back()->withErrors(['csv_file' => 'Failed to read spreadsheet: ' . Str::limit($e->getMessage(), 150)]);
+        }
+
+        $blocks = $this->parseSlotTrackerCsv($fullPath, $rows);
 
         if (empty($blocks)) {
             return back()->withErrors(['csv_file' => 'The file is empty or could not be parsed.']);
@@ -228,9 +239,16 @@ class BookingImportController extends Controller
         $fullPath = storage_path('app/' . $storedPath);
 
         // Re-parse the file from disk (instead of reading from session)
-        $rows   = in_array($ext, ['xlsx', 'xls'])
-            ? $this->readSpreadsheetRows($fullPath)
-            : null;
+        try {
+            $rows = in_array($ext, ['xlsx', 'xls'])
+                ? $this->readSpreadsheetRows($fullPath)
+                : null;
+        } catch (\Throwable $e) {
+            Log::error('XLSX re-read failed', ['error' => $e->getMessage()]);
+            return redirect()->route('admin.import.index')
+                ->withErrors(['csv_file' => 'Failed to re-read spreadsheet: ' . Str::limit($e->getMessage(), 150)]);
+        }
+
         $blocks = $this->parseSlotTrackerCsv($fullPath, $rows);
 
         if (empty($blocks)) {
@@ -545,8 +563,32 @@ class BookingImportController extends Controller
     private function readSpreadsheetRows(string $path): array
     {
         $spreadsheet = IOFactory::load($path);
-        $sheet       = $spreadsheet->getActiveSheet();
-        $rows        = [];
+
+        // Try to find the "DETAILED SLOTS TRACKER 2026" sheet (or current year)
+        $sheet = null;
+        $year  = date('Y');
+        foreach ($spreadsheet->getSheetNames() as $name) {
+            if (stripos($name, 'detailed slots tracker') !== false
+                && str_contains($name, (string) $year)) {
+                $sheet = $spreadsheet->getSheetByName($name);
+                break;
+            }
+        }
+        // Fall back: any sheet with "slots tracker" in the name
+        if (!$sheet) {
+            foreach ($spreadsheet->getSheetNames() as $name) {
+                if (stripos($name, 'slots tracker') !== false) {
+                    $sheet = $spreadsheet->getSheetByName($name);
+                    break;
+                }
+            }
+        }
+        // Last resort: first sheet
+        if (!$sheet) {
+            $sheet = $spreadsheet->getSheet(0);
+        }
+
+        $rows = [];
         foreach ($sheet->toArray(null, true, true, false) as $row) {
             $rows[] = array_map(fn($v) => $v !== null ? (string) $v : '', $row);
         }
