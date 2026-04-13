@@ -32,7 +32,7 @@ class BookingPdfController extends Controller
                 'defaultFont' => 'DejaVu Sans',
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
-                'dpi' => 150,
+                'dpi' => 96,
             ]);
 
         return $pdf->stream("booking-{$booking->booking_number}.pdf");
@@ -52,7 +52,7 @@ class BookingPdfController extends Controller
                 'defaultFont' => 'DejaVu Sans',
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
-                'dpi' => 150,
+                'dpi' => 96,
             ]);
 
         return $pdf->download("booking-{$booking->booking_number}.pdf");
@@ -72,7 +72,7 @@ class BookingPdfController extends Controller
                 'defaultFont' => 'DejaVu Sans',
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
-                'dpi' => 150,
+                'dpi' => 96,
             ]);
 
         $pdfContent = $pdf->output();

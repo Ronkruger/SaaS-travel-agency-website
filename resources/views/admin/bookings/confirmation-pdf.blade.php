@@ -90,8 +90,8 @@
         text-align: left;
         border: 1px solid #e2e8f0;
     }
-    .info-table td { padding: 8px 10px; border: 1px solid #e2e8f0; font-size: 10pt; vertical-align: middle; }
-    .info-table td.label { background: #f8fafc; color: #64748b; font-size: 8.5pt; width: 36%; }
+    .info-table td { padding: 9px 12px; border: 1px solid #e2e8f0; font-size: 10pt; vertical-align: middle; }
+    .info-table td.label { background: #f8fafc; color: #64748b; font-size: 9pt; width: 36%; }
     .info-table td.value { font-weight: 600; color: #0f172a; }
 
     /* ── Two-column layout ───────────────── */
@@ -103,8 +103,8 @@
     .section-head {
         background: {{ $settings['accent_color'] }};
         color: #fff;
-        padding: 6px 12px;
-        font-size: 8.5pt;
+        padding: 7px 14px;
+        font-size: 9pt;
         font-weight: bold;
         text-transform: uppercase;
         letter-spacing: 0.07em;
