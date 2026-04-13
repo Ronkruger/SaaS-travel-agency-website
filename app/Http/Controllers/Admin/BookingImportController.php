@@ -562,36 +562,53 @@ class BookingImportController extends Controller
      */
     private function readSpreadsheetRows(string $path): array
     {
-        $spreadsheet = IOFactory::load($path);
+        // Step 1: Peek at sheet names WITHOUT loading cell data (fast, low memory)
+        $reader = IOFactory::createReaderForFile($path);
+        $reader->setReadDataOnly(true);
 
-        // Try to find the "DETAILED SLOTS TRACKER 2026" sheet (or current year)
-        $sheet = null;
-        $year  = date('Y');
-        foreach ($spreadsheet->getSheetNames() as $name) {
+        $sheetNames    = $reader->listWorksheetNames($path);
+        $targetSheet   = null;
+        $year          = date('Y');
+
+        // Prefer "DETAILED SLOTS TRACKER 2026"
+        foreach ($sheetNames as $name) {
             if (stripos($name, 'detailed slots tracker') !== false
                 && str_contains($name, (string) $year)) {
-                $sheet = $spreadsheet->getSheetByName($name);
+                $targetSheet = $name;
                 break;
             }
         }
-        // Fall back: any sheet with "slots tracker" in the name
-        if (!$sheet) {
-            foreach ($spreadsheet->getSheetNames() as $name) {
+        // Fall back: any sheet with "slots tracker"
+        if (!$targetSheet) {
+            foreach ($sheetNames as $name) {
                 if (stripos($name, 'slots tracker') !== false) {
-                    $sheet = $spreadsheet->getSheetByName($name);
+                    $targetSheet = $name;
                     break;
                 }
             }
         }
         // Last resort: first sheet
-        if (!$sheet) {
-            $sheet = $spreadsheet->getSheet(0);
+        if (!$targetSheet) {
+            $targetSheet = $sheetNames[0] ?? null;
         }
+
+        // Step 2: Load ONLY the target sheet (saves memory on large multi-sheet files)
+        if ($targetSheet) {
+            $reader->setLoadSheetsOnly([$targetSheet]);
+        }
+
+        $spreadsheet = $reader->load($path);
+        $sheet       = $spreadsheet->getActiveSheet();
 
         $rows = [];
         foreach ($sheet->toArray(null, true, true, false) as $row) {
             $rows[] = array_map(fn($v) => $v !== null ? (string) $v : '', $row);
         }
+
+        // Free memory
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+
         return $rows;
     }
 
