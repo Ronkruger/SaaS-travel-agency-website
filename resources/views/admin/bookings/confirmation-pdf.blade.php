@@ -22,14 +22,14 @@
     .header {
         background-color: {{ $settings['accent_color'] }};
         color: #ffffff;
-        padding: 22px 30px 18px;
+        padding: 30px 40px 26px;
     }
     .header-inner { display: table; width: 100%; }
-    .header-logo-cell { display: table-cell; vertical-align: middle; width: 120px; }
-    .header-logo-cell img { max-width: 110px; max-height: 50px; filter: brightness(0) invert(1); }
-    .header-text-cell { display: table-cell; vertical-align: middle; padding-left: 18px; }
-    .header-company { font-size: 18pt; font-weight: bold; letter-spacing: 0.03em; }
-    .header-tagline { font-size: 9pt; color: rgba(255,255,255,0.8); margin-top: 2px; }
+    .header-logo-cell { display: table-cell; vertical-align: middle; width: 140px; }
+    .header-logo-cell img { max-width: 130px; max-height: 60px; filter: brightness(0) invert(1); }
+    .header-text-cell { display: table-cell; vertical-align: middle; padding-left: 22px; }
+    .header-company { font-size: 20pt; font-weight: bold; letter-spacing: 0.04em; }
+    .header-tagline { font-size: 10pt; color: rgba(255,255,255,0.8); margin-top: 4px; }
     .header-doc-title {
         display: table-cell;
         vertical-align: middle;
@@ -37,13 +37,13 @@
         padding-right: 4px;
     }
     .header-doc-title span {
-        font-size: 11pt;
+        font-size: 12pt;
         font-weight: bold;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         border: 2px solid rgba(255,255,255,0.6);
         border-radius: 4px;
-        padding: 5px 12px;
+        padding: 8px 16px;
         display: inline-block;
     }
 
@@ -51,33 +51,33 @@
     .booking-bar {
         background: #f8fafc;
         border-bottom: 3px solid {{ $settings['accent_color'] }};
-        padding: 10px 30px;
+        padding: 12px 40px;
         display: table;
         width: 100%;
     }
-    .booking-bar td { display: table-cell; font-size: 9pt; color: #64748b; }
-    .booking-bar td strong { color: #1e293b; font-size: 10pt; }
+    .booking-bar td { display: table-cell; font-size: 9.5pt; color: #64748b; }
+    .booking-bar td strong { color: #1e293b; font-size: 10.5pt; }
     .booking-bar td:last-child { text-align: right; }
 
     /* ── Body content ───────────────────── */
-    .content { padding: 22px 30px; }
+    .content { padding: 28px 40px; }
 
     /* ── Route / Travel Date highlight ──── */
     .route-box {
         background: {{ $settings['accent_color'] }};
         color: #fff;
         border-radius: 6px;
-        padding: 14px 20px;
-        margin-bottom: 18px;
+        padding: 18px 24px;
+        margin-bottom: 22px;
         display: table;
         width: 100%;
     }
     .route-box-cell { display: table-cell; vertical-align: middle; }
     .route-box-cell:last-child { text-align: right; }
-    .route-name { font-size: 15pt; font-weight: bold; letter-spacing: 0.04em; }
-    .route-sub  { font-size: 9pt; color: rgba(255,255,255,0.8); margin-top: 2px; }
-    .travel-date { font-size: 13pt; font-weight: bold; }
-    .travel-date-lbl { font-size: 8pt; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.06em; }
+    .route-name { font-size: 16pt; font-weight: bold; letter-spacing: 0.04em; }
+    .route-sub  { font-size: 9.5pt; color: rgba(255,255,255,0.8); margin-top: 3px; }
+    .travel-date { font-size: 14pt; font-weight: bold; }
+    .travel-date-lbl { font-size: 8.5pt; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.06em; }
 
     /* ── Info table ──────────────────────── */
     .info-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
@@ -112,7 +112,7 @@
         border-radius: 4px 4px 0 0;
         margin-bottom: 0;
     }
-    .section-box { border: 1px solid #e2e8f0; border-radius: 0 0 4px 4px; overflow: hidden; margin-bottom: 18px; }
+    .section-box { border: 1px solid #e2e8f0; border-radius: 0 0 4px 4px; overflow: hidden; margin-bottom: 22px; }
 
     /* ── Payment pills ───────────────────── */
     .pill {
@@ -155,10 +155,10 @@
     /* ── Status bar ──────────────────────── */
     .status-bar {
         text-align: center;
-        padding: 14px;
+        padding: 16px;
         border-radius: 6px;
-        margin-bottom: 18px;
-        font-size: 13pt;
+        margin-bottom: 22px;
+        font-size: 14pt;
         font-weight: bold;
         letter-spacing: 0.1em;
     }
@@ -172,14 +172,17 @@
     .footer {
         background: #1e293b;
         color: #fff;
-        padding: 16px 30px;
-        margin-top: 20px;
+        padding: 20px 40px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
     }
     .footer-inner { display: table; width: 100%; }
     .footer-left  { display: table-cell; vertical-align: middle; font-size: 8pt; color: #94a3b8; }
     .footer-right { display: table-cell; vertical-align: middle; text-align: right; font-size: 8pt; color: #94a3b8; }
     .footer-right strong { color: #fff; }
-    .footer-disclaimer { margin-top: 8px; padding-top: 8px; border-top: 1px solid #334155; font-size: 7.5pt; color: #94a3b8; }
+    .footer-disclaimer { margin-top: 8px; padding-top: 8px; border-top: 1px solid #334155; font-size: 8pt; color: #94a3b8; }
 
     .watermark-stripe {
         height: 4px;
@@ -198,7 +201,7 @@
                 @if(!empty($settings['logo_url']) && (str_starts_with($settings['logo_url'],'http://') || str_starts_with($settings['logo_url'],'https://')))
                     <img src="{{ $settings['logo_url'] }}" alt="{{ $settings['company_name'] }}">
                 @else
-                    <div style="font-size:22pt;font-weight:900;letter-spacing:-1px">DG</div>
+                    <div style="font-size:26pt;font-weight:900;letter-spacing:-1px">DG</div>
                 @endif
             </div>
             {{-- Company name --}}
@@ -219,13 +222,13 @@
     <div class="booking-bar">
         <table style="width:100%;border-collapse:collapse">
             <tr>
-                <td style="font-size:9pt;color:#64748b">
+                <td style="font-size:9.5pt;color:#64748b">
                     Booking Number: <strong style="font-size:11pt;color:#1e293b;font-family:monospace">{{ $booking->booking_number }}</strong>
                 </td>
-                <td style="font-size:9pt;color:#64748b;text-align:center">
+                <td style="font-size:9.5pt;color:#64748b;text-align:center">
                     Booked On: <strong>{{ $booking->created_at->format('F d, Y') }}</strong>
                 </td>
-                <td style="font-size:9pt;color:#64748b;text-align:right">
+                <td style="font-size:9.5pt;color:#64748b;text-align:right">
                     Issued: <strong>{{ now()->format('F d, Y') }}</strong>
                 </td>
             </tr>
@@ -269,30 +272,30 @@
         </div>
 
         {{-- Two columns: Client Details + Payment Summary --}}
-        <table style="width:100%;border-collapse:collapse;margin-bottom:18px">
+        <table style="width:100%;border-collapse:collapse;margin-bottom:22px">
             <tr>
-                <td style="width:50%;vertical-align:top;padding-right:10px">
+                <td style="width:50%;vertical-align:top;padding-right:12px">
                     {{-- Client Details --}}
                     <div class="section-head">Client Information</div>
                     <div class="section-box">
-                        <table style="width:100%;border-collapse:collapse;font-size:9.5pt">
+                        <table style="width:100%;border-collapse:collapse;font-size:10pt">
                             <tr>
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;width:45%;font-size:8.5pt">Client Name</td>
-                                <td style="padding:7px 10px;font-weight:700">{{ $booking->contact_name }}</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;width:45%;font-size:9pt">Client Name</td>
+                                <td style="padding:9px 12px;font-weight:700">{{ $booking->contact_name }}</td>
                             </tr>
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">Email</td>
-                                <td style="padding:7px 10px">{{ $booking->contact_email }}</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Email</td>
+                                <td style="padding:9px 12px">{{ $booking->contact_email }}</td>
                             </tr>
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">Phone</td>
-                                <td style="padding:7px 10px">{{ $booking->contact_phone }}</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Phone</td>
+                                <td style="padding:9px 12px">{{ $booking->contact_phone }}</td>
                             </tr>
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">PAX</td>
-                                <td style="padding:7px 10px;font-weight:700;font-size:11pt">
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">PAX</td>
+                                <td style="padding:9px 12px;font-weight:700;font-size:11pt">
                                     {{ $booking->total_guests }}
-                                    <span style="font-size:8.5pt;font-weight:400;color:#64748b">
+                                    <span style="font-size:9pt;font-weight:400;color:#64748b">
                                         ({{ $booking->adults }} adult{{ $booking->adults != 1 ? 's' : '' }}
                                         @if($booking->children > 0), {{ $booking->children }} child{{ $booking->children != 1 ? 'ren' : '' }}@endif
                                         @if($booking->infants > 0), {{ $booking->infants }} infant{{ $booking->infants != 1 ? 's' : '' }}@endif)
@@ -301,25 +304,25 @@
                             </tr>
                             @if($booking->special_requests)
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">Special Requests</td>
-                                <td style="padding:7px 10px;font-size:8.5pt">{{ $booking->special_requests }}</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Special Requests</td>
+                                <td style="padding:9px 12px;font-size:9pt">{{ $booking->special_requests }}</td>
                             </tr>
                             @endif
                         </table>
                     </div>
                 </td>
-                <td style="width:50%;vertical-align:top;padding-left:10px">
+                <td style="width:50%;vertical-align:top;padding-left:12px">
                     {{-- Price Summary --}}
                     <div class="section-head">Payment Summary</div>
                     <div class="section-box">
-                        <table style="width:100%;border-collapse:collapse;font-size:9.5pt">
+                        <table style="width:100%;border-collapse:collapse;font-size:10pt">
                             <tr>
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;width:55%;font-size:8.5pt;">Package Rate/Person</td>
-                                <td style="padding:7px 10px;font-weight:700;text-align:right">₱{{ number_format($booking->price_per_adult, 2) }}</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;width:55%;font-size:9pt;">Package Rate/Person</td>
+                                <td style="padding:9px 12px;font-weight:700;text-align:right">₱{{ number_format($booking->price_per_adult, 2) }}</td>
                             </tr>
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">Payment Terms</td>
-                                <td style="padding:7px 10px;font-weight:600;text-align:right">
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Payment Terms</td>
+                                <td style="padding:9px 12px;font-weight:600;text-align:right">
                                     @if($booking->payment_method === 'installment') Instalment
                                     @elseif($booking->payment_method === 'cash' && $booking->downpayment_amount > 0) Downpayment
                                     @elseif($booking->payment_method === 'cash') Full Cash
@@ -328,24 +331,24 @@
                                 </td>
                             </tr>
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">Subtotal</td>
-                                <td style="padding:7px 10px;text-align:right">₱{{ number_format($booking->subtotal, 2) }}</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Subtotal</td>
+                                <td style="padding:9px 12px;text-align:right">₱{{ number_format($booking->subtotal, 2) }}</td>
                             </tr>
                             @if($booking->tax_amount > 0)
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">Travel Tax</td>
-                                <td style="padding:7px 10px;text-align:right">₱{{ number_format($booking->tax_amount, 2) }}</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Travel Tax</td>
+                                <td style="padding:9px 12px;text-align:right">₱{{ number_format($booking->tax_amount, 2) }}</td>
                             </tr>
                             @endif
                             <tr style="border-top:2px solid {{ $settings['accent_color'] }}">
-                                <td style="padding:9px 10px;background:#f8fafc;font-weight:700;font-size:10.5pt">TOTAL AMOUNT</td>
-                                <td style="padding:9px 10px;font-weight:700;font-size:12pt;text-align:right;color:{{ $settings['accent_color'] }}">
+                                <td style="padding:11px 12px;background:#f8fafc;font-weight:700;font-size:11pt">TOTAL AMOUNT</td>
+                                <td style="padding:11px 12px;font-weight:700;font-size:13pt;text-align:right;color:{{ $settings['accent_color'] }}">
                                     ₱{{ number_format($booking->total_amount, 2) }}
                                 </td>
                             </tr>
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:7px 10px;background:#f8fafc;color:#64748b;font-size:8.5pt">Payment Status</td>
-                                <td style="padding:7px 10px;text-align:right">
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Payment Status</td>
+                                <td style="padding:9px 12px;text-align:right">
                                     <span class="pill pill-{{ $booking->payment_status }}">
                                         {{ ucfirst($booking->payment_status === 'paid' ? 'Fully Paid' : ($booking->payment_status === 'partial' ? 'Partial' : 'Unpaid')) }}
                                     </span>
@@ -445,7 +448,7 @@
         {{-- ── TERMS & CONDITIONS ───────────────────────────────── --}}
         <div class="section-head">Terms & Conditions</div>
         <div class="section-box">
-            <div style="padding:10px 14px;font-size:8pt;color:#475569;line-height:1.7">
+            <div style="padding:12px 16px;font-size:9pt;color:#475569;line-height:1.7">
                 <ul style="margin:0;padding-left:18px">
                     <li>This booking confirmation is subject to availability and final payment.</li>
                     <li>Full payment must be settled at least <strong>{{ $booking->tour->balance_due_days_before_travel ?? 30 }} days</strong> before the departure date.</li>
@@ -463,17 +466,17 @@
     <div class="footer">
         <table style="width:100%;border-collapse:collapse">
             <tr>
-                <td style="vertical-align:middle;font-size:8pt;color:#94a3b8">
-                    <strong style="color:#fff;font-size:10pt">{{ $settings['company_name'] }}</strong><br>
+                <td style="vertical-align:middle;font-size:9pt;color:#94a3b8">
+                    <strong style="color:#fff;font-size:11pt">{{ $settings['company_name'] }}</strong><br>
                     @if(!empty($settings['contact_address'])) {{ $settings['contact_address'] }}<br>@endif
                     @if(!empty($settings['contact_email'])) {{ $settings['contact_email'] }}@endif
                     @if(!empty($settings['contact_phone'])) &nbsp;|&nbsp; {{ $settings['contact_phone'] }}@endif
                 </td>
-                <td style="vertical-align:middle;text-align:right;font-size:8pt;color:#94a3b8">
+                <td style="vertical-align:middle;text-align:right;font-size:9pt;color:#94a3b8">
                     @if(!empty($settings['facebook_url']))
                         Facebook: <strong style="color:#93c5fd">{{ $settings['facebook_url'] }}</strong><br>
                     @endif
-                    <span style="font-size:7.5pt">Generated: {{ now()->format('F d, Y h:i A') }}</span>
+                    <span style="font-size:8pt">Generated: {{ now()->format('F d, Y h:i A') }}</span>
                 </td>
             </tr>
         </table>
