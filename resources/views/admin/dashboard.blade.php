@@ -68,7 +68,7 @@
             <h4><i class="fas fa-calendar-check"></i> Recent Bookings</h4>
             <a href="{{ route('admin.bookings.index') }}" class="btn btn-sm btn-outline">View All</a>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-0 table-responsive">
             <table class="data-table">
                 <thead>
                     <tr>
