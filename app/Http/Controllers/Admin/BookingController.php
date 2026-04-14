@@ -50,10 +50,11 @@ class BookingController extends Controller
         $bookings = $query->latest()->paginate(15)->withQueryString();
 
         // Detect duplicate bookings: same contact_email + schedule_id across multiple bookings
+        // Only flag when contact_email is actually set (imported rows have no email — don't flag them)
         $duplicateIds = [];
         $pageItems = $bookings->getCollection();
         $emailSchedulePairs = $pageItems
-            ->filter(fn($b) => $b->schedule_id)
+            ->filter(fn($b) => $b->schedule_id && !empty(trim($b->contact_email ?? '')))
             ->map(fn($b) => ['email' => $b->contact_email, 'sid' => $b->schedule_id])
             ->unique(fn($p) => $p['email'] . '|' . $p['sid'])
             ->values();
