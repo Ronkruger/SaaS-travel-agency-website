@@ -17,9 +17,7 @@
                 <form action="{{ route('booking.store') }}" method="POST" id="bookingForm">
                     @csrf
                     <input type="hidden" name="tour_id" value="{{ $tour->id }}">
-                    @if(request('schedule_id'))
-                        <input type="hidden" name="schedule_id" value="{{ request('schedule_id') }}">
-                    @endif
+                    <input type="hidden" name="schedule_id" id="hiddenScheduleId" value="{{ request('schedule_id', old('schedule_id', '')) }}">
 
                     <!-- Step 1: Tour Details -->
                     <div class="booking-step">
@@ -28,40 +26,80 @@
                             <h3>Tour Details</h3>
                         </div>
 
-                        @php $departureDates = collect($tour->departure_dates ?? [])->filter(fn($d) => ($d['isAvailable'] ?? true)); @endphp
-                        @if($departureDates->count() > 0)
+                        @php
+                            $preDate       = request('departure_date', old('departure_date', ''));
+                            $preScheduleId = request('schedule_id', old('schedule_id', ''));
+                            $useSchedules  = $tour->schedules->isNotEmpty();
+                            $departureDates = collect($tour->departure_dates ?? [])->filter(fn($d) => ($d['isAvailable'] ?? true));
+                            $hasOptions = $useSchedules || $departureDates->count() > 0;
+                        @endphp
+                        @if($hasOptions)
                             <div class="form-group">
                                 <label>Scheduled Departure</label>
-                                <select name="departure_date" class="form-control" onchange="updateScheduleDate(this)">
+                                <select name="departure_date" id="departureDateSelect" class="form-control" onchange="updateScheduleDate(this)">
                                     <option value="">Choose a departure date...</option>
-                                    @foreach($departureDates as $dateEntry)
-                                        @php
-                                            $dateKey   = $dateEntry['start'] ?? '';
-                                            $maxCap    = $dateEntry['maxCapacity'] ?? null;
-                                            $booked    = (int) ($bookedByDate[$dateKey] ?? 0);
-                                            $slotsLeft = $maxCap ? max(0, (int) $maxCap - $booked) : null;
-                                            $soldOut   = $maxCap && $slotsLeft === 0;
-                                        @endphp
-                                        <option value="{{ $dateKey }}"
-                                            data-date="{{ $dateKey }}"
-                                            data-price="{{ $dateEntry['price'] ?? '' }}"
-                                            data-slots="{{ $slotsLeft ?? '' }}"
-                                            {{ $soldOut ? 'disabled' : '' }}
-                                            {{ old('departure_date') == $dateKey ? 'selected' : '' }}>
-                                            {{ $dateKey ? \Carbon\Carbon::parse($dateKey)->format('M d, Y') : '' }}
-                                            @if(!empty($dateEntry['end']))
-                                                — {{ \Carbon\Carbon::parse($dateEntry['end'])->format('M d, Y') }}
-                                            @endif
-                                            @if(!empty($dateEntry['price']))
-                                                — ₱{{ number_format($dateEntry['price'], 2) }}/person
-                                            @endif
-                                            @if($soldOut)
-                                                — SOLD OUT
-                                            @elseif($slotsLeft !== null)
-                                                — {{ $slotsLeft }} slot{{ $slotsLeft === 1 ? '' : 's' }} left
-                                            @endif
-                                        </option>
-                                    @endforeach
+                                    @if($useSchedules)
+                                        @foreach($tour->schedules as $sched)
+                                            @php
+                                                $remaining = $sched->available_seats - $sched->booked_seats;
+                                                $isFull    = $remaining <= 0 || $sched->status === 'sold_out';
+                                                $dateKey   = $sched->departure_date->format('Y-m-d');
+                                                $isSelected = ($preScheduleId == $sched->id) || ($preDate === $dateKey && !$preScheduleId);
+                                            @endphp
+                                            <option value="{{ $dateKey }}"
+                                                data-date="{{ $dateKey }}"
+                                                data-schedule-id="{{ $sched->id }}"
+                                                data-price="{{ $sched->price_override ?? '' }}"
+                                                data-slots="{{ $remaining }}"
+                                                {{ $isFull ? 'disabled' : '' }}
+                                                {{ $isSelected && !$isFull ? 'selected' : '' }}>
+                                                {{ $sched->departure_date->format('M d, Y') }}
+                                                @if($sched->return_date)
+                                                    — {{ $sched->return_date->format('M d, Y') }}
+                                                @endif
+                                                @if($sched->price_override > 0)
+                                                    — ₱{{ number_format($sched->price_override, 2) }}/person
+                                                @endif
+                                                @if($isFull)
+                                                    — SOLD OUT
+                                                @elseif($remaining <= 5)
+                                                    — {{ $remaining }} slot{{ $remaining == 1 ? '' : 's' }} left
+                                                @else
+                                                    — {{ $remaining }} slots open
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    @else
+                                        @foreach($departureDates as $dateEntry)
+                                            @php
+                                                $dateKey   = $dateEntry['start'] ?? '';
+                                                $maxCap    = $dateEntry['maxCapacity'] ?? null;
+                                                $booked    = (int) ($bookedByDate[$dateKey] ?? 0);
+                                                $slotsLeft = $maxCap ? max(0, (int) $maxCap - $booked) : null;
+                                                $soldOut   = $maxCap && $slotsLeft === 0;
+                                                $isSelected = ($preDate === $dateKey);
+                                            @endphp
+                                            <option value="{{ $dateKey }}"
+                                                data-date="{{ $dateKey }}"
+                                                data-price="{{ $dateEntry['price'] ?? '' }}"
+                                                data-slots="{{ $slotsLeft ?? '' }}"
+                                                {{ $soldOut ? 'disabled' : '' }}
+                                                {{ $isSelected && !$soldOut ? 'selected' : '' }}>
+                                                {{ $dateKey ? \Carbon\Carbon::parse($dateKey)->format('M d, Y') : '' }}
+                                                @if(!empty($dateEntry['end']))
+                                                    — {{ \Carbon\Carbon::parse($dateEntry['end'])->format('M d, Y') }}
+                                                @endif
+                                                @if(!empty($dateEntry['price']))
+                                                    — ₱{{ number_format($dateEntry['price'], 2) }}/person
+                                                @endif
+                                                @if($soldOut)
+                                                    — SOLD OUT
+                                                @elseif($slotsLeft !== null)
+                                                    — {{ $slotsLeft }} slot{{ $slotsLeft === 1 ? '' : 's' }} left
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
                         @endif
@@ -349,7 +387,10 @@ function updateScheduleDate(sel) {
     if (opt.dataset.date) {
         document.getElementById('tourDate').value = opt.dataset.date;
     }
-    // Update price from the selected departure date (stored as data-price on the option)
+    // Sync hidden schedule_id field
+    const schedInput = document.getElementById('hiddenScheduleId');
+    if (schedInput) schedInput.value = opt.dataset.scheduleId || '';
+    // Update price from the selected departure date
     const datePrice = parseFloat(opt.dataset.price);
     if (!isNaN(datePrice) && datePrice > 0) {
         currentPrice = datePrice;

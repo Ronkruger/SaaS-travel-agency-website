@@ -657,9 +657,28 @@ h4 { font-size: 1.25rem; }
     border-bottom: 1px solid var(--gray-100);
     font-size: .875rem;
     transition: opacity .15s;
+    color: inherit;
+    text-decoration: none;
 }
 .departure-date-row:last-child { border-bottom: none; }
 .departure-date-row--full .dep-date-label { opacity: .45; text-decoration: line-through; }
+.departure-date-row--available {
+    cursor: pointer;
+    border-radius: .375rem;
+    padding-left: .5rem;
+    padding-right: .5rem;
+    margin-left: -.5rem;
+    margin-right: -.5rem;
+}
+.departure-date-row--available:hover {
+    background: #eff6ff;
+    text-decoration: none;
+    color: inherit;
+}
+.departure-date-row--available:hover .dep-date-label {
+    color: var(--primary);
+    font-weight: 600;
+}
 .seats-badge {
     display: inline-flex;
     align-items: center;

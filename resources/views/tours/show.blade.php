@@ -609,8 +609,17 @@
                                 @php
                                     $remaining = $sched->available_seats - $sched->booked_seats;
                                     $isFull    = $remaining <= 0 || $sched->status === 'sold_out';
+                                    @auth
+                                        $bookUrl = route('booking.create', ['tour_id' => $tour->id, 'schedule_id' => $sched->id, 'departure_date' => $sched->departure_date->format('Y-m-d')]);
+                                    @else
+                                        $bookUrl = route('login');
+                                    @endauth
                                 @endphp
-                                <div class="departure-date-row {{ $isFull ? 'departure-date-row--full' : '' }}" data-start="{{ $sched->departure_date->format('Y-m-d') }}">
+                                @if($isFull)
+                                    <div class="departure-date-row departure-date-row--full" data-start="{{ $sched->departure_date->format('Y-m-d') }}">
+                                @else
+                                    <a href="{{ $bookUrl }}" class="departure-date-row departure-date-row--available" data-start="{{ $sched->departure_date->format('Y-m-d') }}" title="Click to book this date">
+                                @endif
                                     <span class="dep-date-label">
                                         {{ $sched->departure_date->format('M d') }}
                                         &ndash;
@@ -620,12 +629,14 @@
                                         <span class="seats-badge seats-full">FULL</span>
                                     @elseif($remaining <= 5)
                                         <span class="seats-badge seats-low">{{ $remaining }} slot{{ $remaining == 1 ? '' : 's' }} left</span>
-                                    @elseif($remaining > 5)
-                                        <span class="seats-badge seats-open">{{ $remaining }} slots open</span>
                                     @else
-                                        <span class="seats-badge seats-open">Available</span>
+                                        <span class="seats-badge seats-open">{{ $remaining }} slots open</span>
                                     @endif
-                                </div>
+                                @if($isFull)
+                                    </div>
+                                @else
+                                    </a>
+                                @endif
                             @endforeach
                         </div>
                     @else
@@ -640,8 +651,17 @@
                                     $remaining = $maxCap !== null ? $maxCap - $booked : null;
                                     $isFull    = ($date['isAvailable'] ?? true) === false
                                                  || ($remaining !== null && $remaining <= 0);
+                                    @auth
+                                        $bookUrl = route('booking.create', array_filter(['tour_id' => $tour->id, 'departure_date' => $date['start']]));
+                                    @else
+                                        $bookUrl = route('login');
+                                    @endauth
                                 @endphp
-                                <div class="departure-date-row {{ $isFull ? 'departure-date-row--full' : '' }}" data-start="{{ $date['start'] }}">
+                                @if($isFull)
+                                    <div class="departure-date-row departure-date-row--full" data-start="{{ $date['start'] }}">
+                                @else
+                                    <a href="{{ $bookUrl }}" class="departure-date-row departure-date-row--available" data-start="{{ $date['start'] }}" title="Click to book this date">
+                                @endif
                                     <span class="dep-date-label">
                                         {{ \Carbon\Carbon::parse($date['start'])->format('M d') }}
                                         &ndash;
@@ -656,7 +676,11 @@
                                     @else
                                         <span class="seats-badge seats-open">Available</span>
                                     @endif
-                                </div>
+                                @if($isFull)
+                                    </div>
+                                @else
+                                    </a>
+                                @endif
                             @endforeach
                         </div>
                     @endif
