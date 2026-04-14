@@ -131,11 +131,11 @@
             <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="header-breadcrumb">
+            <div class="header-breadcrumb" style="flex:1">
                 @yield('breadcrumb')
             </div>
             <!-- Notification Bell -->
-            <div id="notif-wrap" style="position:relative;margin-right:.75rem">
+            <div id="notif-wrap" style="position:relative;margin-left:auto">
                 <button id="notif-btn" onclick="toggleNotifDropdown()" style="background:none;border:none;cursor:pointer;position:relative;padding:6px 8px;color:var(--gray-600);font-size:1.15rem" title="Notifications">
                     <i class="fas fa-bell"></i>
                     <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;border-radius:99px;padding:1px 4px;min-width:16px;text-align:center;line-height:1.4"></span>

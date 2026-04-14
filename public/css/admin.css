@@ -143,8 +143,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     padding: 0 2rem;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
     gap: 1rem;
+    overflow: visible;
 }
 .sidebar-toggle {
     display: none;
