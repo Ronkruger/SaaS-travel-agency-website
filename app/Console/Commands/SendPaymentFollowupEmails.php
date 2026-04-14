@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Mail;
 class SendPaymentFollowupEmails extends Command
 {
     protected $signature   = 'bookings:payment-followup';
-    protected $description = 'Send installment payment reminders due in 1 or 7 days';
+    protected $description = 'Send installment payment reminders due in 5 days or due today';
 
     public function handle(): int
     {
@@ -33,10 +33,10 @@ class SendPaymentFollowupEmails extends Command
                     continue;
                 }
 
-                $dueDate     = Carbon::parse($term['due_date']);
+                $dueDate      = Carbon::parse($term['due_date']);
                 $daysUntilDue = (int) $today->diffInDays($dueDate, false); // negative = overdue
 
-                if (!in_array($daysUntilDue, [1, 7])) {
+                if (!in_array($daysUntilDue, [0, 5])) {
                     continue;
                 }
 
@@ -44,7 +44,8 @@ class SendPaymentFollowupEmails extends Command
                     Mail::to($booking->contact_email)
                         ->send(new PaymentFollowupMail($booking, $term, $daysUntilDue));
                     $sent++;
-                    $this->line("  ✓ Sent to {$booking->contact_email} [{$booking->booking_number} — Term {$term['term']}] (due in {$daysUntilDue}d)");
+                    $label = $daysUntilDue === 0 ? 'DUE TODAY' : "due in {$daysUntilDue}d";
+                    $this->line("  ✓ Sent to {$booking->contact_email} [{$booking->booking_number} — Term {$term['term']}] ({$label})");
                 } catch (\Throwable $e) {
                     $skip++;
                     Log::error(

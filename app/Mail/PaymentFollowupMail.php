@@ -17,14 +17,21 @@ class PaymentFollowupMail extends Mailable
         public readonly Booking $booking,
         public readonly array   $term,
         public readonly int     $daysUntilDue,
+        public readonly bool    $isManual = false,
     ) {}
 
     public function envelope(): Envelope
     {
-        $urgency = $this->daysUntilDue === 1 ? '⚠️ Due Tomorrow' : '📅 Due in 7 Days';
+        if ($this->daysUntilDue === 0) {
+            $urgency = '🔔 Payment Due Today';
+        } elseif ($this->daysUntilDue <= 5) {
+            $urgency = "📅 Payment Due in {$this->daysUntilDue} Days";
+        } else {
+            $urgency = "📅 Upcoming Payment Reminder";
+        }
 
         return new Envelope(
-            subject: "{$urgency}: Installment Payment — {$this->booking->booking_number}",
+            subject: "{$urgency} — {$this->booking->booking_number}",
         );
     }
 

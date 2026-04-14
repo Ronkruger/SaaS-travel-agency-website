@@ -57,6 +57,16 @@
                 <i class="fas fa-envelope"></i> Email PDF
             </button>
         </form>
+        @if($booking->payment_method === 'installment')
+        <form action="{{ route('admin.bookings.send-payment-reminder', $booking) }}" method="POST" style="display:inline"
+              onsubmit="return confirm('Send a payment reminder email to {{ $booking->contact_email }}?')">
+            @csrf
+            <button type="submit" class="btn btn-outline" title="Send next pending installment reminder"
+                style="color:#ca8a04;border-color:#fde047">
+                <i class="fas fa-bell"></i> Send Reminder
+            </button>
+        </form>
+        @endif
         <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline">
             <i class="fas fa-arrow-left"></i> Back
         </a>
@@ -366,6 +376,17 @@
                                         </div>
                                     @endif
                                 </form>
+                                @if(($term['status'] ?? '') !== 'paid')
+                                <form action="{{ route('admin.bookings.send-payment-reminder', $booking) }}" method="POST" style="display:inline;margin-top:.3rem"
+                                      onsubmit="return confirm('Send payment reminder for Term {{ $term['term'] }} to {{ addslashes($booking->contact_email) }}?')"
+                                      >
+                                    @csrf
+                                    <input type="hidden" name="term" value="{{ $term['term'] }}">
+                                    <button type="submit" class="btn btn-xs btn-ghost" style="color:#ca8a04;white-space:nowrap;margin-top:.25rem" title="Send reminder email for this term">
+                                        <i class="fas fa-bell"></i> Remind
+                                    </button>
+                                </form>
+                                @endif
                             </td>
                         </tr>
                         @endforeach

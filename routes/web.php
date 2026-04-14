@@ -235,6 +235,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::get('/bookings/{booking}/pdf', [BookingPdfController::class, 'preview'])->name('bookings.pdf.preview');
     Route::get('/bookings/{booking}/pdf/download', [BookingPdfController::class, 'download'])->name('bookings.pdf.download');
     Route::post('/bookings/{booking}/pdf/email', [BookingPdfController::class, 'email'])->name('bookings.pdf.email');
+    Route::post('/bookings/{booking}/send-payment-reminder', [AdminBookingController::class, 'sendPaymentReminder'])->name('bookings.send-payment-reminder');
 
     // Booking Import (CSV)
     Route::get('/import', [BookingImportController::class, 'index'])->name('import.index');

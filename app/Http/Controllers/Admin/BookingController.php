@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmationMail;
+use App\Mail\PaymentFollowupMail;
 use App\Models\AdminActivityLog;
 use App\Models\Booking;
 use App\Models\BookingNote;
@@ -202,6 +203,58 @@ class BookingController extends Controller
         $booking->update(['second_payment_status' => $validated['second_payment_status'] ?: null]);
 
         return back()->with('success', '2nd payment status updated.');
+    }
+
+    public function sendPaymentReminder(Request $request, Booking $booking)
+    {
+        if ($booking->payment_method !== 'installment') {
+            return back()->with('error', 'This booking does not use installment payments.');
+        }
+
+        $schedule = $booking->installment_schedule ?? [];
+        $termNum  = $request->input('term');
+
+        // Find the target term — specific term if provided, else next pending
+        $term = null;
+        if ($termNum !== null) {
+            foreach ($schedule as $t) {
+                if ((string) ($t['term'] ?? '') === (string) $termNum) {
+                    $term = $t;
+                    break;
+                }
+            }
+        } else {
+            foreach ($schedule as $t) {
+                if (($t['status'] ?? '') !== 'paid') {
+                    $term = $t;
+                    break;
+                }
+            }
+        }
+
+        if (!$term) {
+            return back()->with('error', 'No pending installment term found to send a reminder for.');
+        }
+
+        $daysUntilDue = (int) now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($term['due_date']), false);
+
+        try {
+            Mail::to($booking->contact_email)
+                ->send(new PaymentFollowupMail($booking, $term, $daysUntilDue, isManual: true));
+
+            $termLabel = $term['type'] === 'downpayment' ? 'down payment' : "term {$term['term']}";
+            AdminActivityLog::record(
+                auth('admin')->user(),
+                'manual_payment_reminder',
+                "Sent manual payment reminder to {$booking->contact_email} for {$booking->booking_number} ({$termLabel})",
+                $booking
+            );
+        } catch (\Throwable $e) {
+            Log::error("Manual payment reminder failed for {$booking->booking_number}: " . $e->getMessage());
+            return back()->with('error', 'Failed to send email: ' . $e->getMessage());
+        }
+
+        return back()->with('success', "Payment reminder sent to {$booking->contact_email}.");
     }
 
     public function destroy(Booking $booking)

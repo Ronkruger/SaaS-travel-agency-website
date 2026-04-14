@@ -49,14 +49,25 @@
     <div class="body">
         <p class="greeting">Hi <strong>{{ $booking->contact_name }}</strong>,</p>
 
-        @if($daysUntilDue === 1)
+        @if($isManual ?? false)
+            <div class="alert alert-warning">
+                <strong>📋 Payment Reminder from DiscoverGRP</strong><br>
+                Our team is reaching out to remind you about your upcoming installment payment.
+                Please settle this at your earliest convenience to keep your booking active.
+            </div>
+        @elseif($daysUntilDue === 0)
             <div class="alert alert-urgent">
-                <strong>⚠️ Your installment payment is due tomorrow!</strong><br>
-                Please make sure to settle this payment on time to keep your booking active.
+                <strong>🔔 Your installment payment is due today!</strong><br>
+                Please settle this payment today to keep your booking active and avoid any issues.
+            </div>
+        @elseif($daysUntilDue <= 5)
+            <div class="alert alert-warning">
+                <strong>📅 Your installment payment is due in {{ $daysUntilDue }} day{{ $daysUntilDue > 1 ? 's' : '' }}.</strong><br>
+                Please plan ahead and ensure your payment is completed before the due date.
             </div>
         @else
             <div class="alert alert-warning">
-                <strong>📅 Friendly reminder: your installment payment is due in {{ $daysUntilDue }} days.</strong><br>
+                <strong>📅 Friendly reminder: upcoming installment payment.</strong><br>
                 Please plan ahead and ensure your payment is completed before the due date.
             </div>
         @endif
