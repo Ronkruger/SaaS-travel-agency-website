@@ -8,18 +8,30 @@ use App\Models\User;
 
 class BookingPolicy
 {
+    private function userOwnsBooking(User $user, Booking $booking): bool
+    {
+        if ($user->id === $booking->user_id) {
+            return true;
+        }
+
+        // Allow access to imported bookings (no user_id) where the contact name matches
+        if ($booking->user_id === null && $booking->contact_name !== null) {
+            return strtolower(trim($booking->contact_name)) === strtolower(trim($user->name));
+        }
+
+        return false;
+    }
+
     /**
      * Determine if the user can view the booking.
      */
     public function view(User|AdminUser $user, Booking $booking): bool
     {
-        // Admin can view any booking
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Users can only view their own bookings
-        return $user->id === $booking->user_id;
+        return $this->userOwnsBooking($user, $booking);
     }
 
     /**
@@ -27,13 +39,11 @@ class BookingPolicy
      */
     public function update(User|AdminUser $user, Booking $booking): bool
     {
-        // Admin can update any booking
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Users can only update their own bookings
-        return $user->id === $booking->user_id;
+        return $this->userOwnsBooking($user, $booking);
     }
 
     /**
@@ -41,12 +51,10 @@ class BookingPolicy
      */
     public function cancel(User|AdminUser $user, Booking $booking): bool
     {
-        // Admin can cancel any booking
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Users can only cancel their own bookings
-        return $user->id === $booking->user_id;
+        return $this->userOwnsBooking($user, $booking);
     }
 }

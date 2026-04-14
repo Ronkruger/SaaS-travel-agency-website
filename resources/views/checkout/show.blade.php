@@ -128,12 +128,18 @@
                                         @else
                                             <form method="POST" action="{{ route('checkout.installment.pay', [$booking, $term['term']]) }}" style="display:inline">
                                                 @csrf
-                                                <button type="submit"
-                                                    style="background:#1e3a5f;color:#fff;border:none;border-radius:.4rem;padding:.3rem .75rem;font-size:.82rem;cursor:pointer;white-space:nowrap"
-                                                    onclick="this.disabled=true;this.textContent='Processing…';this.form.submit()">
-                                                    <i class="fas fa-credit-card"></i>
-                                                    Pay ₱{{ number_format($term['amount'], 0) }}
-                                                </button>
+                                                <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem">
+                                                    <button type="submit"
+                                                        style="background:#1e3a5f;color:#fff;border:none;border-radius:.4rem;padding:.3rem .75rem;font-size:.82rem;cursor:pointer;white-space:nowrap"
+                                                        onclick="this.disabled=true;this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Processing…';this.form.submit()">
+                                                        <i class="fas fa-credit-card"></i>
+                                                        Pay ₱{{ number_format($term['amount'], 0) }}
+                                                    </button>
+                                                    <input type="number" name="custom_amount" min="1" step="1"
+                                                        placeholder="Or custom ₱"
+                                                        style="width:120px;padding:.25rem .4rem;font-size:.75rem;border:1px solid #cbd5e1;border-radius:.35rem;text-align:right"
+                                                        title="Enter a different amount (e.g. ₱30,000 covers 2 months)">
+                                                </div>
                                             </form>
                                         @endif
                                     </td>
@@ -150,6 +156,36 @@
                                 </tr>
                             </tfoot>
                         </table>
+                        </div>
+                        @endif
+
+                        {{-- Pay remaining balance block --}}
+                        @php
+                            $pendingTerms = collect($schedule)->where('status', '!=', 'paid');
+                            $remainingBalance = $pendingTerms->sum('amount');
+                        @endphp
+                        @if($booking->payment_method === 'installment' && $remainingBalance > 0)
+                        <div style="margin-top:1.25rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:.75rem;padding:1rem 1.25rem">
+                            <strong style="font-size:.9rem"><i class="fas fa-wallet" style="color:#0284c7"></i> Pay Remaining Balance</strong>
+                            <p style="margin:.35rem 0 .75rem;font-size:.85rem;color:#374151">
+                                Outstanding: <strong>₱{{ number_format($remainingBalance, 2) }}</strong> across {{ $pendingTerms->count() }} pending term(s).
+                                Enter a custom amount below — it will automatically cover as many months as possible.
+                            </p>
+                            <form method="POST" action="{{ route('checkout.pay-balance', $booking) }}" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+                                @csrf
+                                <div style="display:flex;align-items:center;border:1px solid #93c5fd;border-radius:.5rem;overflow:hidden;background:#fff">
+                                    <span style="padding:.45rem .75rem;background:#e0f2fe;color:#0369a1;font-weight:700;font-size:.9rem;border-right:1px solid #93c5fd">₱</span>
+                                    <input type="number" name="custom_amount" min="1" step="1"
+                                        placeholder="{{ number_format($remainingBalance, 0) }}"
+                                        style="padding:.45rem .75rem;border:none;outline:none;font-size:.9rem;width:150px">
+                                </div>
+                                <button type="submit"
+                                    style="background:#0284c7;color:#fff;border:none;border-radius:.5rem;padding:.5rem 1.25rem;font-size:.875rem;font-weight:600;cursor:pointer"
+                                    onclick="this.disabled=true;this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Processing…';this.form.submit()">
+                                    <i class="fas fa-credit-card"></i> Pay via Xendit
+                                </button>
+                            </form>
+                            <p style="margin:.5rem 0 0;font-size:.75rem;color:#6b7280">Leave blank to pay the full remaining balance of ₱{{ number_format($remainingBalance, 2) }}</p>
                         </div>
                         @endif
 

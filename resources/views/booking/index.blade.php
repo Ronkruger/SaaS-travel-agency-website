@@ -90,6 +90,14 @@
                 </a>
             </div>
         @endif
+
+        <div class="text-center mt-5 pt-3" style="border-top:1px solid #eee;">
+            <p class="text-muted">
+                <i class="fas fa-link"></i>
+                Booked with us before but don't see your reservation?
+                <a href="{{ route('booking.claim.show') }}" class="fw-semibold">Link your existing booking &rarr;</a>
+            </p>
+        </div>
     </div>
 </section>
 @endsection

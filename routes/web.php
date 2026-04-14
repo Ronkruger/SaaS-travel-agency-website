@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\EmailLogController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\BookingClaimController;
 use App\Http\Controllers\Admin\AdminStaffController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use Illuminate\Support\Facades\Route;
@@ -122,7 +123,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/{booking}', [CheckoutController::class, 'process'])->name('process');
         Route::get('/{booking}/confirmation', [CheckoutController::class, 'confirmation'])->name('confirmation');
         Route::post('/{booking}/installment/{term}', [CheckoutController::class, 'payInstallmentTerm'])->name('installment.pay');
+        Route::post('/{booking}/pay-balance', [CheckoutController::class, 'payBalance'])->name('pay-balance');
     });
+
+    // Booking claim (for imported clients to link their booking to their account)
+    Route::get('/bookings/claim', [BookingClaimController::class, 'show'])->name('booking.claim.show');
+    Route::post('/bookings/claim', [BookingClaimController::class, 'claim'])->name('booking.claim')->middleware('throttle:sensitive');
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');

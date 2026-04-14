@@ -19,6 +19,68 @@ use Xendit\Invoice\CreateInvoiceRequest;
 class XenditController extends Controller
 {
     /**
+     * Create a Xendit Invoice covering multiple installment terms (or a custom amount).
+     * $coveredTerms = [['index' => int, 'term' => array, 'paid_amount' => float], ...]
+     * The external_id encodes all term numbers so the webhook can mark them all paid.
+     */
+    public static function createMultiTermInvoice(Booking $booking, array $coveredTerms, float $totalAmount): string
+    {
+        Configuration::setXenditKey(config('xendit.secret_key'));
+        $apiInstance = new InvoiceApi();
+
+        // Build term labels and items
+        $termNumbers = array_column($coveredTerms, null, 'term');
+        $termNums    = array_map(fn($c) => $c['term']['term'], $coveredTerms);
+        $firstTerm   = $coveredTerms[0]['term']['term'];
+
+        $termLabels = array_map(fn($c) => $c['term']['term'] === 0 ? 'Down Payment' : 'Month ' . $c['term']['term'], $coveredTerms);
+        $description = count($coveredTerms) === 1
+            ? 'Installment ' . $termLabels[0] . ': ' . $booking->tour->title
+            : 'Installment (' . implode(', ', $termLabels) . '): ' . $booking->tour->title;
+
+        // Encode term numbers in external_id: MULTITERM-{bookingId}-{t1}_{t2}_{t3}-{timestamp}
+        $termsStr    = implode('_', $termNums);
+        $externalId  = 'MULTITERM-' . $booking->id . '-' . $termsStr . '-' . time();
+
+        $items = array_map(fn($c) => [
+            'name'     => $booking->tour->title . ' — ' . ($c['term']['term'] === 0 ? 'Down Payment' : 'Month ' . $c['term']['term']),
+            'quantity' => 1,
+            'price'    => $c['paid_amount'],
+            'category' => 'Tour Installment',
+        ], $coveredTerms);
+
+        $createInvoiceRequest = new CreateInvoiceRequest([
+            'external_id'          => $externalId,
+            'amount'               => $totalAmount,
+            'description'          => $description,
+            'payer_email'          => $booking->contact_email ?: 'noreply@discovergrp.com',
+            'customer'             => [
+                'given_names'   => $booking->contact_name,
+                'email'         => $booking->contact_email ?: null,
+                'mobile_number' => $booking->contact_phone ?: null,
+            ],
+            'success_redirect_url' => route('xendit.installment.success', ['booking' => $booking->id, 'term' => $firstTerm]),
+            'failure_redirect_url' => route('xendit.failure', $booking),
+            'currency'             => 'PHP',
+            'items'                => $items,
+            'payment_methods'      => ['CREDIT_CARD', 'BPI', 'BDO', 'GCASH', 'GRABPAY', 'PAYMAYA'],
+        ]);
+
+        $invoice = $apiInstance->createInvoice($createInvoiceRequest);
+
+        // Store invoice ID on all covered schedule entries
+        $schedule = $booking->installment_schedule;
+        foreach ($coveredTerms as $covered) {
+            $schedule[$covered['index']]['xendit_invoice_id']  = $invoice->getId();
+            $schedule[$covered['index']]['xendit_paid_amount'] = $covered['paid_amount'];
+        }
+        $booking->update(['installment_schedule' => $schedule]);
+
+        return $invoice->getInvoiceUrl();
+    }
+
+    /**
+     * @deprecated Use createMultiTermInvoice instead.
      * Create a Xendit Invoice for a single installment term and return the pay URL.
      * Stores the invoice ID inside the schedule entry for later webhook verification.
      */
@@ -36,11 +98,11 @@ class XenditController extends Controller
             'external_id'          => 'INSTALLMENT-' . $booking->id . '-' . $term . '-' . time(),
             'amount'               => $amount,
             'description'          => 'Installment ' . $termLabel . ': ' . $booking->tour->title,
-            'payer_email'          => $booking->contact_email,
+            'payer_email'          => $booking->contact_email ?: 'noreply@discovergrp.com',
             'customer'             => [
                 'given_names'   => $booking->contact_name,
-                'email'         => $booking->contact_email,
-                'mobile_number' => $booking->contact_phone,
+                'email'         => $booking->contact_email ?: null,
+                'mobile_number' => $booking->contact_phone ?: null,
             ],
             'success_redirect_url' => route('xendit.installment.success', ['booking' => $booking->id, 'term' => $term]),
             'failure_redirect_url' => route('xendit.failure', $booking),
@@ -137,6 +199,78 @@ class XenditController extends Controller
         $externalId = $data['external_id'];
 
         Log::info('Xendit webhook received', ['external_id' => $externalId, 'status' => $status]);
+
+        // ── MULTI-TERM installment payment (custom amount / pay-balance) ──
+        if (str_starts_with($externalId, 'MULTITERM-')) {
+            // external_id format: MULTITERM-{bookingId}-{t1}_{t2}_{t3}-{timestamp}
+            preg_match('/^MULTITERM-(\d+)-([\d_]+)-/', $externalId, $m);
+            $booking     = Booking::find($m[1] ?? null);
+            $termNumbers = isset($m[2]) ? array_map('intval', explode('_', $m[2])) : [];
+
+            if (!$booking || empty($termNumbers)) {
+                return response()->json(['error' => 'Booking not found'], 404);
+            }
+
+            if ($status === 'PAID' || $status === 'SETTLED') {
+                DB::transaction(function () use ($booking, $termNumbers, $data) {
+                    $schedule  = $booking->installment_schedule ?? [];
+                    $paidTotal = (float) ($data['amount'] ?? 0);
+
+                    foreach ($schedule as &$entry) {
+                        if (in_array((int) $entry['term'], $termNumbers) && $entry['status'] !== 'paid') {
+                            $paidAmt = $entry['xendit_paid_amount'] ?? $entry['amount'];
+                            $entry['status']        = 'paid';
+                            $entry['paid_at']       = now()->toDateTimeString();
+                            $entry['custom_amount'] = $paidAmt != $entry['amount'] ? $paidAmt : null;
+                        }
+                    }
+                    unset($entry);
+
+                    $allPaid = collect($schedule)->every(fn($t) => $t['status'] === 'paid');
+
+                    $termLabels = implode(', ', array_map(fn($n) => $n === 0 ? 'Downpayment' : 'Month ' . $n, $termNumbers));
+                    Payment::create([
+                        'transaction_id'         => Payment::generateTransactionId(),
+                        'booking_id'             => $booking->id,
+                        'user_id'                => $booking->user_id,
+                        'amount'                 => $paidTotal,
+                        'currency'               => 'PHP',
+                        'method'                 => $data['payment_method'] ?? 'xendit',
+                        'status'                 => 'completed',
+                        'gateway_transaction_id' => $data['id'] ?? null,
+                        'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
+                        'notes'                  => 'Installment ' . $termLabels,
+                        'paid_at'                => now(),
+                    ]);
+
+                    $booking->update([
+                        'installment_schedule' => array_values($schedule),
+                        'status'               => 'confirmed',
+                        'payment_status'       => $allPaid ? 'paid' : 'partial',
+                    ]);
+
+                    // Notify all admins
+                    \App\Models\AdminNotification::broadcast(
+                        'payment_received',
+                        'Online Payment Received',
+                        $booking->booking_number . ' — ' . $booking->contact_name . ': ₱' . number_format($paidTotal, 2) . ' via Xendit (' . $termLabels . ')',
+                        route('admin.bookings.show', $booking),
+                    );
+                });
+
+                try {
+                    if ($booking->contact_email) {
+                        $booking->refresh()->load('tour');
+                        Mail::to($booking->contact_email)
+                            ->send(new BookingConfirmationMail($booking, 'Payment Received', true));
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send multi-term confirmation email: ' . $e->getMessage());
+                }
+            }
+
+            return response()->json(['success' => true]);
+        }
 
         // ── INSTALLMENT term payment ──────────────────────────────────────
         if (str_starts_with($externalId, 'INSTALLMENT-')) {
