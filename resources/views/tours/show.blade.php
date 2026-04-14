@@ -609,11 +609,9 @@
                                 @php
                                     $remaining = $sched->available_seats - $sched->booked_seats;
                                     $isFull    = $remaining <= 0 || $sched->status === 'sold_out';
-                                    @auth
-                                        $bookUrl = route('booking.create', ['tour_id' => $tour->id, 'schedule_id' => $sched->id, 'departure_date' => $sched->departure_date->format('Y-m-d')]);
-                                    @else
-                                        $bookUrl = route('login');
-                                    @endauth
+                                    $bookUrl   = auth()->check()
+                                        ? route('booking.create', ['tour_id' => $tour->id, 'schedule_id' => $sched->id, 'departure_date' => $sched->departure_date->format('Y-m-d')])
+                                        : route('login');
                                 @endphp
                                 @if($isFull)
                                     <div class="departure-date-row departure-date-row--full" data-start="{{ $sched->departure_date->format('Y-m-d') }}">
@@ -651,11 +649,9 @@
                                     $remaining = $maxCap !== null ? $maxCap - $booked : null;
                                     $isFull    = ($date['isAvailable'] ?? true) === false
                                                  || ($remaining !== null && $remaining <= 0);
-                                    @auth
-                                        $bookUrl = route('booking.create', array_filter(['tour_id' => $tour->id, 'departure_date' => $date['start']]));
-                                    @else
-                                        $bookUrl = route('login');
-                                    @endauth
+                                    $bookUrl   = auth()->check()
+                                        ? route('booking.create', array_filter(['tour_id' => $tour->id, 'departure_date' => $date['start']]))
+                                        : route('login');
                                 @endphp
                                 @if($isFull)
                                     <div class="departure-date-row departure-date-row--full" data-start="{{ $date['start'] }}">
