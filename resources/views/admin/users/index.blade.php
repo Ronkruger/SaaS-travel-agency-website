@@ -26,8 +26,8 @@
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
-        <table class="data-table">
+    <div class="card-body p-0" style="overflow-x:auto">
+        <table class="data-table" style="min-width:700px">
             <thead>
                 <tr>
                     <th>Name</th>
