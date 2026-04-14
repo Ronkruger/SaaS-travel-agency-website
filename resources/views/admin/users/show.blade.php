@@ -214,9 +214,20 @@
                 </div>
                 <h3 style="margin-bottom:.25rem;">{{ $user->name }}</h3>
                 <p class="text-muted" style="font-size:.875rem;">{{ $user->email }}</p>
-                <span class="status-badge {{ $user->isAdmin() ? 'status-confirmed' : 'status-completed' }}" style="margin-top:.5rem;">
-                    {{ $user->isAdmin() ? 'Admin' : 'Customer' }}
-                </span>
+                <div style="display:flex;gap:.375rem;justify-content:center;flex-wrap:wrap;margin-top:.5rem">
+                    <span class="status-badge {{ $user->isAdmin() ? 'status-confirmed' : 'status-completed' }}">
+                        {{ $user->isAdmin() ? 'Admin' : 'Customer' }}
+                    </span>
+                    @if($user->auth0_id)
+                        <span style="background:#ede9fe;color:#5b21b6;padding:.2rem .6rem;border-radius:1rem;font-size:.75rem;font-weight:600;">
+                            <i class="fas fa-shield-alt"></i> Auth0
+                        </span>
+                    @else
+                        <span style="background:#dbeafe;color:#1e40af;padding:.2rem .6rem;border-radius:1rem;font-size:.75rem;font-weight:600;">
+                            <i class="fas fa-envelope"></i> Email Sign-up
+                        </span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -282,6 +293,16 @@
                 <p style="font-size:.875rem;color:var(--gray-500);margin-top:.375rem;">
                     <i class="fa-solid fa-clock"></i>
                     Last updated {{ $user->updated_at->diffForHumans() }}
+                </p>
+                <p style="font-size:.875rem;color:var(--gray-500);margin-top:.375rem;">
+                    @if($user->auth0_id)
+                        <i class="fas fa-shield-alt" style="color:#7c3aed"></i>
+                        Registered via <strong>Auth0</strong>
+                        <br><span style="font-size:.75rem;word-break:break-all;opacity:.6;">{{ $user->auth0_id }}</span>
+                    @else
+                        <i class="fas fa-envelope" style="color:#1e40af"></i>
+                        Registered via <strong>Email / Password</strong>
+                    @endif
                 </p>
             </div>
         </div>

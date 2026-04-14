@@ -34,6 +34,7 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Country</th>
+                    <th>Auth</th>
                     <th>Bookings</th>
                     <th>Joined</th>
                     <th></th>
@@ -46,6 +47,17 @@
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->phone ?? '—' }}</td>
                         <td>{{ $user->country ?? '—' }}</td>
+                        <td>
+                            @if($user->auth0_id)
+                                <span style="display:inline-flex;align-items:center;gap:.3rem;background:#ede9fe;color:#5b21b6;padding:.2rem .55rem;border-radius:1rem;font-size:.75rem;font-weight:600;white-space:nowrap">
+                                    <i class="fas fa-shield-alt"></i> Auth0
+                                </span>
+                            @else
+                                <span style="display:inline-flex;align-items:center;gap:.3rem;background:#dbeafe;color:#1e40af;padding:.2rem .55rem;border-radius:1rem;font-size:.75rem;font-weight:600;white-space:nowrap">
+                                    <i class="fas fa-envelope"></i> Email
+                                </span>
+                            @endif
+                        </td>
                         <td>{{ $user->bookings_count }}</td>
                         <td>{{ $user->created_at->format('M d, Y') }}</td>
                         <td style="white-space:nowrap">
