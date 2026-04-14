@@ -88,6 +88,11 @@
                         @enderror
 
                         <div style="overflow-x:auto">
+                        @php
+                            $paidTerms    = collect($schedule)->where('status', 'paid');
+                            $nextPending  = collect($schedule)->where('status', '!=', 'paid')->first();
+                            $futurePending = collect($schedule)->where('status', '!=', 'paid')->skip(1);
+                        @endphp
                         <table style="width:100%;border-collapse:collapse;font-size:.9rem">
                             <thead>
                                 <tr style="background:#f1f5f9;color:#475569;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em">
@@ -101,51 +106,91 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($schedule as $term)
+                                {{-- Always show paid terms --}}
+                                @foreach($paidTerms as $term)
                                 <tr style="border-bottom:1px solid #e2e8f0{{ $term['type'] === 'downpayment' ? ';background:#f0fdf4' : '' }}">
                                     <td style="padding:.6rem .75rem">
-                                        @if($term['type'] === 'downpayment')
-                                            <strong>Down Payment</strong>
-                                        @else
-                                            Month {{ $term['term'] }}
-                                        @endif
+                                        @if($term['type'] === 'downpayment') <strong>Down Payment</strong>
+                                        @else Month {{ $term['term'] }} @endif
                                     </td>
                                     <td style="padding:.6rem .75rem">{{ \Carbon\Carbon::parse($term['due_date'])->format('M d, Y') }}</td>
                                     <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format($term['amount'], 2) }}</td>
                                     <td style="padding:.6rem .75rem;text-align:center">
-                                        @if($term['status'] === 'paid')
-                                            <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
-                                                <i class="fas fa-check"></i> Paid
-                                            </span>
-                                        @else
-                                            <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
-                                        @endif
+                                        <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
+                                            <i class="fas fa-check"></i> Paid
+                                        </span>
                                     </td>
                                     @if($booking->payment_method === 'installment')
                                     <td style="padding:.5rem .75rem;text-align:center">
-                                        @if($term['status'] === 'paid')
-                                            <span style="color:#86efac;font-size:.85rem"><i class="fas fa-check-circle"></i></span>
-                                        @else
-                                            <form method="POST" action="{{ route('checkout.installment.pay', [$booking, $term['term']]) }}" style="display:inline">
-                                                @csrf
-                                                <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem">
-                                                    <button type="submit"
-                                                        style="background:#1e3a5f;color:#fff;border:none;border-radius:.4rem;padding:.3rem .75rem;font-size:.82rem;cursor:pointer;white-space:nowrap"
-                                                        onclick="this.disabled=true;this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Processing…';this.form.submit()">
-                                                        <i class="fas fa-credit-card"></i>
-                                                        Pay ₱{{ number_format($term['amount'], 0) }}
-                                                    </button>
-                                                    <input type="number" name="custom_amount" min="1" step="1"
-                                                        placeholder="Or custom ₱"
-                                                        style="width:120px;padding:.25rem .4rem;font-size:.75rem;border:1px solid #cbd5e1;border-radius:.35rem;text-align:right"
-                                                        title="Enter a different amount (e.g. ₱30,000 covers 2 months)">
-                                                </div>
-                                            </form>
-                                        @endif
+                                        <span style="color:#86efac;font-size:.85rem"><i class="fas fa-check-circle"></i></span>
                                     </td>
                                     @endif
                                 </tr>
                                 @endforeach
+
+                                {{-- Show only the next pending term --}}
+                                @if($nextPending)
+                                @php $term = $nextPending; @endphp
+                                <tr style="border-bottom:1px solid #e2e8f0;background:#fffbeb">
+                                    <td style="padding:.6rem .75rem">
+                                        @if($term['type'] === 'downpayment') <strong>Down Payment</strong>
+                                        @else Month {{ $term['term'] }} @endif
+                                    </td>
+                                    <td style="padding:.6rem .75rem">{{ \Carbon\Carbon::parse($term['due_date'])->format('M d, Y') }}</td>
+                                    <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format($term['amount'], 2) }}</td>
+                                    <td style="padding:.6rem .75rem;text-align:center">
+                                        <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
+                                    </td>
+                                    @if($booking->payment_method === 'installment')
+                                    <td style="padding:.5rem .75rem;text-align:center">
+                                        <form method="POST" action="{{ route('checkout.installment.pay', [$booking, $term['term']]) }}" style="display:inline">
+                                            @csrf
+                                            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem">
+                                                <button type="submit"
+                                                    style="background:#1e3a5f;color:#fff;border:none;border-radius:.4rem;padding:.3rem .75rem;font-size:.82rem;cursor:pointer;white-space:nowrap"
+                                                    onclick="this.disabled=true;this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Processing…';this.form.submit()">
+                                                    <i class="fas fa-credit-card"></i>
+                                                    Pay ₱{{ number_format($term['amount'], 0) }}
+                                                </button>
+                                                <input type="number" name="custom_amount" min="1" step="1"
+                                                    placeholder="Or custom ₱"
+                                                    style="width:120px;padding:.25rem .4rem;font-size:.75rem;border:1px solid #cbd5e1;border-radius:.35rem;text-align:right"
+                                                    title="Enter a different amount (e.g. ₱30,000 covers 2 months)">
+                                            </div>
+                                        </form>
+                                    </td>
+                                    @endif
+                                </tr>
+                                @endif
+
+                                {{-- Collapsed future terms --}}
+                                @if($futurePending->count())
+                                <tr id="futureTermsToggleRow" style="border-bottom:1px solid #e2e8f0;background:#f8fafc">
+                                    <td colspan="{{ $booking->payment_method === 'installment' ? 5 : 4 }}" style="padding:.5rem .75rem;text-align:center">
+                                        <button type="button" onclick="toggleFutureTerms()"
+                                            id="futureTermsBtn"
+                                            style="background:none;border:none;color:#1e3a5f;font-size:.85rem;cursor:pointer;font-weight:600;text-decoration:underline">
+                                            <i class="fas fa-chevron-down" id="futureTermsIcon"></i>
+                                            Show {{ $futurePending->count() }} upcoming term{{ $futurePending->count() > 1 ? 's' : '' }}
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tbody id="futureTermsBody" style="display:none">
+                                @foreach($futurePending as $term)
+                                <tr style="border-bottom:1px solid #e2e8f0;opacity:.75">
+                                    <td style="padding:.6rem .75rem">Month {{ $term['term'] }}</td>
+                                    <td style="padding:.6rem .75rem">{{ \Carbon\Carbon::parse($term['due_date'])->format('M d, Y') }}</td>
+                                    <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format($term['amount'], 2) }}</td>
+                                    <td style="padding:.6rem .75rem;text-align:center">
+                                        <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
+                                    </td>
+                                    @if($booking->payment_method === 'installment')
+                                    <td style="padding:.5rem .75rem;text-align:center;color:#94a3b8;font-size:.8rem">—</td>
+                                    @endif
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                @endif
                             </tbody>
                             <tfoot>
                                 <tr style="font-weight:700;background:#f8fafc">
@@ -288,6 +333,15 @@
 
 @push('scripts')
 <script>
+function toggleFutureTerms() {
+    const body = document.getElementById('futureTermsBody');
+    const icon = document.getElementById('futureTermsIcon');
+    const btn  = document.getElementById('futureTermsBtn');
+    const open = body.style.display === 'none' || body.style.display === '';
+    body.style.display = open ? 'table-row-group' : 'none';
+    icon.className = open ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+    btn.innerHTML  = (open ? '<i class="fas fa-chevron-up"></i> Hide upcoming terms' : '<i class="fas fa-chevron-down" id="futureTermsIcon"></i> Show upcoming terms');
+}
 // Payment method switching
 document.querySelectorAll('input[name=payment_method]').forEach(radio => {
     radio.addEventListener('change', function() {
