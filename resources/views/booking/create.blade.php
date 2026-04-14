@@ -395,6 +395,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const sel = document.querySelector('select[name="departure_date"]');
     if (sel && sel.value) {
         updateScheduleDate(sel);
+    } else if (sel && sel.options.length > 1) {
+        // Auto-select first non-disabled option if nothing pre-selected
+        for (let i = 1; i < sel.options.length; i++) {
+            if (!sel.options[i].disabled) {
+                sel.selectedIndex = i;
+                updateScheduleDate(sel);
+                break;
+            }
+        }
     } else {
         updateBookingSummary();
     }

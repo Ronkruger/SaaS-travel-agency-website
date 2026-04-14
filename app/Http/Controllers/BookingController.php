@@ -55,7 +55,7 @@ class BookingController extends Controller
         $validated = $request->validate([
             'tour_id'           => ['required', 'exists:tours,id'],
             'schedule_id'       => ['nullable', 'exists:tour_schedules,id'],
-            'tour_date'         => ['required', 'date', 'after_or_equal:today'],
+            'tour_date'         => ['required', 'date'],
             'adults'            => ['required', 'integer', 'min:1', 'max:50'],
             'children'          => ['required', 'integer', 'min:0', 'max:50'],
             'infants'           => ['required', 'integer', 'min:0', 'max:10'],
