@@ -50,4 +50,14 @@ class NotificationController extends Controller
 
         return response()->json(['ok' => true]);
     }
+
+    /** DELETE /admin/notifications/clear — delete ALL notifications for the current admin */
+    public function clearAll(): JsonResponse
+    {
+        $adminId = auth('admin')->id();
+
+        AdminNotification::where('admin_user_id', $adminId)->delete();
+
+        return response()->json(['ok' => true]);
+    }
 }

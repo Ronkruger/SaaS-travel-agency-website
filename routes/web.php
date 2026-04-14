@@ -211,7 +211,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings/bulk', [AdminBookingController::class, 'bulkAction'])->name('bookings.bulk')->middleware('admin.can:bulk_actions');
     Route::get('/bookings/schedules-for-tour', [AdminBookingController::class, 'schedulesForTour'])->name('bookings.schedules-for-tour');
-    Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
+    Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show')
+        ->missing(fn() => redirect()->route('admin.bookings.index')->with('error', 'Booking not found — it may have been deleted.'));
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
     Route::patch('/bookings/{booking}/payment-status', [AdminBookingController::class, 'updatePaymentStatus'])->name('bookings.payment-status');
     Route::patch('/bookings/{booking}/installment/{term}', [AdminBookingController::class, 'updateInstallmentTerm'])->name('bookings.installment-term');
@@ -295,6 +296,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::get('/notifications/unread', [NotificationController::class, 'unread'])->name('notifications.unread');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::delete('/notifications/clear', [NotificationController::class, 'clearAll'])->name('notifications.clear');
 
     // Branding / Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index')->middleware('admin.can:manage_settings');

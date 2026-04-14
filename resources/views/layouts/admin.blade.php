@@ -140,12 +140,15 @@
                     <i class="fas fa-bell"></i>
                     <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;border-radius:99px;padding:1px 4px;min-width:16px;text-align:center;line-height:1.4"></span>
                 </button>
-                <div id="notif-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:360px;background:#fff;border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:9999;max-height:420px;overflow-y:auto">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid var(--gray-100)">
+                <div id="notif-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:360px;background:#fff;border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:9999;overflow:hidden;flex-direction:column;max-height:460px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid var(--gray-100);flex-shrink:0">
                         <strong style="font-size:.875rem">Notifications</strong>
-                        <button onclick="markAllNotifRead()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--primary);padding:0">Mark all read</button>
+                        <div style="display:flex;gap:.75rem;align-items:center">
+                            <button onclick="markAllNotifRead()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--primary);padding:0">Mark all read</button>
+                            <button onclick="clearAllNotifs()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:#ef4444;padding:0">Clear all</button>
+                        </div>
                     </div>
-                    <div id="notif-list" style="padding:.25rem 0">
+                    <div id="notif-list" style="overflow-y:auto;flex:1;padding:.25rem 0">
                         <div style="padding:1.25rem;text-align:center;color:var(--gray-400);font-size:.8rem">Loading…</div>
                     </div>
                 </div>
@@ -311,7 +314,7 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
         const dd = document.getElementById('notif-dropdown');
         if (!dd) return;
         dropdownOpen = !dropdownOpen;
-        dd.style.display = dropdownOpen ? 'block' : 'none';
+        dd.style.display = dropdownOpen ? 'flex' : 'none';
         if (dropdownOpen) fetchNotifications();
     };
 
@@ -329,6 +332,14 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
     window.markAllNotifRead = function () {
         fetch('{{ route('admin.notifications.read-all') }}', {
             method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(() => fetchNotifications());
+    };
+
+    window.clearAllNotifs = function () {
+        if (!confirm('Clear all notifications?')) return;
+        fetch('{{ route('admin.notifications.clear') }}', {
+            method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
         }).then(() => fetchNotifications());
     };
