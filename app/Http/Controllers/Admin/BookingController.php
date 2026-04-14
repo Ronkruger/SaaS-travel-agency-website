@@ -125,18 +125,31 @@ class BookingController extends Controller
     public function updateInstallmentTerm(Request $request, Booking $booking, int $term)
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,paid'],
+            'status'        => ['required', 'in:pending,paid'],
+            'custom_amount' => ['nullable', 'numeric', 'min:1'],
         ]);
 
         $schedule = $booking->installment_schedule ?? [];
         $found = false;
+        $termLabel       = '';
+        $scheduledAmount = 0;
 
         foreach ($schedule as $index => $item) {
             if ((int) ($item['term'] ?? -1) === $term) {
+                $termLabel       = $item['type'] === 'downpayment' ? 'Down Payment' : 'Month ' . $term;
+                $scheduledAmount = (float) ($item['amount'] ?? 0);
+
                 $schedule[$index]['status']  = $validated['status'];
                 $schedule[$index]['paid_at'] = $validated['status'] === 'paid'
                     ? now()->toDateString()
                     : null;
+
+                if ($validated['status'] === 'paid' && !empty($validated['custom_amount'])) {
+                    $schedule[$index]['custom_amount'] = (float) $validated['custom_amount'];
+                } else {
+                    unset($schedule[$index]['custom_amount']);
+                }
+
                 $found = true;
                 break;
             }
@@ -159,6 +172,23 @@ class BookingController extends Controller
         $booking->installment_schedule = array_values($schedule);
         $booking->payment_status       = $paymentStatus;
         $booking->save();
+
+        // Fire a notification to all admins when a payment is marked paid
+        if ($validated['status'] === 'paid') {
+            $customAmt  = !empty($validated['custom_amount']) ? (float) $validated['custom_amount'] : $scheduledAmount;
+            $paidAmount = '₱' . number_format($customAmt, 2);
+            $isCustom   = !empty($validated['custom_amount']) && abs($customAmt - $scheduledAmount) > 0.01;
+            $note       = $isCustom
+                ? ' (custom — scheduled ₱' . number_format($scheduledAmount, 2) . ')'
+                : '';
+
+            \App\Models\AdminNotification::broadcast(
+                'payment_received',
+                'Payment Received',
+                $booking->booking_number . ' — ' . $booking->contact_name . ': ' . $termLabel . ' ' . $paidAmount . $note,
+                route('admin.bookings.show', $booking),
+            );
+        }
 
         return back()->with('success', 'Term ' . $term . ' marked as ' . $validated['status'] . '.');
     }

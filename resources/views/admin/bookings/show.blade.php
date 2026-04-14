@@ -335,6 +335,9 @@
                                         @if(!empty($term['paid_at']))
                                             <br><small>{{ \Carbon\Carbon::parse($term['paid_at'])->format('M d') }}</small>
                                         @endif
+                                        @if(!empty($term['custom_amount']) && $term['custom_amount'] != $term['amount'])
+                                            <br><small style="color:#2563eb">₱{{ number_format($term['custom_amount'], 2) }} paid</small>
+                                        @endif
                                     </span>
                                 @else
                                     <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
@@ -350,9 +353,17 @@
                                         </button>
                                     @else
                                         <input type="hidden" name="status" value="paid">
-                                        <button type="submit" class="btn btn-xs btn-primary" style="background:#16a34a;border-color:#16a34a">
-                                            <i class="fas fa-check"></i> Mark Paid
-                                        </button>
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:.35rem">
+                                            <button type="submit" class="btn btn-xs btn-primary" style="background:#16a34a;border-color:#16a34a;white-space:nowrap">
+                                                <i class="fas fa-check"></i> Mark Paid
+                                            </button>
+                                            <div style="display:flex;align-items:center;gap:.3rem">
+                                                <input type="number" name="custom_amount" min="1" step="0.01"
+                                                    placeholder="Custom ₱"
+                                                    style="width:110px;padding:.25rem .4rem;font-size:.75rem;border:1px solid #d1d5db;border-radius:.35rem;text-align:right"
+                                                    title="Leave blank to use scheduled amount ₱{{ number_format($term['amount'], 2) }}">
+                                            </div>
+                                        </div>
                                     @endif
                                 </form>
                             </td>
