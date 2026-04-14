@@ -204,12 +204,13 @@
                         </div>
                         @endif
 
-                        {{-- Pay remaining balance block --}}
+                        {{-- Pay remaining balance block — only after at least one term is paid --}}
                         @php
                             $pendingTerms = collect($schedule)->where('status', '!=', 'paid');
                             $remainingBalance = $pendingTerms->sum('amount');
+                            $paidCount = collect($schedule)->where('status', 'paid')->count();
                         @endphp
-                        @if($booking->payment_method === 'installment' && $remainingBalance > 0)
+                        @if($booking->payment_method === 'installment' && $remainingBalance > 0 && $paidCount > 0)
                         <div style="margin-top:1.25rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:.75rem;padding:1rem 1.25rem">
                             <strong style="font-size:.9rem"><i class="fas fa-wallet" style="color:#0284c7"></i> Pay Remaining Balance</strong>
                             <p style="margin:.35rem 0 .75rem;font-size:.85rem;color:#374151">
