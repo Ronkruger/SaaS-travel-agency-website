@@ -336,12 +336,10 @@
 <script>
 function toggleFutureTerms() {
     const body = document.getElementById('futureTermsBody');
-    const icon = document.getElementById('futureTermsIcon');
     const btn  = document.getElementById('futureTermsBtn');
     const open = body.style.display === 'none' || body.style.display === '';
     body.style.display = open ? 'table-row-group' : 'none';
-    icon.className = open ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
-    btn.innerHTML  = (open ? '<i class="fas fa-chevron-up"></i> Hide upcoming terms' : '<i class="fas fa-chevron-down" id="futureTermsIcon"></i> Show upcoming terms');
+    btn.innerHTML  = (open ? '<i class="fas fa-chevron-up" id="futureTermsIcon"></i> Hide upcoming terms' : '<i class="fas fa-chevron-down" id="futureTermsIcon"></i> Show upcoming terms');
 }
 // Payment method switching
 document.querySelectorAll('input[name=payment_method]').forEach(radio => {
