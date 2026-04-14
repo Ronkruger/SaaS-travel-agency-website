@@ -141,7 +141,7 @@ class BookingImportController extends Controller
 
                 $csvStatus     = trim($client['status'] ?? '');
                 $bookingStatus = $this->normalizeBookingStatus($csvStatus, $colJNotes);
-                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms, $colJNotes);
+                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms, $colJNotes, $total, $rate);
 
                 // Parse all parenthetical annotations from client name in a single pass
                 [$rawName, $annotations] = $this->parseClientName($client['client_name']);
@@ -300,7 +300,7 @@ class BookingImportController extends Controller
 
                 $csvStatus     = trim($client['status'] ?? '');
                 $bookingStatus = $this->normalizeBookingStatus($csvStatus, $colJNotes);
-                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms, $colJNotes);
+                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms, $colJNotes, $total, $rate);
 
                 // Parse annotations from client name in a single pass
                 [$rawName, $annotations] = $this->parseClientName($client['client_name']);
@@ -426,6 +426,11 @@ class BookingImportController extends Controller
 
                         $downpaymentAmount = $rate;
                         $remaining         = max(0, $total - $downpaymentAmount);
+
+                        // If downpayment covers the full total, the booking is fully paid
+                        if ($remaining <= 0 && $row['payment_status'] === 'partial') {
+                            $row['payment_status'] = 'paid';
+                        }
                         $monthlyAmount     = $installmentMonths > 1
                             ? (float) ceil($remaining / ($installmentMonths - 1))
                             : $remaining;
@@ -905,7 +910,7 @@ class BookingImportController extends Controller
         return 'pending';
     }
 
-    private function derivePaymentStatus(string $csvStatus, string $normalizedTerms, string $colJNotes = ''): string
+    private function derivePaymentStatus(string $csvStatus, string $normalizedTerms, string $colJNotes = '', float $total = 0, float $rate = 0): string
     {
         $s         = strtolower(trim($csvStatus));
         $noteLower = strtolower(trim($colJNotes));
@@ -917,7 +922,12 @@ class BookingImportController extends Controller
             return 'paid';
         }
         if ($s === 'paid') {
-            return in_array($normalizedTerms, ['cash']) ? 'paid' : 'partial';
+            if (in_array($normalizedTerms, ['cash'])) return 'paid';
+            // Downpayment/installment where the per-person rate covers the full total (e.g. pax=1)
+            if (in_array($normalizedTerms, ['downpayment', 'installment']) && $total > 0 && $rate >= $total) {
+                return 'paid';
+            }
+            return 'partial';
         }
         if (str_contains($s, 'booking confirmation')) return 'partial';
         return 'unpaid';
