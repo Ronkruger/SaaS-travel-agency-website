@@ -104,17 +104,9 @@
                             </div>
                         @endif
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label><i class="fas fa-calendar"></i> Tour Date *</label>
-                                <input type="date" name="tour_date"
-                                    value="{{ old('tour_date', now()->addDays(7)->format('Y-m-d')) }}"
-                                    min="{{ now()->format('Y-m-d') }}"
-                                    class="form-control @error('tour_date') is-invalid @enderror"
-                                    id="tourDate" required>
-                                @error('tour_date')<span class="invalid-feedback">{{ $message }}</span>@enderror
-                            </div>
-                        </div>
+                        {{-- Hidden tour_date — populated from the departure dropdown --}}
+                        <input type="hidden" name="tour_date" id="tourDate"
+                            value="{{ old('tour_date', request('departure_date', '')) }}">
 
                         <div class="guests-grid">
                             <div class="form-group">
