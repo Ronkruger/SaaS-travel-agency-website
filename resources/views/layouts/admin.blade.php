@@ -222,7 +222,9 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
 
 (function () {
     // Start on navigation (links that go to a new page)
+    // Skip if the event was already prevented (AJAX link handlers call e.preventDefault first)
     document.addEventListener('click', function (e) {
+        if (e.defaultPrevented) return;
         var a = e.target.closest('a[href]');
         if (!a) return;
         var href = a.getAttribute('href');
@@ -230,21 +232,25 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
         NProgress.start();
     });
 
-    // Start on form submission
-    document.addEventListener('submit', function () {
+    // Start on form submission only for real page-navigation submits
+    // (AJAX forms call e.preventDefault(), which sets e.defaultPrevented before bubbling here)
+    document.addEventListener('submit', function (e) {
+        if (e.defaultPrevented) return;
         NProgress.start();
     });
 
-    // Finish when page fully loads
-    window.addEventListener('pageshow', function () {
-        NProgress.done();
-    });
+    // Finish when page fully loads — only if NProgress was actually started
+    function safeDone() {
+        if (NProgress.status !== null) NProgress.done();
+        else NProgress.remove(); // ensure bar is hidden on fresh loads
+    }
 
-    // Also done on load (covers back/forward cache)
+    window.addEventListener('pageshow', safeDone);
+
     if (document.readyState === 'complete') {
-        NProgress.done();
+        safeDone();
     } else {
-        window.addEventListener('load', function () { NProgress.done(); });
+        window.addEventListener('load', safeDone);
     }
 })();
 </script>

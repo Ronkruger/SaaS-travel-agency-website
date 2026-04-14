@@ -569,16 +569,27 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     background: linear-gradient(90deg, #2563eb, #3b82f6);
     border-radius: 99px;
     width: 0%;
-    transition: width .15s ease;
+    transition: width .2s ease;
 }
 .upload-progress-fill.processing {
     background: linear-gradient(90deg, #f59e0b, #fbbf24);
-    animation: progress-indeterminate 1.5s ease-in-out infinite;
+    transition: none; /* disable width transition while indeterminate animation runs */
+    animation: progress-stripe 1.2s linear infinite;
+    background-size: 30px 100%;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255,255,255,.3) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255,255,255,.3) 50%,
+        rgba(255,255,255,.3) 75%,
+        transparent 75%,
+        transparent
+    );
 }
-@keyframes progress-indeterminate {
-    0%   { opacity: .7; }
-    50%  { opacity: 1; }
-    100% { opacity: .7; }
+@keyframes progress-stripe {
+    0%   { background-position: 30px 0; }
+    100% { background-position: 0 0; }
 }
 .upload-progress-text {
     font-size: .8125rem;

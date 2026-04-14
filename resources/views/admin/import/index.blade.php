@@ -469,6 +469,8 @@ document.getElementById('upload-form').addEventListener('submit', function (e) {
     });
 
     xhr.addEventListener('load', function () {
+        // Cleanly end NProgress before replacing the page to avoid back-and-forth glitch
+        if (typeof NProgress !== 'undefined') { NProgress.done(); NProgress.remove(); }
         // Replace the entire page with the response (preview page or error page)
         document.open();
         document.write(xhr.responseText);
