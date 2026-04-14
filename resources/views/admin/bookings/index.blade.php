@@ -75,7 +75,7 @@
                 <tr>
                     <th style="width:36px"><input type="checkbox" id="select-all" title="Select all"></th>
                     <th>Booking #</th>
-                    <th>Customer</th>
+                    <th>Client Name</th>
                     <th>Tour</th>
                     <th>Date</th>
                     <th>Guests</th>
