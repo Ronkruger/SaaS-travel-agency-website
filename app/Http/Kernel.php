@@ -9,6 +9,7 @@ class Kernel extends HttpKernel
     protected $middleware = [
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
+        \App\Http\Middleware\SecurityHeaders::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
@@ -47,5 +48,6 @@ class Kernel extends HttpKernel
         'auth.admin'      => \App\Http\Middleware\AdminAuthenticate::class,
         'guest.admin'     => \App\Http\Middleware\AdminGuest::class,
         'secure.resource' => \App\Http\Middleware\SecureResourceAccess::class,
+        'admin.can'       => \App\Http\Middleware\CheckAdminPermission::class,
     ];
 }

@@ -121,11 +121,11 @@ class BookingImportController extends Controller
 
             foreach ($block['clients'] as $client) {
                 $rowNum++;
-                $pax           = max(1, (int) ($client['pax'] ?: 1));
-                $terms         = $this->normalizeTerms($client['terms']);
-                $isFoc         = strtolower(trim($client['terms'])) === 'foc'
-                              || str_contains(strtolower(trim($client['terms'])), 'free of charge');
-                $clientRate    = (float) preg_replace('/[^\d.]/', '', $client['rate'] ?? '0');
+                $pax         = max(1, (int) ($client['pax'] ?: 1));
+                $terms       = $this->normalizeTerms($client['terms']);
+                $isFoc       = ($terms === 'foc');
+                $clientRate  = $this->parseRate($client['rate'] ?? '');
+                $colJNotes   = trim($client['pay2_notes'] ?? '');
 
                 // FOC (Free of Charge) bookings are complimentary — always ₱0
                 if ($isFoc) {
@@ -140,29 +140,28 @@ class BookingImportController extends Controller
                 }
 
                 $csvStatus     = trim($client['status'] ?? '');
-                $bookingStatus = $this->normalizeBookingStatus($csvStatus);
-                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms);
+                $bookingStatus = $this->normalizeBookingStatus($csvStatus, $colJNotes);
+                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms, $colJNotes);
 
-                // Extract "(rebooked from MONTH)" annotation from client name
-                $rawName   = $client['client_name'];
-                $rebooked  = null;
-                if (preg_match('/\(rebooked\s+from\s+([^)]+)\)/i', $rawName, $rbMatch)) {
-                    $rebooked = trim($rbMatch[1]);
-                    $rawName  = trim(preg_replace('/\s*\(rebooked\s+from\s+[^)]+\)/i', '', $rawName));
-                }
+                // Parse all parenthetical annotations from client name in a single pass
+                [$rawName, $annotations] = $this->parseClientName($client['client_name']);
 
-                // Extract parenthetical notes like "(Sir Godwin)" from client name
+                // Identify "rebooked from ..." and other notes from annotations
+                $rebooked   = null;
                 $clientNote = null;
-                if (preg_match('/\(([^)]+)\)/', $rawName, $cnMatch)) {
-                    $clientNote = trim($cnMatch[1]);
-                    $rawName    = trim(preg_replace('/\s*\([^)]+\)/', '', $rawName));
+                foreach ($annotations as $ann) {
+                    if (preg_match('/^rebooked\s+from\s+(.+)$/i', $ann, $rbm)) {
+                        $rebooked = trim($rbm[1]);
+                    } else {
+                        $clientNote = ($clientNote ? $clientNote . ' | ' : '') . $ann;
+                    }
                 }
 
                 // Build combined notes
                 $noteParts = array_filter([
-                    $rebooked  ? 'Rebooked from ' . $rebooked : null,
-                    $isFoc     ? 'FOC (Free of Charge)' : null,
-                    $clientNote ? $clientNote : null,
+                    $rebooked   ? 'Rebooked from ' . $rebooked : null,
+                    $isFoc      ? 'FOC (Free of Charge)' : null,
+                    $clientNote ?: null,
                 ]);
                 $combinedNotes = implode(' | ', $noteParts) ?: null;
 
@@ -285,9 +284,9 @@ class BookingImportController extends Controller
             foreach ($block['clients'] as $client) {
                 $pax        = max(1, (int) ($client['pax'] ?: 1));
                 $terms      = $this->normalizeTerms($client['terms']);
-                $isFoc      = strtolower(trim($client['terms'])) === 'foc'
-                           || str_contains(strtolower(trim($client['terms'])), 'free of charge');
-                $clientRate = (float) preg_replace('/[^\d.]/', '', $client['rate'] ?? '0');
+                $isFoc      = ($terms === 'foc');
+                $clientRate = $this->parseRate($client['rate'] ?? '');
+                $colJNotes  = trim($client['pay2_notes'] ?? '');
 
                 if ($isFoc) {
                     $rate  = 0;
@@ -300,26 +299,25 @@ class BookingImportController extends Controller
                 }
 
                 $csvStatus     = trim($client['status'] ?? '');
-                $bookingStatus = $this->normalizeBookingStatus($csvStatus);
-                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms);
+                $bookingStatus = $this->normalizeBookingStatus($csvStatus, $colJNotes);
+                $paymentStatus = $isFoc ? 'paid' : $this->derivePaymentStatus($csvStatus, $terms, $colJNotes);
 
-                // Extract "(rebooked from MONTH)" and other parenthetical notes
-                $rawName   = $client['client_name'];
-                $rebooked  = null;
-                if (preg_match('/\(rebooked\s+from\s+([^)]+)\)/i', $rawName, $rbMatch)) {
-                    $rebooked = trim($rbMatch[1]);
-                    $rawName  = trim(preg_replace('/\s*\(rebooked\s+from\s+[^)]+\)/i', '', $rawName));
-                }
+                // Parse annotations from client name in a single pass
+                [$rawName, $annotations] = $this->parseClientName($client['client_name']);
+                $rebooked   = null;
                 $clientNote = null;
-                if (preg_match('/\(([^)]+)\)/', $rawName, $cnMatch)) {
-                    $clientNote = trim($cnMatch[1]);
-                    $rawName    = trim(preg_replace('/\s*\([^)]+\)/', '', $rawName));
+                foreach ($annotations as $ann) {
+                    if (preg_match('/^rebooked\s+from\s+(.+)$/i', $ann, $rbm)) {
+                        $rebooked = trim($rbm[1]);
+                    } else {
+                        $clientNote = ($clientNote ? $clientNote . ' | ' : '') . $ann;
+                    }
                 }
 
                 $noteParts = array_filter([
-                    $rebooked  ? 'Rebooked from ' . $rebooked : null,
-                    $isFoc     ? 'FOC (Free of Charge)' : null,
-                    $clientNote ? $clientNote : null,
+                    $rebooked   ? 'Rebooked from ' . $rebooked : null,
+                    $isFoc      ? 'FOC (Free of Charge)' : null,
+                    $clientNote ?: null,
                 ]);
                 $preview[] = [
                     'tour_name'      => $tourTitle,
@@ -642,31 +640,36 @@ class BookingImportController extends Controller
         // Auto-detect column offset.
         // The DG SLOTS TRACKER spreadsheet has data starting at col B (index 1),
         // but template CSVs have data starting at col A (index 0).
-        // Detect by checking if "route name" header appears at col 0 vs col 1,
-        // or if col 1 contains a date-range pattern (meaning col 0 is the route).
-        $needsShift = false;
-        $dateHintRx = '/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b.*\d{4}/i';
-        foreach (array_slice($rowIterator, 0, 15) as $checkRow) {
-            $checkRow = array_pad($checkRow, 10, '');
+        // Detect by scanning the first 15 rows for where "Route Name" header lives.
+        $needsShift      = false;
+        $skipHeaderRow   = null; // row index to skip (template CSV header)
+        $dateHintRx      = '/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b.*\d{4}/i';
+        foreach (array_slice($rowIterator, 0, 15) as $ri => $checkRow) {
+            $checkRow = array_pad((array) $checkRow, 10, '');
             $c0 = strtolower(trim($checkRow[0] ?? ''));
-            $c1L = strtolower(trim($checkRow[1] ?? ''));
-            // Header row: "Route Name" in col 0 → template CSV format
+            $c1 = strtolower(trim($checkRow[1] ?? ''));
+            // "Route Name" at col 0 → template CSV: shift everything right by 1 and skip this row
             if ($c0 === 'route name') {
-                $needsShift = true;
+                $needsShift    = true;
+                $skipHeaderRow = $ri;
                 break;
             }
-            // Header row: "Route Name" in col 1 → SLOTS TRACKER format (no shift)
-            if ($c1L === 'route name') {
+            // "Route Name" at col 1 → SLOTS TRACKER native format (no shift needed)
+            if ($c1 === 'route name') {
                 break;
             }
-            // Data row: col 0 non-empty, col 1 looks like a date range → template CSV
+            // Data row heuristic: col 0 non-empty, col 1 looks like a date range → template CSV
             if ($c0 !== '' && preg_match($dateHintRx, trim($checkRow[1] ?? ''))) {
                 $needsShift = true;
                 break;
             }
         }
         if ($needsShift) {
-            $rowIterator = array_map(fn($row) => array_merge([''], (array) $row), $rowIterator);
+            $rowIterator = array_values(array_map(fn($row) => array_merge([''], (array) $row), $rowIterator));
+            // Remove the header row (now shifted, it would be parsed as a block row otherwise)
+            if ($skipHeaderRow !== null) {
+                array_splice($rowIterator, $skipHeaderRow, 1);
+            }
         }
 
         $blocks  = [];
@@ -697,7 +700,7 @@ class BookingImportController extends Controller
             $c3IsBusLabel = (bool) preg_match('/^bus\s*[\d\/]+$/i', $c3);
             $c1IsNotMeta  = $c1 !== '' && !in_array(strtolower($c1), $metaKeys);
 
-            if ($c1IsNotMeta && $isDateRange && ($c3 === '' || $c3IsBusLabel)) {
+            if ($c1IsNotMeta && $isDateRange && ($c3 === '' || $c3IsBusLabel || ctype_digit(preg_replace('/\D/', '', $c3) ?: '_'))) {
                 if ($current !== null) $blocks[] = $current;
                 // Strip BUS suffix so BUS 1 / BUS 2 variants all map to the same tour
                 $baseRoute = preg_replace('/\s*(BUS\s*[\d\/]+|\(BUS\s*[\d]+\))\s*[-–\s]*/i', '', $c1);
@@ -747,51 +750,54 @@ class BookingImportController extends Controller
      * "FEB 11 - 21, 2026"       → start: Feb 11   end: Feb 21
      * "MAR 18 - APRIL 2, 2026"  → start: Mar 18   end: Apr 2
      * "APR 01-16, 2026"         → start: Apr 01   end: Apr 16
+     * "APR 1 – 17, 2026"        → em-dash handled
      */
     private function parseDateRange(string $range, string $which = 'start'): ?Carbon
     {
         $range = trim($range);
         if ($range === '') return null;
 
+        // Normalise em-dash / en-dash to plain hyphen
+        $range = str_replace(['–', '—', '‐'], '-', $range);
+
         $monthRx = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec'
                  . '|january|february|march|april|june|july|august'
                  . '|september|october|november|december';
 
         if (!preg_match('/\b(\d{4})\b/', $range, $ym)) return null;
-        $year = $ym[1];
+        $year = (int) $ym[1];
 
-        preg_match_all('/\b(' . $monthRx . ')\s+(\d{1,2})\b/i', $range, $all, PREG_SET_ORDER);
+        // Find all "MONTH DAY" occurrences
+        preg_match_all('/\b(' . $monthRx . ')\w*\.?\s+(\d{1,2})\b/i', $range, $all, PREG_SET_ORDER);
 
         if ($which === 'start') {
             if (empty($all)) return null;
-            $m = $all[0][1];
-            $d = $all[0][2];
-        } else {
-            if (count($all) >= 2) {
-                $last = end($all);
-                $m    = $last[1];
-                $d    = $last[2];
-            } elseif (count($all) === 1) {
-                // "FEB 11 - 21": end day is bare number after dash
-                $startMonth = $all[0][1];
-                $afterFirst = substr($range, strpos(strtolower($range), strtolower($startMonth)) + strlen($startMonth));
-                if (preg_match('/[-–]\s*(\d{1,2})\b/', $afterFirst, $dm)) {
-                    $m = $startMonth;
-                    $d = $dm[1];
-                } else {
-                    $m = $all[0][1];
-                    $d = $all[0][2];
-                }
-            } else {
-                return null;
-            }
+            try { return Carbon::createFromFormat('F j Y', ucfirst(strtolower($all[0][1])) . ' ' . $all[0][2] . ' ' . $year); }
+            catch (\Throwable) { try { return Carbon::parse($all[0][1] . ' ' . $all[0][2] . ' ' . $year); } catch (\Throwable) { return null; } }
         }
 
-        try {
-            return Carbon::parse($m . ' ' . $d . ' ' . $year);
-        } catch (\Throwable) {
+        // --- end date ---
+        if (count($all) >= 2) {
+            // Two explicit month+day found (e.g. "MAR 18 - APR 2, 2026")
+            $last = end($all);
+        } elseif (count($all) === 1) {
+            // "FEB 11 - 21, 2026": look for a bare day number after the first day
+            $startMonth = $all[0][1];
+            // Offset past the first day occurrence in the ORIGINAL string
+            $offset = stripos($range, $startMonth);
+            $after  = substr($range, $offset + strlen($startMonth));
+            // Skip the start day + any whitespace, then look for dash followed by a day
+            if (preg_match('/\s*\d{1,2}\s*-\s*(\d{1,2})\b/', $after, $dm)) {
+                $last = ['month_raw' => $startMonth, 'day' => $dm[1], 1 => $startMonth, 2 => $dm[1]];
+            } else {
+                $last = $all[0]; // same day range
+            }
+        } else {
             return null;
         }
+
+        try { return Carbon::createFromFormat('F j Y', ucfirst(strtolower($last[1])) . ' ' . $last[2] . ' ' . $year); }
+        catch (\Throwable) { try { return Carbon::parse($last[1] . ' ' . $last[2] . ' ' . $year); } catch (\Throwable) { return null; } }
     }
 
     /**
@@ -833,7 +839,7 @@ class BookingImportController extends Controller
     {
         $rates = [];
         foreach ($clients as $c) {
-            $r = (float) preg_replace('/[^\d.]/', '', $c['rate'] ?? '0');
+            $r = $this->parseRate($c['rate'] ?? '');
             if ($r > 0) $rates[] = (string) $r;
         }
         if (empty($rates)) return 0;
@@ -872,25 +878,44 @@ class BookingImportController extends Controller
     private function normalizeTerms(string $raw): string
     {
         $lower = strtolower(trim($raw));
+        if ($lower === '' || $lower === 'n/a') return 'cash';
         if ($lower === 'foc' || str_contains($lower, 'free of charge')) return 'foc';
-        if (str_contains($lower, 'install'))     return 'installment';
-        if (str_contains($lower, 'down'))        return 'downpayment';
-        if (str_contains($lower, 'travel fund')) return 'travel_fund';
-        if (str_contains($lower, 'full cash'))   return 'cash';
+        if (str_contains($lower, 'travel fund'))   return 'travel_fund';
+        if (str_contains($lower, 'install'))       return 'installment';
+        if (str_contains($lower, 'down'))          return 'downpayment';
+        if (str_contains($lower, 'full'))          return 'cash'; // "Full Cash", "Full Payment"
+        if (str_contains($lower, 'cash'))          return 'cash';
+        if (str_contains($lower, 'balance'))       return 'installment'; // balance due = final installment
         return 'cash';
     }
 
-    private function normalizeBookingStatus(string $csvStatus): string
+    private function normalizeBookingStatus(string $csvStatus, string $colJNotes = ''): string
     {
-        $s = strtolower(trim($csvStatus));
-        return ($s === 'paid' || $s === 'booking confirmation') ? 'confirmed' : 'pending';
+        $s    = strtolower(trim($csvStatus));
+        $noteLower = strtolower(trim($colJNotes));
+        if ($s === 'paid' || str_contains($s, 'booking confirmation') || str_contains($s, 'confirmed')) {
+            return 'confirmed';
+        }
+        // Col J keywords that signal confirmed departure
+        if (str_contains($noteLower, 'confirmed departure') || str_contains($noteLower, 'confirmed dep')) {
+            return 'confirmed';
+        }
+        if ($s === 'refunded' || $s === 'refund') return 'refunded';
+        if ($s === 'cancelled' || $s === 'cancel') return 'cancelled';
+        return 'pending';
     }
 
-    private function derivePaymentStatus(string $csvStatus, string $normalizedTerms): string
+    private function derivePaymentStatus(string $csvStatus, string $normalizedTerms, string $colJNotes = ''): string
     {
-        $s = strtolower(trim($csvStatus));
-        if ($normalizedTerms === 'foc')        return 'paid';
-        if ($normalizedTerms === 'travel_fund') return 'paid'; // Travel Fund = fully paid
+        $s         = strtolower(trim($csvStatus));
+        $noteLower = strtolower(trim($colJNotes));
+        if ($normalizedTerms === 'foc')         return 'paid';
+        if ($normalizedTerms === 'travel_fund') return 'paid';
+        if ($s === 'refunded' || $s === 'refund') return 'refunded';
+        // "Fully Paid" in notes
+        if (str_contains($noteLower, 'fully paid') || str_contains($noteLower, 'full payment')) {
+            return 'paid';
+        }
         if ($s === 'paid') {
             return in_array($normalizedTerms, ['cash']) ? 'paid' : 'partial';
         }
@@ -901,5 +926,52 @@ class BookingImportController extends Controller
     private function csvCell(string $value): string
     {
         return '"' . str_replace('"', '""', $value) . '"';
+    }
+
+    /**
+     * Extract numeric value from a rate string like "₱180,000.00", "180000", "180,000".
+     * Handles both Philippine peso (comma thousands, dot decimal) and
+     * European style (dot thousands, comma decimal).
+     */
+    private function parseRate(string $raw): float
+    {
+        $raw = trim($raw);
+        if ($raw === '' || strtolower($raw) === 'foc') return 0.0;
+        // Strip currency symbols, whitespace
+        $raw = preg_replace('/[₱$€£\s]/u', '', $raw);
+        // If there are both commas and dot: "180,000.00" → dot is decimal
+        if (str_contains($raw, '.') && str_contains($raw, ',')) {
+            if (strrpos($raw, '.') > strrpos($raw, ',')) {
+                // "180,000.00" — comma = thousands, dot = decimal
+                $raw = str_replace(',', '', $raw);
+            } else {
+                // "180.000,00" — dot = thousands, comma = decimal
+                $raw = str_replace('.', '', $raw);
+                $raw = str_replace(',', '.', $raw);
+            }
+        } else {
+            // Only commas — treat as thousands separator
+            $raw = str_replace(',', '', $raw);
+        }
+        return (float) $raw;
+    }
+
+    /**
+     * Strip all parenthetical annotations from a client name and return
+     * both the cleaned name and an array of extracted annotation strings.
+     *
+     * E.g. "Juan (rebooked from MAY) (Sir Godwin)" → ["Juan", ["rebooked from MAY", "Sir Godwin"]]
+     */
+    private function parseClientName(string $raw): array
+    {
+        $annotations = [];
+        // Extract all (...) groups
+        preg_match_all('/\(([^)]+)\)/u', $raw, $matches);
+        if (!empty($matches[1])) {
+            $annotations = array_map('trim', $matches[1]);
+        }
+        $clean = trim(preg_replace('/\s*\([^)]*\)\s*/u', ' ', $raw));
+        $clean = preg_replace('/\s+/', ' ', $clean);
+        return [$clean, $annotations];
     }
 }

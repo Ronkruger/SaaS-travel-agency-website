@@ -61,6 +61,25 @@
     </div>
 </div>
 
+<!-- Revenue Chart -->
+<div class="card mt-4">
+    <div class="card-header" style="flex-wrap:wrap;gap:.5rem">
+        <h4><i class="fas fa-chart-line"></i> Revenue Chart</h4>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <label style="font-size:.82rem;color:#6b7280;margin:0">From</label>
+            <input type="date" id="chart-from" class="form-control" style="width:140px;padding:.3rem .6rem;font-size:.85rem">
+            <label style="font-size:.82rem;color:#6b7280;margin:0">To</label>
+            <input type="date" id="chart-to"   class="form-control" style="width:140px;padding:.3rem .6rem;font-size:.85rem">
+            <button id="chart-apply" class="btn btn-outline btn-sm"><i class="fas fa-sync-alt"></i> Apply</button>
+            <button id="chart-reset" class="btn btn-ghost btn-sm">Last 12 months</button>
+            <span id="chart-total" style="font-size:.85rem;font-weight:700;color:#1e3a5f;margin-left:.5rem"></span>
+        </div>
+    </div>
+    <div class="card-body" style="padding:1.25rem">
+        <canvas id="revenueChart" style="max-height:260px"></canvas>
+    </div>
+</div>
+
 <div class="dashboard-grid mt-4">
     <!-- Recent Bookings -->
     <div class="card">
@@ -68,7 +87,8 @@
             <h4><i class="fas fa-calendar-check"></i> Recent Bookings</h4>
             <a href="{{ route('admin.bookings.index') }}" class="btn btn-sm btn-outline">View All</a>
         </div>
-        <div class="card-body p-0 table-responsive">
+        <div class="table-scroll-outer" id="bookingsScrollOuter">
+        <div class="card-body p-0 table-responsive" id="bookingsScrollEl">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -99,6 +119,7 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
         </div>
     </div>
 
@@ -141,12 +162,14 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3oD+sCoJrzXJ+yKqtkPsqkOOm1L7jCoed7I2yFexoyiD1SgY3XHGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 (function () {
     'use strict';
 
     const STATS_URL    = '{{ route('admin.live.stats') }}';
     const BOOKINGS_URL = '{{ route('admin.live.bookings') }}';
+    const CHART_URL    = '{{ route('admin.live.revenue-chart') }}';
     const INTERVAL_MS  = 30000; // 30 seconds
 
     const dot = document.getElementById('liveDot');
@@ -234,8 +257,144 @@
         pulse();
     }
 
+    // Horizontal scroll indicator for the bookings table
+    (function () {
+        const outer = document.getElementById('bookingsScrollOuter');
+        const el    = document.getElementById('bookingsScrollEl');
+        if (!outer || !el) return;
+        function updateIndicator() {
+            const overflows = el.scrollWidth > el.clientWidth + 2;
+            const atEnd     = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+            outer.classList.toggle('has-overflow', overflows && !atEnd);
+        }
+        el.addEventListener('scroll', updateIndicator, { passive: true });
+        window.addEventListener('resize', updateIndicator);
+        updateIndicator();
+    })();
+
     // Start polling
     setInterval(tick, INTERVAL_MS);
+
+    // ── Revenue Chart ──────────────────────────────────────────────────
+    let revenueChart = null;
+
+    function initChart(labels, totals) {
+        const ctx = document.getElementById('revenueChart');
+        if (!ctx) return;
+        if (revenueChart) revenueChart.destroy();
+
+        revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: totals,
+                    backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    tension: 0.4,
+                    type: 'bar',
+                }, {
+                    label: 'Trend',
+                    data: totals,
+                    type: 'line',
+                    borderColor: 'rgba(16, 185, 129, 0.8)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    fill: false,
+                    tension: 0.3,
+                    yAxisID: 'y',
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' ' + fmt(ctx.parsed.y),
+                        },
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: val => fmt(val),
+                            maxTicksLimit: 6,
+                            font: { size: 11 },
+                        },
+                        grid: { color: 'rgba(0,0,0,.04)' },
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } },
+                    },
+                },
+            },
+        });
+    }
+
+    async function loadChart(fromDate, toDate) {
+        const params = new URLSearchParams();
+        if (fromDate) params.set('from_date', fromDate);
+        if (toDate)   params.set('to_date',   toDate);
+
+        try {
+            const res  = await fetch(CHART_URL + '?' + params, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!res.ok) return;
+            const data = await res.json();
+
+            initChart(data.labels, data.totals);
+
+            const totalEl = document.getElementById('chart-total');
+            if (totalEl) totalEl.textContent = 'Total: ' + fmt(data.sum);
+
+            // Sync inputs to actual resolved range
+            const fromEl = document.getElementById('chart-from');
+            const toEl   = document.getElementById('chart-to');
+            if (fromEl && !fromEl.value) fromEl.value = data.from;
+            if (toEl   && !toEl.value)   toEl.value   = data.to;
+        } catch (_) {}
+    }
+
+    // Default: last 12 months
+    (function () {
+        const today = new Date();
+        const from  = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+        document.getElementById('chart-from').value = from.toISOString().split('T')[0];
+        document.getElementById('chart-to').value   = today.toISOString().split('T')[0];
+    })();
+
+    loadChart(
+        document.getElementById('chart-from').value,
+        document.getElementById('chart-to').value
+    );
+
+    document.getElementById('chart-apply').addEventListener('click', function () {
+        loadChart(
+            document.getElementById('chart-from').value,
+            document.getElementById('chart-to').value
+        );
+    });
+
+    document.getElementById('chart-reset').addEventListener('click', function () {
+        const today = new Date();
+        const from  = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+        document.getElementById('chart-from').value = from.toISOString().split('T')[0];
+        document.getElementById('chart-to').value   = today.toISOString().split('T')[0];
+        loadChart(
+            document.getElementById('chart-from').value,
+            document.getElementById('chart-to').value
+        );
+    });
+    // ── End Revenue Chart ───────────────────────────────────────────────
+
 })();
 </script>
 @endpush

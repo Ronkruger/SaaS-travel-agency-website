@@ -147,6 +147,12 @@ class TourController extends Controller
             'full_stop_images.*.*'         => ['nullable', 'image', 'max:8192', 'mimes:jpg,jpeg,png,webp'],
             // Enhanced video validation - limit file types and add extension check
             'video_file'                   => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime,video/webm', 'mimes:mp4,mov,webm', 'max:102400'],
+            // Only allow iframe embeds from facebook.com to prevent XSS via {!! !!} render
+            'facebook_post_url'            => ['nullable', 'string', 'max:2000', function ($attr, $val, $fail) {
+                if ($val && !preg_match('#^\s*<iframe[^>]+src=["\']https://www\.facebook\.com/#i', $val)) {
+                    $fail('Facebook embed must be a valid Facebook iframe embed code (src must point to www.facebook.com).');
+                }
+            }],
         ]);
 
         return [

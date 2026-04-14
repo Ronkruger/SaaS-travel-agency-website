@@ -41,6 +41,11 @@
         <a href="{{ route('admin.bookings.transfer', $booking) }}" class="btn btn-warning" title="Transfer to another tour">
             <i class="fas fa-exchange-alt"></i> Transfer
         </a>
+        <a href="{{ route('admin.bookings.rebook', $booking) }}" class="btn btn-outline"
+           title="Rebook — create new booking for this client on a different date"
+           style="color:#7c3aed;border-color:#7c3aed">
+            <i class="fas fa-redo"></i> Rebook
+        </a>
         <a href="{{ route('admin.bookings.pdf.download', $booking) }}"
            class="btn btn-outline" title="Download PDF">
             <i class="fas fa-download"></i> Download PDF
@@ -499,9 +504,70 @@
                     <div class="detail-item"><span>Name</span><strong>{{ $booking->contact_name }}</strong></div>
                     <div class="detail-item"><span>Email</span><strong>{{ $booking->contact_email }}</strong></div>
                     <div class="detail-item"><span>Phone</span><strong>{{ $booking->contact_phone }}</strong></div>
+                    @if($booking->user_id)
+                    <div class="detail-item">
+                        <span>Account</span>
+                        <a href="{{ route('admin.users.show', $booking->user_id) }}" class="btn btn-xs btn-outline">
+                            <i class="fas fa-user"></i> View Profile
+                        </a>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
+
+        {{-- ── TRAVEL FUND (cancelled bookings with a linked user) ── --}}
+        @if(in_array($booking->status, ['cancelled', 'refunded']) && $booking->user_id)
+        <div class="card mb-4" style="border:2px solid #c4b5fd">
+            <div class="card-header" style="background:#faf5ff">
+                <h4 style="color:#7c3aed"><i class="fas fa-wallet"></i> Travel Fund</h4>
+                @php
+                    $existingFund = \App\Models\TravelFund::where('booking_id', $booking->id)->where('type', 'credit')->exists();
+                @endphp
+                @if($existingFund)
+                    <span style="background:#dcfce7;color:#166534;padding:.25rem .75rem;border-radius:1rem;font-size:.8rem;font-weight:600">
+                        <i class="fas fa-check"></i> Already Added
+                    </span>
+                @endif
+            </div>
+            <div class="card-body">
+                @if($existingFund)
+                    <p style="font-size:.9rem;color:#6b7280;margin:0">
+                        A travel fund credit from this booking has already been issued to the client.
+                        <a href="{{ route('admin.users.show', $booking->user_id) }}" style="color:#7c3aed">View client funds &rarr;</a>
+                    </p>
+                @else
+                    <p style="font-size:.875rem;color:#6b7280;margin:0 0 1rem">
+                        Move the client's paid amount to their Travel Fund.
+                        A notification email will be sent to <strong>{{ $booking->contact_email }}</strong>.
+                    </p>
+                    <form action="{{ route('admin.bookings.travel-fund', $booking) }}" method="POST"
+                          onsubmit="return confirm('Move ₱' + document.getElementById('tfAmount').value + ' to this client\'s Travel Fund and notify them by email?')">
+                        @csrf
+                        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">
+                            <div style="flex:1;min-width:140px">
+                                <label style="font-size:.8rem;color:#6b7280;font-weight:600">Amount (₱)</label>
+                                <input type="number" id="tfAmount" name="amount" step="0.01" min="1"
+                                       class="form-control" style="margin-top:.25rem"
+                                       value="{{ number_format($booking->total_amount, 2, '.', '') }}"
+                                       placeholder="0.00" required>
+                            </div>
+                            <div style="flex:2;min-width:200px">
+                                <label style="font-size:.8rem;color:#6b7280;font-weight:600">Note</label>
+                                <input type="text" name="description" class="form-control" style="margin-top:.25rem"
+                                       value="Travel Fund from cancelled booking {{ $booking->booking_number }}"
+                                       maxlength="255">
+                            </div>
+                            <button type="submit" class="btn btn-primary"
+                                    style="background:#7c3aed;border-color:#7c3aed;white-space:nowrap">
+                                <i class="fas fa-wallet"></i> Move to Travel Fund
+                            </button>
+                        </div>
+                    </form>
+                @endif
+            </div>
+        </div>
+        @endif
     </div>
 
     <div>
@@ -609,6 +675,77 @@
                 @endif
             </div>
         </div>
+    </div>
+</div>
+
+{{-- ── INTERNAL NOTES ─────────────────────────────────────────────── --}}
+<div class="card mt-4">
+    <div class="card-header" style="background:#fafafa;display:flex;align-items:center;justify-content:space-between">
+        <h4 style="margin:0"><i class="fas fa-sticky-note" style="color:#f59e0b"></i> Internal Notes
+            @if($booking->notes->count())
+                <span style="background:#f59e0b;color:#fff;font-size:.72rem;padding:.1rem .5rem;border-radius:1rem;margin-left:.4rem;font-weight:700">
+                    {{ $booking->notes->count() }}
+                </span>
+            @endif
+        </h4>
+        <small style="color:#94a3b8">Visible to admins only</small>
+    </div>
+    <div class="card-body">
+        {{-- Add note form --}}
+        <form action="{{ route('admin.bookings.notes.store', $booking) }}" method="POST"
+              style="display:flex;gap:.75rem;align-items:flex-start;margin-bottom:1.25rem">
+            @csrf
+            <textarea name="note" rows="2" class="form-control" placeholder="Add an internal note…" required
+                      style="flex:1;resize:vertical;min-height:60px;max-height:160px"></textarea>
+            <div style="display:flex;flex-direction:column;gap:.4rem">
+                <button type="submit" class="btn btn-primary" style="white-space:nowrap;padding:.5rem 1rem">
+                    <i class="fas fa-plus"></i> Add Note
+                </button>
+                <label style="display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:#6b7280;cursor:pointer">
+                    <input type="checkbox" name="is_pinned" value="1"> Pin
+                </label>
+            </div>
+        </form>
+
+        {{-- Notes list --}}
+        @forelse($booking->notes as $note)
+        <div style="border:1px solid {{ $note->is_pinned ? '#fde68a' : '#e2e8f0' }};border-radius:.6rem;padding:.75rem 1rem;margin-bottom:.65rem;background:{{ $note->is_pinned ? '#fffbeb' : '#fff' }}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem">
+                <div style="flex:1">
+                    @if($note->is_pinned)
+                        <span style="color:#d97706;font-size:.72rem;font-weight:700;margin-right:.4rem">
+                            <i class="fas fa-thumbtack"></i> PINNED
+                        </span>
+                    @endif
+                    <span style="font-size:.9rem;color:#1e293b;white-space:pre-wrap">{{ $note->note }}</span>
+                </div>
+                <div style="display:flex;gap:.4rem;flex-shrink:0">
+                    <form action="{{ route('admin.bookings.notes.pin', [$booking, $note]) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="btn btn-xs btn-ghost"
+                                title="{{ $note->is_pinned ? 'Unpin' : 'Pin' }}"
+                                style="color:{{ $note->is_pinned ? '#d97706' : '#94a3b8' }}">
+                            <i class="fas fa-thumbtack"></i>
+                        </button>
+                    </form>
+                    <form action="{{ route('admin.bookings.notes.destroy', [$booking, $note]) }}" method="POST"
+                          onsubmit="return confirm('Delete this note?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-xs btn-ghost" title="Delete" style="color:#ef4444">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div style="margin-top:.35rem;font-size:.75rem;color:#94a3b8">
+                {{ $note->adminUser?->name ?? 'Admin' }} &bull; {{ $note->created_at->format('M d, Y H:i') }}
+            </div>
+        </div>
+        @empty
+            <p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:1rem 0;margin:0">
+                No notes yet. Use notes to track follow-ups, client requests, or special arrangements.
+            </p>
+        @endforelse
     </div>
 </div>
 @endsection

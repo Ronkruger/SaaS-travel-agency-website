@@ -8,6 +8,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    {{-- NProgress slim progress bar --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+    <style>
+        #nprogress .bar { background: var(--primary, #0e7490) !important; height: 3px; }
+        #nprogress .peg  { box-shadow: 0 0 10px var(--primary, #0e7490), 0 0 5px var(--primary, #0e7490); }
+        #nprogress .spinner-icon { border-top-color: var(--primary, #0e7490); border-left-color: var(--primary, #0e7490); }
+    </style>
     @if($brandFaviconUrl ?? false)
         <link rel="icon" href="{{ $brandFaviconUrl }}">
     @else
@@ -49,13 +56,19 @@
             <div class="nav-section">BOOKINGS</div>
             <a href="{{ route('admin.bookings.index') }}" class="{{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
                 <i class="fas fa-calendar-check"></i> All Bookings
-                @php $totalBookings = \App\Models\Booking::count(); @endphp
-                @if($totalBookings > 0)
-                    <span class="badge">{{ $totalBookings }}</span>
+                @php $pendingBookings = \App\Models\Booking::where('status', 'pending')->count(); @endphp
+                @if($pendingBookings > 0)
+                    <span class="badge">{{ $pendingBookings }}</span>
                 @endif
+            </a>
+            <a href="{{ route('admin.coupons.index') }}" class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
+                <i class="fas fa-tag"></i> Coupons
             </a>
             <a href="{{ route('admin.slot-tracker.index') }}" class="{{ request()->routeIs('admin.slot-tracker.*') || request()->routeIs('admin.tours.schedules.*') ? 'active' : '' }}">
                 <i class="fas fa-layer-group"></i> Slot Tracker
+            </a>
+            <a href="{{ route('admin.calendar.index') }}" class="{{ request()->routeIs('admin.calendar.*') ? 'active' : '' }}">
+                <i class="fas fa-calendar-alt"></i> Availability Calendar
             </a>
             <a href="{{ route('admin.import.index') }}" class="{{ request()->routeIs('admin.import.*') ? 'active' : '' }}">
                 <i class="fas fa-file-import"></i> Import
@@ -89,7 +102,16 @@
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                 <i class="fas fa-chart-bar"></i> Monthly Report
             </a>
+            <a href="{{ route('admin.activity-log.index') }}" class="{{ request()->routeIs('admin.activity-log.*') ? 'active' : '' }}">
+                <i class="fas fa-history"></i> Activity Log
+            </a>
+            <a href="{{ route('admin.email-log.index') }}" class="{{ request()->routeIs('admin.email-log.*') ? 'active' : '' }}">
+                <i class="fas fa-envelope-open-text"></i> Email Log
+            </a>
             <div class="nav-section">ACCOUNT</div>
+            <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+                <i class="fas fa-user-shield"></i> Staff &amp; Permissions
+            </a>
             <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                 <i class="fas fa-palette"></i> Branding
             </a>
@@ -111,6 +133,22 @@
             </button>
             <div class="header-breadcrumb">
                 @yield('breadcrumb')
+            </div>
+            <!-- Notification Bell -->
+            <div id="notif-wrap" style="position:relative;margin-right:.75rem">
+                <button id="notif-btn" onclick="toggleNotifDropdown()" style="background:none;border:none;cursor:pointer;position:relative;padding:6px 8px;color:var(--gray-600);font-size:1.15rem" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;border-radius:99px;padding:1px 4px;min-width:16px;text-align:center;line-height:1.4"></span>
+                </button>
+                <div id="notif-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:360px;background:#fff;border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:9999;max-height:420px;overflow-y:auto">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid var(--gray-100)">
+                        <strong style="font-size:.875rem">Notifications</strong>
+                        <button onclick="markAllNotifRead()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--primary);padding:0">Mark all read</button>
+                    </div>
+                    <div id="notif-list" style="padding:.25rem 0">
+                        <div style="padding:1.25rem;text-align:center;color:var(--gray-400);font-size:.8rem">Loading…</div>
+                    </div>
+                </div>
             </div>
             <div class="header-user">
                 <div style="text-align:right">
@@ -174,6 +212,39 @@
 </div>
 
 <script src="{{ asset('js/admin.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+<script>
+// NProgress configuration — show on all navigations & form submissions
+NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
+
+(function () {
+    // Start on navigation (links that go to a new page)
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('a[href]');
+        if (!a) return;
+        var href = a.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript') || a.target === '_blank') return;
+        NProgress.start();
+    });
+
+    // Start on form submission
+    document.addEventListener('submit', function () {
+        NProgress.start();
+    });
+
+    // Finish when page fully loads
+    window.addEventListener('pageshow', function () {
+        NProgress.done();
+    });
+
+    // Also done on load (covers back/forward cache)
+    if (document.readyState === 'complete') {
+        NProgress.done();
+    } else {
+        window.addEventListener('load', function () { NProgress.done(); });
+    }
+})();
+</script>
 <script>
 // Skeleton → real content reveal
 (function() {
@@ -192,5 +263,102 @@
 })();
 </script>
 @stack('scripts')
+<script>
+// ── Notification Bell ─────────────────────────────────────────────────────────
+(function () {
+    const POLL_INTERVAL = 30000; // 30 s
+    let dropdownOpen = false;
+
+    function fetchNotifications() {
+        fetch('{{ route('admin.notifications.unread') }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('notif-badge');
+            const list  = document.getElementById('notif-list');
+            if (!badge || !list) return;
+
+            if (data.count > 0) {
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            if (data.notifications.length === 0) {
+                list.innerHTML = '<div style="padding:1.25rem;text-align:center;color:var(--gray-400);font-size:.8rem">No new notifications</div>';
+                return;
+            }
+
+            list.innerHTML = data.notifications.map(n => {
+                const ago = timeAgo(n.created_at);
+                const href = n.url || '#';
+                return `<a href="${href}" onclick="markNotifRead(event, ${n.id}, '${href}')"
+                    style="display:block;padding:.65rem 1rem;border-bottom:1px solid var(--gray-100);text-decoration:none;color:inherit;transition:background .15s"
+                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''"
+                    data-id="${n.id}">
+                    <div style="font-size:.8rem;font-weight:600;color:var(--gray-800);margin-bottom:.15rem">${escHtml(n.title)}</div>
+                    <div style="font-size:.75rem;color:var(--gray-500);margin-bottom:.25rem;line-height:1.4">${escHtml(n.body)}</div>
+                    <div style="font-size:.7rem;color:var(--gray-400)">${ago}</div>
+                </a>`;
+            }).join('');
+        })
+        .catch(() => {});
+    }
+
+    window.toggleNotifDropdown = function () {
+        const dd = document.getElementById('notif-dropdown');
+        if (!dd) return;
+        dropdownOpen = !dropdownOpen;
+        dd.style.display = dropdownOpen ? 'block' : 'none';
+        if (dropdownOpen) fetchNotifications();
+    };
+
+    window.markNotifRead = function (e, id, href) {
+        e.preventDefault();
+        fetch(`{{ url('admin/notifications') }}/${id}/read`, {
+            method: 'PATCH',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+        }).finally(() => {
+            if (href && href !== '#') window.location.href = href;
+            else fetchNotifications();
+        });
+    };
+
+    window.markAllNotifRead = function () {
+        fetch('{{ route('admin.notifications.read-all') }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(() => fetchNotifications());
+    };
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        const wrap = document.getElementById('notif-wrap');
+        if (wrap && !wrap.contains(e.target) && dropdownOpen) {
+            dropdownOpen = false;
+            const dd = document.getElementById('notif-dropdown');
+            if (dd) dd.style.display = 'none';
+        }
+    });
+
+    function timeAgo(dateStr) {
+        const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+        if (diff < 60)  return diff + 's ago';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        return Math.floor(diff / 86400) + 'd ago';
+    }
+
+    function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Initial fetch + polling
+    fetchNotifications();
+    setInterval(fetchNotifications, POLL_INTERVAL);
+})();
+</script>
 </body>
 </html>

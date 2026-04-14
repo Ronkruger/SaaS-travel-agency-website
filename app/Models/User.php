@@ -22,9 +22,11 @@ class User extends Authenticatable
         'city',
         'state',
         'country',
-        'role',
         'auth0_id',
     ];
+
+    // Explicitly block mass assignment of privilege fields
+    protected $guarded = ['role', 'email_verified_at'];
 
     protected $hidden = [
         'password',
@@ -64,5 +66,17 @@ class User extends Authenticatable
     public function wishedTours()
     {
         return $this->belongsToMany(Tour::class, 'wishlists');
+    }
+
+    public function travelFunds()
+    {
+        return $this->hasMany(TravelFund::class);
+    }
+
+    public function travelFundBalance(): float
+    {
+        $credits = $this->travelFunds()->where('type', 'credit')->sum('amount');
+        $debits  = $this->travelFunds()->where('type', 'debit')->sum('amount');
+        return (float) bcsub($credits, $debits, 2);
     }
 }

@@ -258,7 +258,11 @@
     </div>
 
     <div class="footer">
-        <p style="margin:0 0 4px">© {{ date('Y') }} Discover Group. All rights reserved.</p>
+        <p style="margin:0 0 8px;background:#f3f4f6;border-radius:6px;padding:8px 12px;font-size:11px;color:#6b7280;display:inline-block">
+            ⚠️ This is an automated, system-generated email — please do not reply directly to this message.
+            For assistance, contact us at <a href="mailto:{{ config('mail.from.address', 'bookings@discovergroup.com') }}">{{ config('mail.from.address', 'bookings@discovergroup.com') }}</a>.
+        </p>
+        <p style="margin:6px 0 4px">© {{ date('Y') }} Discover Group. All rights reserved.</p>
         <p style="margin:0"><a href="{{ config('app.url') }}">{{ config('app.url') }}</a></p>
     </div>
 

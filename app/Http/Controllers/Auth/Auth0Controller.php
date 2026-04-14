@@ -75,11 +75,12 @@ class Auth0Controller extends Controller
             [
                 'name'              => $this->sanitizeName($socialUser->getName() ?? $socialUser->getNickname() ?? 'User'),
                 'password'          => bcrypt(Str::random(32)), // unusable password — Auth0 handles auth
-                'role'              => 'user',
                 'auth0_id'          => $socialUser->getId(),
                 'avatar'            => $avatar,
             ]
         );
+        $user->role = 'user';
+        $user->save();
 
         // Update Auth0 ID and avatar if user already existed but logged in via Auth0 for the first time
         if (!$user->auth0_id) {

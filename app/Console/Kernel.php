@@ -9,7 +9,8 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        //
+        // Send installment payment reminders at 8 AM daily
+        $schedule->command('bookings:payment-followup')->dailyAt('08:00');
     }
 
     protected function commands(): void

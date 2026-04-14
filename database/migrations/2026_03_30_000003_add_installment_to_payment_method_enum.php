@@ -13,11 +13,12 @@ return new class extends Migration
         if ($driver === 'mysql') {
             // MySQL: ENUM column — just MODIFY to expand the allowed values
             DB::statement("ALTER TABLE bookings MODIFY COLUMN payment_method ENUM('xendit', 'cash', 'installment') NOT NULL DEFAULT 'xendit'");
-        } else {
+        } elseif ($driver === 'pgsql') {
             // PostgreSQL: VARCHAR + CHECK constraint
             DB::statement("ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_payment_method_check");
             DB::statement("ALTER TABLE bookings ADD CONSTRAINT bookings_payment_method_check CHECK (payment_method IN ('xendit', 'cash', 'installment'))");
         }
+        // SQLite (used in tests) has no typed ENUM/CHECK to update — skip.
 
         // Defensively add new columns if they're missing (idempotent)
         if (!Schema::hasColumn('bookings', 'installment_months')) {

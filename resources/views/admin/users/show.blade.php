@@ -5,6 +5,18 @@
     @include('admin.partials.skeleton-detail')
 @endsection
 
+@push('styles')
+<style>
+.tf-balance-card { background:linear-gradient(135deg,#7c3aed,#4f46e5); border-radius:.875rem; padding:1.5rem; color:#fff; margin-bottom:1rem; }
+.tf-balance-card .tf-label { font-size:.8rem; opacity:.8; margin-bottom:.25rem; }
+.tf-balance-card .tf-amount { font-size:2rem; font-weight:800; }
+.tf-row { display:flex; justify-content:space-between; align-items:center; padding:.6rem 0; border-bottom:1px solid #f1f5f9; font-size:.875rem; }
+.tf-row:last-child { border-bottom:none; }
+.tf-credit { color:#16a34a; font-weight:700; }
+.tf-debit  { color:#dc2626; font-weight:700; }
+</style>
+@endpush
+
 @section('content')
 <div class="page-title-row">
     <div>
@@ -32,7 +44,7 @@
 
 <div class="booking-admin-layout" style="grid-template-columns: 1fr 300px;">
 
-    {{-- Left: Bookings & Reviews --}}
+    {{-- Left: Bookings, Travel Fund History & Reviews --}}
     <div>
         <div class="card mb-4">
             <div class="card-header">
@@ -74,6 +86,80 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        {{-- Travel Fund History --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3><i class="fas fa-wallet" style="color:#7c3aed"></i> Travel Fund History</h3>
+                <span style="font-weight:700;color:{{ $travelFundBalance >= 0 ? '#16a34a' : '#dc2626' }}">
+                    Balance: ₱{{ number_format($travelFundBalance, 2) }}
+                </span>
+            </div>
+            <div class="card-body" style="padding:0">
+                @if($user->travelFunds->count())
+                <div style="overflow-x:auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Booking</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>By</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($user->travelFunds->sortByDesc('created_at') as $tf)
+                            <tr>
+                                <td style="white-space:nowrap">{{ $tf->created_at->format('M d, Y') }}</td>
+                                <td>{{ $tf->description ?? '—' }}</td>
+                                <td>
+                                    @if($tf->booking)
+                                        <a href="{{ route('admin.bookings.show', $tf->booking) }}" class="btn btn-xs btn-ghost">
+                                            {{ $tf->booking->booking_number }}
+                                        </a>
+                                    @else —
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($tf->type === 'credit')
+                                        <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
+                                            <i class="fas fa-plus"></i> Credit
+                                        </span>
+                                    @else
+                                        <span style="background:#fee2e2;color:#991b1b;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
+                                            <i class="fas fa-minus"></i> Debit
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="{{ $tf->type === 'credit' ? 'tf-credit' : 'tf-debit' }}">
+                                    {{ $tf->type === 'credit' ? '+' : '-' }}₱{{ number_format($tf->amount, 2) }}
+                                </td>
+                                <td style="font-size:.8rem;color:#6b7280">{{ $tf->adminUser?->name ?? 'System' }}</td>
+                                <td>
+                                    <form action="{{ route('admin.travel-fund.destroy', $tf) }}" method="POST" style="display:inline"
+                                          onsubmit="return confirm('Remove this travel fund entry?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-xs btn-ghost" style="color:#dc2626" title="Remove">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="text-center text-muted" style="padding:2rem">
+                    <i class="fas fa-wallet" style="font-size:2rem;opacity:.3;display:block;margin-bottom:.5rem"></i>
+                    No travel fund entries yet
+                </div>
+                @endif
             </div>
         </div>
 
@@ -119,7 +205,7 @@
         </div>
     </div>
 
-    {{-- Right: User Info --}}
+    {{-- Right: User Info + Travel Fund Management --}}
     <div>
         <div class="card" style="margin-bottom:1rem;">
             <div class="card-body" style="text-align:center;">
@@ -131,6 +217,46 @@
                 <span class="status-badge {{ $user->isAdmin() ? 'status-confirmed' : 'status-completed' }}" style="margin-top:.5rem;">
                     {{ $user->isAdmin() ? 'Admin' : 'Customer' }}
                 </span>
+            </div>
+        </div>
+
+        {{-- Travel Fund Balance Card --}}
+        <div class="tf-balance-card">
+            <div class="tf-label"><i class="fas fa-wallet"></i> Travel Fund Balance</div>
+            <div class="tf-amount">₱{{ number_format($travelFundBalance, 2) }}</div>
+            <div style="font-size:.8rem;opacity:.7;margin-top:.5rem">
+                {{ $user->travelFunds->count() }} transaction{{ $user->travelFunds->count() != 1 ? 's' : '' }}
+            </div>
+        </div>
+
+        {{-- Add Travel Fund --}}
+        <div class="card mb-4">
+            <div class="card-header"><h4><i class="fas fa-plus-circle" style="color:#7c3aed"></i> Add / Deduct Fund</h4></div>
+            <div class="card-body">
+                <form action="{{ route('admin.travel-fund.store', $user) }}" method="POST">
+                    @csrf
+                    <div class="form-group" style="margin-bottom:.75rem">
+                        <label style="font-size:.8rem;color:#6b7280;font-weight:600">Type</label>
+                        <select name="type" class="form-control" style="margin-top:.25rem">
+                            <option value="credit">➕ Credit (Add)</option>
+                            <option value="debit">➖ Debit (Deduct)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:.75rem">
+                        <label style="font-size:.8rem;color:#6b7280;font-weight:600">Amount (₱) *</label>
+                        <input type="number" name="amount" step="0.01" min="1" class="form-control"
+                               placeholder="0.00" style="margin-top:.25rem" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:.75rem">
+                        <label style="font-size:.8rem;color:#6b7280;font-weight:600">Description *</label>
+                        <input type="text" name="description" class="form-control"
+                               placeholder="e.g. Travel fund from booking DG-2026-001234"
+                               maxlength="255" style="margin-top:.25rem" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;background:#7c3aed;border-color:#7c3aed">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </form>
             </div>
         </div>
 

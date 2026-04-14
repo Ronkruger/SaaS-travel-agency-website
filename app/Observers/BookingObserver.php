@@ -3,6 +3,9 @@
 namespace App\Observers;
 
 use App\Mail\BookingConfirmationMail;
+use App\Mail\BookingRejectionMail;
+use App\Models\AdminActivityLog;
+use App\Models\AdminNotification;
 use App\Models\Booking;
 use App\Models\TourSchedule;
 use Illuminate\Support\Facades\Log;
@@ -10,6 +13,23 @@ use Illuminate\Support\Facades\Mail;
 
 class BookingObserver
 {
+    /**
+     * Fire notification when a new booking is created.
+     */
+    public function created(Booking $booking): void
+    {
+        try {
+            $tourTitle = $booking->tour?->title ?? '—';
+            $tourDate  = $booking->tour_date?->format('M d, Y') ?? '—';
+            AdminNotification::broadcast(
+                'new_booking',
+                'New Booking Received',
+                "{$booking->booking_number} — {$booking->contact_name} ({$tourTitle}, {$tourDate})",
+                route('admin.bookings.show', $booking),
+            );
+        } catch (\Throwable) {}
+    }
+
     /**
      * Auto-update TourSchedule booked_seats when a booking status changes.
      * Also fires the confirmation email when admin manually confirms a non-Xendit booking.
@@ -58,6 +78,32 @@ class BookingObserver
                     ->send(new BookingConfirmationMail($booking));
             } catch (\Throwable $e) {
                 Log::warning('Booking confirmation email failed after admin approval', [
+                    'booking_id' => $booking->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Audit log — status change
+        try {
+            AdminActivityLog::record(
+                'booking.status_changed',
+                $booking,
+                "Booking {$booking->booking_number} status changed from {$oldStatus} to {$newStatus}.",
+                ['from' => $oldStatus, 'to' => $newStatus]
+            );
+        } catch (\Throwable) {}
+
+        // Send rejection/cancellation email
+        $isNowCancelled = $newStatus === 'cancelled';
+        $wasPendingOrConfirmed = in_array($oldStatus, ['pending', 'confirmed']);
+
+        if ($isNowCancelled && $wasPendingOrConfirmed && $booking->contact_email) {
+            try {
+                Mail::to($booking->contact_email)
+                    ->send(new BookingRejectionMail($booking));
+            } catch (\Throwable $e) {
+                Log::warning('Booking rejection email failed', [
                     'booking_id' => $booking->id,
                     'error'      => $e->getMessage(),
                 ]);

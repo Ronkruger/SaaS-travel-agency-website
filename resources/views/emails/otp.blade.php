@@ -61,6 +61,9 @@
     </div>
 
     <div class="footer">
+        <p style="margin:0 0 8px;background:#f3f4f6;border-radius:6px;padding:8px 12px;font-size:11px;color:#6b7280;display:inline-block">
+            ⚠️ This is an automated, system-generated email — please do not reply directly to this message.
+        </p>
         &copy; {{ date('Y') }} <a href="#">Discover Group</a> &mdash; All rights reserved.
     </div>
 

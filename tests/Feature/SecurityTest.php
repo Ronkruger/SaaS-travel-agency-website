@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AdminUser;
 use App\Models\Booking;
 use App\Models\Tour;
 use App\Models\User;
@@ -39,7 +40,7 @@ class SecurityTest extends TestCase
     {
         $response = $this->get('/admin/dashboard');
         
-        $response->assertRedirect('/login');
+        $response->assertRedirect('/admin/auth/login');
     }
 
     /*
@@ -88,7 +89,7 @@ class SecurityTest extends TestCase
     /** @test */
     public function admin_can_access_any_users_booking(): void
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = AdminUser::factory()->superAdmin()->create();
         $user = User::factory()->create();
         $tour = Tour::factory()->create();
         
@@ -97,7 +98,7 @@ class SecurityTest extends TestCase
             'tour_id' => $tour->id,
         ]);
 
-        $this->actingAs($admin);
+        $this->actingAs($admin, 'admin');
         
         $response = $this->get("/admin/bookings/{$booking->id}");
         
@@ -194,7 +195,8 @@ class SecurityTest extends TestCase
         
         $response = $this->get('/admin/dashboard');
         
-        $response->assertStatus(403);
+        // Web-guard users are not authenticated via the admin guard — expect a login redirect
+        $response->assertRedirect('/admin/auth/login');
     }
 
     /** @test */
@@ -206,15 +208,15 @@ class SecurityTest extends TestCase
         
         $response = $this->get('/admin/users');
         
-        $response->assertStatus(403);
+        $response->assertRedirect('/admin/auth/login');
     }
 
     /** @test */
     public function admin_can_view_user_list(): void
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = AdminUser::factory()->superAdmin()->create();
         
-        $this->actingAs($admin);
+        $this->actingAs($admin, 'admin');
         
         $response = $this->get('/admin/users');
         

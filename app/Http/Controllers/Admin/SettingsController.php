@@ -49,7 +49,11 @@ class SettingsController extends Controller
             'promo_banner'      => ['nullable', 'file', 'max:4096', 'mimes:png,jpg,jpeg,webp'],
             'promo_banner_link' => ['nullable', 'string', 'max:500'],
             'fb_embed_code'     => ['nullable', 'array'],
-            'fb_embed_code.*'   => ['nullable', 'string', 'max:5000'],
+            'fb_embed_code.*'   => ['nullable', 'string', 'max:5000', function ($attr, $val, $fail) {
+                if ($val && !preg_match('#^\s*<iframe[^>]+src=["\']https://www\.facebook\.com/#i', $val)) {
+                    $fail('Each Facebook embed must be a valid Facebook iframe embed code (src must point to www.facebook.com).');
+                }
+            }],
             'yt_embed_url'      => ['nullable', 'array'],
             'yt_embed_url.*'    => ['nullable', 'url', 'max:500'],
             // PDF settings

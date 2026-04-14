@@ -22,7 +22,13 @@ class TourScheduleController extends Controller
     {
         $filter = $request->input('filter', 'upcoming'); // upcoming | all | past
 
-        $query = TourSchedule::with('tour')
+        $query = TourSchedule::with([
+                'tour',
+                'bookings' => fn($q) => $q
+                    ->whereNotIn('status', ['cancelled', 'refunded'])
+                    ->with(['payment'])
+                    ->orderBy('created_at'),
+            ])
             ->withCount([
                 'bookings as pending_count'   => fn($q) => $q->where('status', 'pending'),
                 'bookings as confirmed_count' => fn($q) => $q->where('status', 'confirmed'),

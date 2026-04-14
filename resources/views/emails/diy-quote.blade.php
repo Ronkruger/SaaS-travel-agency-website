@@ -130,10 +130,11 @@
 
     {{-- Footer --}}
     <div class="footer">
-        <p style="margin:0 0 6px">Questions? Reply to this email or contact us at
-            <a href="mailto:bookings@discovergroup.com">bookings@discovergroup.com</a>
+        <p style="margin:0 0 8px;background:#f3f4f6;border-radius:6px;padding:8px 12px;font-size:11px;color:#6b7280;display:inline-block">
+            ⚠️ This is an automated, system-generated email — please do not reply directly to this message.
+            For questions, contact us at <a href="mailto:bookings@discovergroup.com">bookings@discovergroup.com</a>.
         </p>
-        <p style="margin:0">© {{ date('Y') }} Discover Group. All rights reserved.</p>
+        <p style="margin:6px 0 0">© {{ date('Y') }} Discover Group. All rights reserved.</p>
     </div>
 
 </div>

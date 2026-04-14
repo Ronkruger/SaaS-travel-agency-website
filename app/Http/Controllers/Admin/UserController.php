@@ -33,11 +33,11 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->load(['bookings.tour', 'reviews.tour']);
-        
-        // Return only sanitized data - exclude sensitive fields
+        $user->load(['bookings.tour', 'reviews.tour', 'travelFunds.booking', 'travelFunds.adminUser']);
+
         return view('admin.users.show', [
-            'user' => $user->makeHidden(['password', 'remember_token'])
+            'user'              => $user->makeHidden(['password', 'remember_token']),
+            'travelFundBalance' => $user->travelFundBalance(),
         ]);
     }
 
@@ -61,6 +61,10 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
+        // Role must be set directly — not via mass assignment — to prevent privilege escalation
+        $role = $data['role'];
+        unset($data['role']);
+
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -68,6 +72,8 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        $user->role = $role;
+        $user->save();
 
         return redirect()->route('admin.users.show', $user)
             ->with('success', 'User updated successfully.');

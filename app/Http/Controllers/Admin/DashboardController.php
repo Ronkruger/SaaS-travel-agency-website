@@ -8,6 +8,8 @@ use App\Models\Tour;
 use App\Models\User;
 use App\Models\Payment;
 use App\Models\Review;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class DashboardController extends Controller
@@ -65,5 +67,58 @@ class DashboardController extends Controller
             'amount'         => '₱' . number_format($b->total_amount, 2),
             'status'         => $b->status,
         ]));
+    }
+
+    /**
+     * AJAX: revenue data for the chart.
+     * Accepts: from_date (Y-m-d), to_date (Y-m-d)
+     * Returns monthly buckets between the two dates.
+     */
+    public function revenueChart(Request $request)
+    {
+        $validated = $request->validate([
+            'from_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'to_date'   => ['nullable', 'date', 'before_or_equal:today'],
+        ]);
+
+        $from = isset($validated['from_date'])
+            ? Carbon::parse($validated['from_date'])->startOfMonth()
+            : Carbon::now()->subMonths(11)->startOfMonth();
+
+        $to = isset($validated['to_date'])
+            ? Carbon::parse($validated['to_date'])->endOfMonth()
+            : Carbon::now()->endOfMonth();
+
+        // Clamp: no more than 36 months
+        if ($from->lt($to->copy()->subMonths(35))) {
+            $from = $to->copy()->subMonths(35)->startOfMonth();
+        }
+
+        $rows = Payment::where('status', 'completed')
+            ->whereBetween('paid_at', [$from, $to])
+            ->selectRaw('YEAR(paid_at) as year, MONTH(paid_at) as month, SUM(amount) as total')
+            ->groupByRaw('YEAR(paid_at), MONTH(paid_at)')
+            ->orderByRaw('YEAR(paid_at), MONTH(paid_at)')
+            ->get()
+            ->keyBy(fn ($r) => $r->year . '-' . str_pad($r->month, 2, '0', STR_PAD_LEFT));
+
+        // Fill every month between from and to (zeros for empty months)
+        $labels   = [];
+        $totals   = [];
+        $cursor   = $from->copy();
+        while ($cursor->lte($to)) {
+            $key      = $cursor->format('Y-m');
+            $labels[] = $cursor->format('M Y');
+            $totals[] = isset($rows[$key]) ? (float) $rows[$key]->total : 0;
+            $cursor->addMonth();
+        }
+
+        return response()->json([
+            'labels' => $labels,
+            'totals' => $totals,
+            'from'   => $from->toDateString(),
+            'to'     => $to->toDateString(),
+            'sum'    => array_sum($totals),
+        ]);
     }
 }

@@ -53,11 +53,27 @@
     </div>
 </div>
 
+{{-- Bulk Action Bar (shown when rows are selected) --}}
+<div id="bulk-bar" class="card mb-3" style="display:none;border:2px solid #6366f1">
+    <div class="card-body" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem">
+        <span style="font-weight:600;color:#6366f1"><i class="fas fa-check-square"></i> <span id="bulk-count">0</span> selected</span>
+        <select id="bulk-action-select" class="form-control" style="width:auto;min-width:220px">
+            <option value="">With selected…</option>
+            <option value="confirm">✓ Mark as Confirmed</option>
+            <option value="cancel">✗ Mark as Cancelled</option>
+            <option value="email">✉ Send Confirmation Email</option>
+        </select>
+        <button type="button" id="bulk-apply-btn" class="btn btn-primary btn-sm">Apply</button>
+        <button type="button" onclick="clearBulkSelection()" class="btn btn-ghost btn-sm">Clear</button>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body p-0">
         <table class="data-table">
             <thead>
                 <tr>
+                    <th style="width:36px"><input type="checkbox" id="select-all" title="Select all"></th>
                     <th>Booking #</th>
                     <th>Customer</th>
                     <th>Tour</th>
@@ -72,7 +88,13 @@
             <tbody>
                 @forelse($bookings as $booking)
                     <tr>
-                        <td><code>{{ $booking->booking_number }}</code></td>
+                        <td><input type="checkbox" class="row-check" value="{{ $booking->id }}"></td>
+                        <td>
+                            <code>{{ $booking->booking_number }}</code>
+                            @if(in_array($booking->id, $duplicateIds))
+                                <br><span style="font-size:.7rem;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:600" title="Another booking exists with the same email on this schedule">⚠ Duplicate</span>
+                            @endif
+                        </td>
                         <td>
                             <strong>{{ $booking->contact_name }}</strong><br>
                             <small class="text-muted">{{ $booking->contact_email }}</small>
@@ -116,7 +138,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">No bookings found.</td>
+                        <td colspan="10" class="text-center text-muted py-4">No bookings found.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -178,3 +200,80 @@ function closeDeleteRequestModal() {
 </script>
 @endpush
 @endunless
+
+@push('scripts')
+<script>
+(function () {
+    const selectAll      = document.getElementById('select-all');
+    const bulkBar        = document.getElementById('bulk-bar');
+    const bulkCountEl    = document.getElementById('bulk-count');
+    const bulkActionSel  = document.getElementById('bulk-action-select');
+    const bulkApplyBtn   = document.getElementById('bulk-apply-btn');
+    const bulkRoute      = '{{ route('admin.bookings.bulk') }}';
+    const csrfToken      = '{{ csrf_token() }}';
+
+    function getChecked() {
+        return [...document.querySelectorAll('.row-check:checked')];
+    }
+
+    function updateBulkBar() {
+        const checked = getChecked();
+        bulkBar.style.display = checked.length > 0 ? '' : 'none';
+        bulkCountEl.textContent = checked.length;
+    }
+
+    document.querySelectorAll('.row-check').forEach(cb =>
+        cb.addEventListener('change', function () {
+            const all = document.querySelectorAll('.row-check');
+            selectAll.checked = [...all].every(c => c.checked);
+            selectAll.indeterminate = !selectAll.checked && [...all].some(c => c.checked);
+            updateBulkBar();
+        })
+    );
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+            selectAll.indeterminate = false;
+            updateBulkBar();
+        });
+    }
+
+    function clearBulkSelection() {
+        document.querySelectorAll('.row-check').forEach(cb => cb.checked = false);
+        if (selectAll) { selectAll.checked = false; selectAll.indeterminate = false; }
+        updateBulkBar();
+    }
+    window.clearBulkSelection = clearBulkSelection;
+
+    bulkApplyBtn.addEventListener('click', function () {
+        const action = bulkActionSel.value;
+        if (!action) { alert('Please select an action.'); return; }
+        const ids = getChecked().map(cb => cb.value);
+        if (ids.length === 0) { alert('No bookings selected.'); return; }
+
+        const labels = { confirm: 'confirm', cancel: 'cancel', email: 'send confirmation emails to' };
+        if (!confirm(`${labels[action] ?? action} ${ids.length} booking(s)?`)) return;
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = bulkRoute;
+
+        const appendHidden = (name, value) => {
+            const input = document.createElement('input');
+            input.type  = 'hidden';
+            input.name  = name;
+            input.value = value;
+            form.appendChild(input);
+        };
+
+        appendHidden('_token', csrfToken);
+        appendHidden('action', action);
+        ids.forEach(id => appendHidden('ids[]', id));
+
+        document.body.appendChild(form);
+        form.submit();
+    });
+})();
+</script>
+@endpush

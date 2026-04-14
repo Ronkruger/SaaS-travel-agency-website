@@ -27,6 +27,13 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\Auth\AdminAuth0Controller;
 use App\Http\Controllers\Admin\Auth\AdminOnboardingController;
+use App\Http\Controllers\Admin\TravelFundController as AdminTravelFundController;
+use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\CalendarController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\EmailLogController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\AdminStaffController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use Illuminate\Support\Facades\Route;
 
@@ -168,9 +175,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     // Live polling endpoints (JSON, no page refresh needed)
     Route::get('/live/stats', [DashboardController::class, 'liveStats'])->name('live.stats');
     Route::get('/live/bookings', [DashboardController::class, 'liveBookings'])->name('live.bookings');
+    Route::get('/live/revenue-chart', [DashboardController::class, 'revenueChart'])->name('live.revenue-chart');
 
     // Slot Tracker (overview)
     Route::get('/slot-tracker', [AdminTourScheduleController::class, 'overview'])->name('slot-tracker.index');
+
+    // Tour Availability Calendar
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     // Tour Schedule Slots (per-tour) — must be before generic {tour} routes
     Route::get('/tours/{tour}/schedules', [AdminTourScheduleController::class, 'index'])->name('tours.schedules.index');
@@ -198,6 +209,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::post('/bookings/bulk', [AdminBookingController::class, 'bulkAction'])->name('bookings.bulk')->middleware('admin.can:bulk_actions');
     Route::get('/bookings/schedules-for-tour', [AdminBookingController::class, 'schedulesForTour'])->name('bookings.schedules-for-tour');
     Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
@@ -209,6 +221,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     // Booking Transfer
     Route::get('/bookings/{booking}/transfer', [AdminBookingController::class, 'showTransfer'])->name('bookings.transfer');
     Route::post('/bookings/{booking}/transfer', [AdminBookingController::class, 'transfer'])->name('bookings.transfer.execute');
+    // Booking Rebook
+    Route::get('/bookings/{booking}/rebook', [AdminBookingController::class, 'showRebook'])->name('bookings.rebook');
+    Route::post('/bookings/{booking}/rebook', [AdminBookingController::class, 'rebook'])->name('bookings.rebook.execute');
     // Booking PDF
     Route::get('/bookings/{booking}/pdf', [BookingPdfController::class, 'preview'])->name('bookings.pdf.preview');
     Route::get('/bookings/{booking}/pdf/download', [BookingPdfController::class, 'download'])->name('bookings.pdf.download');
@@ -232,6 +247,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    // Travel Funds
+    Route::post('/users/{user}/travel-fund', [AdminTravelFundController::class, 'store'])->name('travel-fund.store');
+    Route::delete('/travel-fund/{travelFund}', [AdminTravelFundController::class, 'destroy'])->name('travel-fund.destroy');
+    Route::post('/bookings/{booking}/travel-fund', [AdminTravelFundController::class, 'fromBooking'])->name('bookings.travel-fund');
 
     // Reviews
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
@@ -250,14 +269,42 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     });
 
     // Reports
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/export-csv', [ReportController::class, 'exportCsv'])->name('reports.export-csv');
-    Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index')->middleware('admin.can:view_reports');
+    Route::get('/reports/export-csv', [ReportController::class, 'exportCsv'])->name('reports.export-csv')->middleware('admin.can:view_reports');
+    Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print')->middleware('admin.can:view_reports');
+
+    // Booking Notes
+    Route::post('/bookings/{booking}/notes', [AdminBookingController::class, 'storeNote'])->name('bookings.notes.store');
+    Route::delete('/bookings/{booking}/notes/{note}', [AdminBookingController::class, 'destroyNote'])->name('bookings.notes.destroy');
+    Route::patch('/bookings/{booking}/notes/{note}/pin', [AdminBookingController::class, 'pinNote'])->name('bookings.notes.pin');
+
+    // Activity Log
+    Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
+
+    // Email Log
+    Route::get('/email-log', [EmailLogController::class, 'index'])->name('email-log.index');
+
+    // Coupons
+    Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index')->middleware('admin.can:manage_coupons');
+    Route::post('/coupons', [CouponController::class, 'store'])->name('coupons.store')->middleware('admin.can:manage_coupons');
+    Route::put('/coupons/{coupon}', [CouponController::class, 'update'])->name('coupons.update')->middleware('admin.can:manage_coupons');
+    Route::delete('/coupons/{coupon}', [CouponController::class, 'destroy'])->name('coupons.destroy')->middleware('admin.can:manage_coupons');
+    Route::post('/coupons/check', [CouponController::class, 'check'])->name('coupons.validate');
+
+    // Notifications
+    Route::get('/notifications/unread', [NotificationController::class, 'unread'])->name('notifications.unread');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     // Branding / Settings
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
-    Route::delete('/settings/logo', [SettingsController::class, 'deleteLogo'])->name('settings.delete-logo');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index')->middleware('admin.can:manage_settings');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update')->middleware('admin.can:manage_settings');
+    Route::delete('/settings/logo', [SettingsController::class, 'deleteLogo'])->name('settings.delete-logo')->middleware('admin.can:manage_settings');
+
+    // Admin Staff & Permissions (super_admin only for editing)
+    Route::get('/staff', [AdminStaffController::class, 'index'])->name('staff.index');
+    Route::get('/staff/{adminUser}/edit', [AdminStaffController::class, 'edit'])->name('staff.edit')->middleware('admin.can:manage_admins');
+    Route::put('/staff/{adminUser}', [AdminStaffController::class, 'update'])->name('staff.update')->middleware('admin.can:manage_admins');
 });
 
 /*

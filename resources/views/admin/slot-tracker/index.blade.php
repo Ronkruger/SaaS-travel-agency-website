@@ -19,6 +19,9 @@
 .slot-table th { background:#1e293b; color:#e2e8f0; padding:.6rem .9rem; text-align:left; font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; }
 .slot-table td { padding:.65rem .9rem; border-bottom:1px solid #e2e8f0; vertical-align:middle; }
 .slot-table tr:hover { background:#f8fafc; }
+.sched-header-row:hover td { background:#eff6ff !important; }
+.sched-header-row { transition:background .15s; }
+.sched-toggle-icon { font-size:.7rem; color:#64748b; margin-right:.35rem; transition:transform .2s; }
 .slot-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .7rem; border-radius:2rem; font-size:.75rem; font-weight:600; }
 .badge-active    { background:#dcfce7; color:#166534; }
 .badge-sold_out  { background:#fee2e2; color:#991b1b; }
@@ -91,9 +94,9 @@
         <table class="slot-table">
             <thead>
                 <tr>
+                    <th style="width:2rem"></th>
                     <th>Tour</th>
-                    <th>Departure</th>
-                    <th>Return</th>
+                    <th>Travel Dates</th>
                     <th style="text-align:center">Total Seats</th>
                     <th style="text-align:center">Occupied</th>
                     <th style="text-align:center">Available</th>
@@ -107,13 +110,26 @@
             <tbody>
                 @foreach($schedules as $sched)
                 @php
-                    $pct       = $sched->available_seats > 0 ? ($sched->booked_seats / $sched->available_seats) * 100 : 100;
-                    $barColor  = $pct >= 100 ? '#dc2626' : ($pct >= 80 ? '#f59e0b' : '#16a34a');
-                    $available = max(0, $sched->available_seats - $sched->booked_seats);
+                    $pct         = $sched->available_seats > 0 ? ($sched->booked_seats / $sched->available_seats) * 100 : 100;
+                    $barColor    = $pct >= 100 ? '#dc2626' : ($pct >= 80 ? '#f59e0b' : '#16a34a');
+                    $available   = max(0, $sched->available_seats - $sched->booked_seats);
+                    $activeBooks = $sched->bookings; // already filtered: no cancelled/refunded
+                    $hasClients  = $activeBooks->isNotEmpty();
                 @endphp
-                <tr>
+
+                {{-- Schedule header row --}}
+                <tr class="sched-header-row" @if($hasClients) onclick="toggleSched({{ $sched->id }})" style="cursor:pointer" @endif>
+                    <td style="text-align:center;padding:.65rem .5rem">
+                        @if($hasClients)
+                            <i class="fas fa-chevron-down sched-toggle-icon" id="icon-{{ $sched->id }}"></i>
+                        @else
+                            <i class="fas fa-minus" style="opacity:.25;font-size:.65rem;color:#94a3b8"></i>
+                        @endif
+                    </td>
                     <td>
-                        <a href="{{ route('admin.tours.schedules.index', $sched->tour) }}" style="font-weight:600;color:#1e40af;text-decoration:none">
+                        <a href="{{ route('admin.tours.schedules.index', $sched->tour) }}"
+                           style="font-weight:600;color:#1e40af;text-decoration:none"
+                           onclick="event.stopPropagation()">
                             {{ $sched->tour->title }}
                         </a>
                         @if($sched->tour->line)
@@ -122,9 +138,9 @@
                     </td>
                     <td style="white-space:nowrap;font-weight:500">
                         {{ \Carbon\Carbon::parse($sched->departure_date)->format('M d, Y') }}
-                    </td>
-                    <td style="white-space:nowrap">
-                        {{ $sched->return_date ? \Carbon\Carbon::parse($sched->return_date)->format('M d, Y') : '—' }}
+                        @if($sched->return_date)
+                            <br><span style="color:#64748b;font-size:.8rem">– {{ \Carbon\Carbon::parse($sched->return_date)->format('M d, Y') }}</span>
+                        @endif
                     </td>
                     <td style="text-align:center;font-weight:600">{{ $sched->available_seats }}</td>
                     <td style="text-align:center;font-weight:700;color:{{ $pct >= 100 ? '#dc2626' : '#f59e0b' }}">
@@ -142,7 +158,8 @@
                     <td style="text-align:center">
                         @if($sched->pending_count > 0)
                             <a href="{{ route('admin.bookings.index', ['status'=>'pending']) }}"
-                               style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600;text-decoration:none">
+                               style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600;text-decoration:none"
+                               onclick="event.stopPropagation()">
                                 {{ $sched->pending_count }} pending
                             </a>
                         @else
@@ -162,16 +179,117 @@
                             <span class="slot-badge badge-active"><i class="fas fa-check-circle"></i> SLOTS AVAILABLE</span>
                         @endif
                     </td>
-                    <td style="max-width:200px;font-size:.8rem;color:#64748b">
+                    <td style="max-width:180px;font-size:.8rem;color:#64748b">
                         {{ $sched->notes ? \Illuminate\Support\Str::limit($sched->notes, 60) : '—' }}
                     </td>
-                    <td style="white-space:nowrap">
+                    <td style="white-space:nowrap" onclick="event.stopPropagation()">
                         <a href="{{ route('admin.tours.schedules.index', $sched->tour) }}"
                            class="btn btn-xs btn-outline" title="Manage Slots">
                             <i class="fas fa-cog"></i> Manage
                         </a>
                     </td>
                 </tr>
+
+                {{-- Client detail rows (expandable) --}}
+                @if($hasClients)
+                <tr id="clients-{{ $sched->id }}" class="sched-clients-row">
+                    <td colspan="11" style="padding:0;background:#f8fafc;border-bottom:2px solid #dbeafe">
+                        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+                            <thead>
+                                <tr style="background:#eef2f7">
+                                    <th style="padding:.4rem .75rem .4rem 2.5rem;color:#64748b;font-weight:600;text-align:left">#</th>
+                                    <th style="padding:.4rem .75rem;color:#64748b;font-weight:600;text-align:left">Client Name</th>
+                                    <th style="padding:.4rem .75rem;color:#64748b;font-weight:600;text-align:center">PAX</th>
+                                    <th style="padding:.4rem .75rem;color:#64748b;font-weight:600">Status</th>
+                                    <th style="padding:.4rem .75rem;color:#64748b;font-weight:600">Payment Terms</th>
+                                    <th style="padding:.4rem .75rem;color:#64748b;font-weight:600;text-align:right">Rate / Person</th>
+                                    <th style="padding:.4rem .75rem;color:#64748b;font-weight:600">1st Payment Date</th>
+                                    <th style="padding:.4rem .75rem;color:#64748b;font-weight:600">2nd Payment</th>
+                                    <th style="padding:.4rem .75rem"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($activeBooks as $rowIdx => $bk)
+                                @php
+                                    $payDate = ($bk->payment && $bk->payment->paid_at)
+                                        ? $bk->payment->paid_at->format('M d, Y')
+                                        : \Carbon\Carbon::parse($bk->created_at)->format('M d, Y');
+
+                                    $pm = strtolower($bk->payment_method ?? '');
+                                    if (str_contains($pm, 'cash'))    { $payTerms = 'Full Cash'; }
+                                    elseif (str_contains($pm, 'install')) { $payTerms = 'Installment'; }
+                                    elseif (str_contains($pm, 'bank'))    { $payTerms = 'Bank Transfer'; }
+                                    elseif (str_contains($pm, 'xendit'))  { $payTerms = 'Online (Xendit)'; }
+                                    elseif (!empty($bk->payment_method))  { $payTerms = ucwords(str_replace('_', ' ', $bk->payment_method)); }
+                                    else { $payTerms = '—'; }
+
+                                    $ratePerPerson = floatval($bk->price_per_adult) > 0
+                                        ? floatval($bk->price_per_adult)
+                                        : ($bk->total_guests > 0 ? floatval($bk->total_amount) / $bk->total_guests : 0);
+
+                                    if ($bk->payment_status === 'paid')         { $slbl = 'Paid';        $sbg = '#dcfce7'; $sfg = '#166534'; }
+                                    elseif ($bk->payment_status === 'partial')   { $slbl = 'Partial';     $sbg = '#fef9c3'; $sfg = '#854d0e'; }
+                                    elseif ($bk->status === 'confirmed')         { $slbl = 'Confirmed';   $sbg = '#dcfce7'; $sfg = '#166534'; }
+                                    elseif ($bk->status === 'pending')           { $slbl = 'Pending';     $sbg = '#fef9c3'; $sfg = '#854d0e'; }
+                                    else                                          { $slbl = ucfirst($bk->status ?? 'Unknown'); $sbg = '#f1f5f9'; $sfg = '#475569'; }
+                                @endphp
+                                <tr style="border-top:1px solid #e2e8f0;background:{{ $rowIdx % 2 === 0 ? '#fff' : '#f9fbff' }}">
+                                    <td style="padding:.5rem .75rem .5rem 2.5rem;color:#94a3b8;font-weight:500">{{ $rowIdx + 1 }}</td>
+                                    <td style="padding:.5rem .75rem;font-weight:600;color:#1e293b">
+                                        <a href="{{ route('admin.bookings.show', $bk) }}" style="color:inherit;text-decoration:none">
+                                            {{ strtoupper($bk->contact_name ?: 'N/A') }}
+                                        </a>
+                                        @if($bk->booking_number)
+                                            <small style="display:block;font-weight:400;color:#94a3b8">{{ $bk->booking_number }}</small>
+                                        @endif
+                                    </td>
+                                    <td style="padding:.5rem .75rem;text-align:center;font-weight:700;color:#1e293b">{{ $bk->total_guests }}</td>
+                                    <td style="padding:.5rem .75rem">
+                                        <span style="background:{{ $sbg }};color:{{ $sfg }};padding:.15rem .6rem;border-radius:1rem;font-size:.75rem;font-weight:600">{{ $slbl }}</span>
+                                    </td>
+                                    <td style="padding:.5rem .75rem;color:#374151">{{ $payTerms }}</td>
+                                    <td style="padding:.5rem .75rem;text-align:right;font-weight:600;color:#1e40af">
+                                        {{ $ratePerPerson > 0 ? '₱' . number_format($ratePerPerson, 2) : '—' }}
+                                    </td>
+                                    <td style="padding:.5rem .75rem;color:#374151;white-space:nowrap">{{ $payDate }}</td>
+                                    <td style="padding:.5rem .75rem">
+                                        @if($bk->second_payment_status)
+                                            <span style="background:#eff6ff;color:#1d4ed8;padding:.15rem .6rem;border-radius:1rem;font-size:.75rem;font-weight:600">
+                                                {{ ucfirst($bk->second_payment_status) }}
+                                            </span>
+                                        @else
+                                            <span style="color:#94a3b8;font-size:.8rem">—</span>
+                                        @endif
+                                    </td>
+                                    <td style="padding:.5rem .75rem">
+                                        <a href="{{ route('admin.bookings.show', $bk) }}"
+                                           style="color:#3b82f6;font-size:.75rem;text-decoration:none;white-space:nowrap"
+                                           title="View Booking">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr style="background:#f1f5f9;border-top:2px solid #e2e8f0">
+                                    <td colspan="2" style="padding:.4rem .75rem .4rem 2.5rem;font-size:.75rem;color:#64748b;font-style:italic">
+                                        {{ $activeBooks->count() }} client(s) on this schedule
+                                    </td>
+                                    <td style="padding:.4rem .75rem;text-align:center;font-weight:700;color:#1e293b;font-size:.82rem">
+                                        {{ $activeBooks->sum('total_guests') }} PAX
+                                    </td>
+                                    <td colspan="6" style="padding:.4rem .75rem;font-size:.75rem;color:#64748b">
+                                        Total Seats: <strong>{{ $sched->available_seats }}</strong> &nbsp;·&nbsp;
+                                        Occupied: <strong style="color:#d97706">{{ $sched->booked_seats }}</strong> &nbsp;·&nbsp;
+                                        Available: <strong style="color:#16a34a">{{ $available }}</strong>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </td>
+                </tr>
+                @endif
                 @endforeach
             </tbody>
         </table>
@@ -180,3 +298,25 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function toggleSched(id) {
+    var row  = document.getElementById('clients-' + id);
+    var icon = document.getElementById('icon-' + id);
+    if (!row) return;
+    var visible = row.style.display !== 'none';
+    row.style.display  = visible ? 'none' : 'table-row';
+    if (icon) icon.style.transform = visible ? 'rotate(-90deg)' : 'rotate(0deg)';
+}
+// Start all expanded
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.sched-clients-row').forEach(function (r) {
+        r.style.display = 'table-row';
+    });
+    document.querySelectorAll('.sched-toggle-icon').forEach(function (i) {
+        i.style.transform = 'rotate(0deg)';
+    });
+});
+</script>
+@endpush

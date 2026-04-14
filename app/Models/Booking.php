@@ -109,4 +109,9 @@ class Booking extends Model
     {
         return in_array($this->status, ['pending', 'confirmed']);
     }
+
+    public function notes()
+    {
+        return $this->hasMany(BookingNote::class)->orderByDesc('is_pinned')->latest();
+    }
 }
