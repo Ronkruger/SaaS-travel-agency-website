@@ -309,13 +309,13 @@ function toggleSched(id) {
     row.style.display  = visible ? 'none' : 'table-row';
     if (icon) icon.style.transform = visible ? 'rotate(-90deg)' : 'rotate(0deg)';
 }
-// Start all expanded
+// Start all collapsed
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.sched-clients-row').forEach(function (r) {
-        r.style.display = 'table-row';
+        r.style.display = 'none';
     });
     document.querySelectorAll('.sched-toggle-icon').forEach(function (i) {
-        i.style.transform = 'rotate(0deg)';
+        i.style.transform = 'rotate(-90deg)';
     });
 });
 </script>
