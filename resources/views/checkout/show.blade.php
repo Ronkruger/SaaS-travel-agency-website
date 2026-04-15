@@ -156,12 +156,12 @@
                                     </td>
                                     @if($booking->payment_method === 'installment')
                                     <td style="padding:.5rem .75rem;text-align:center">
-                                        <form method="POST" action="{{ route('checkout.installment.pay', [$booking, $term['term']]) }}" style="display:inline">
+                                        <form method="POST" action="{{ route('checkout.installment.pay', [$booking, $term['term']]) }}" style="display:inline" class="pay-form">
                                             @csrf
                                             <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem">
                                                 <button type="submit"
                                                     style="background:#1e3a5f;color:#fff;border:none;border-radius:.4rem;padding:.3rem .75rem;font-size:.82rem;cursor:pointer;white-space:nowrap"
-                                                    onclick="this.disabled=true;this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Processing…';this.form.submit()">
+                                                    class="pay-submit-btn">
                                                     <i class="fas fa-credit-card"></i>
                                                     Pay ₱{{ number_format($term['amount'], 0) }}
                                                 </button>
@@ -230,7 +230,7 @@
                                 Outstanding: <strong>₱{{ number_format($remainingBalance, 2) }}</strong> across {{ $pendingTerms->count() }} pending term(s).
                                 Enter a custom amount below — it will automatically cover as many months as possible.
                             </p>
-                            <form method="POST" action="{{ route('checkout.pay-balance', $booking) }}" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+                            <form method="POST" action="{{ route('checkout.pay-balance', $booking) }}" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center" class="pay-form">
                                 @csrf
                                 <div style="display:flex;align-items:center;border:1px solid #93c5fd;border-radius:.5rem;overflow:hidden;background:#fff">
                                     <span style="padding:.45rem .75rem;background:#e0f2fe;color:#0369a1;font-weight:700;font-size:.9rem;border-right:1px solid #93c5fd">₱</span>
@@ -240,7 +240,7 @@
                                 </div>
                                 <button type="submit"
                                     style="background:#0284c7;color:#fff;border:none;border-radius:.5rem;padding:.5rem 1.25rem;font-size:.875rem;font-weight:600;cursor:pointer"
-                                    onclick="this.disabled=true;this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Processing…';this.form.submit()">
+                                    class="pay-submit-btn">
                                     <i class="fas fa-credit-card"></i> Pay via Xendit
                                 </button>
                             </form>
@@ -277,7 +277,7 @@
                             You will be redirected to Xendit's secure payment page to complete your booking.<br>
                             Choose any payment method you prefer there.
                         </p>
-                        <form action="{{ route('checkout.process', $booking) }}" method="POST">
+                        <form action="{{ route('checkout.process', $booking) }}" method="POST" class="pay-form">
                             @csrf
                             @error('error')
                                 <div class="alert alert-danger mb-3">
@@ -288,8 +288,7 @@
                                 <i class="fas fa-shield-alt text-green"></i>
                                 Encrypted &amp; secured by Xendit
                             </div>
-                            <button type="submit" class="btn btn-primary btn-lg btn-block" id="payBtn"
-                                onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Redirecting to Xendit...'; this.form.submit();">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block pay-submit-btn" id="payBtn">
                                 <i class="fas fa-lock"></i> Pay ₱{{ number_format($booking->total_amount, 2) }} via Xendit
                             </button>
                         </form>
@@ -354,39 +353,49 @@ function toggleFutureTerms() {
     body.style.display = open ? 'table-row-group' : 'none';
     btn.innerHTML  = (open ? '<i class="fas fa-chevron-up" id="futureTermsIcon"></i> Hide upcoming terms' : '<i class="fas fa-chevron-down" id="futureTermsIcon"></i> Show upcoming terms');
 }
-// Payment method switching
-document.querySelectorAll('input[name=payment_method]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        document.querySelectorAll('.payment-method-option').forEach(el => el.classList.remove('active'));
-        this.closest('.payment-method-option').classList.add('active');
 
-        const method = this.value;
-        document.getElementById('cardDetails').style.display    = ['credit_card', 'debit_card'].includes(method) ? 'block' : 'none';
-        document.getElementById('paypalDetails').style.display  = method === 'paypal' ? 'block' : 'none';
-        document.getElementById('bankDetails').style.display    = method === 'bank_transfer' ? 'block' : 'none';
+// ── Duplicate-submit guard ──────────────────────────────────────────
+// One submit per form — prevents double-clicks from creating two Xendit invoices.
+document.querySelectorAll('.pay-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        if (form.dataset.submitting === '1') {
+            e.preventDefault();
+            return;
+        }
+        form.dataset.submitting = '1';
+        var btn = form.querySelector('.pay-submit-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = btn.id === 'payBtn'
+                ? '<i class="fas fa-spinner fa-spin"></i> Redirecting to Xendit…'
+                : '<i class="fas fa-spinner fa-spin"></i> Processing…';
+        }
     });
 });
 
-// Card number formatting
-document.getElementById('cardNumber')?.addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
-});
-
-// Expiry formatting
-document.getElementById('cardExpiry')?.addEventListener('input', function() {
-    let v = this.value.replace(/\D/g, '');
-    if (v.length >= 2) v = v.slice(0, 2) + ' / ' + v.slice(2);
-    this.value = v.slice(0, 7);
-});
-
-// Prevent form double submit
-const paymentForm = document.getElementById('paymentForm');
-if (paymentForm) {
-    paymentForm.addEventListener('submit', function() {
-        const btn = document.getElementById('payBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-    });
-}
+// ── Webhook-processing poller ───────────────────────────────────────
+// After Xendit redirects the user back, the server-side webhook may still be
+// in flight. Use sessionStorage to poll until payment_status is updated.
+@if(session('payment_processing'))
+sessionStorage.setItem('payPoll', '0');
+@endif
+(function() {
+    var pollKey = 'payPoll';
+    var raw = sessionStorage.getItem(pollKey);
+    if (raw === null) return; // not in a post-payment flow
+    var attempts = parseInt(raw, 10);
+    @if(in_array($booking->payment_status, ['partial', 'paid']))
+    // Webhook processed — clear state, no more polling needed
+    sessionStorage.removeItem(pollKey);
+    @else
+    // Still unpaid — reload after 3s if under attempt limit
+    if (attempts < 6) {
+        sessionStorage.setItem(pollKey, attempts + 1);
+        setTimeout(function() { window.location.reload(); }, 3000);
+    } else {
+        sessionStorage.removeItem(pollKey);
+    }
+    @endif
+})();
 </script>
 @endpush

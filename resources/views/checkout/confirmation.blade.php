@@ -1,9 +1,30 @@
 @extends('layouts.app')
-@section('title', 'Booking Confirmed!')
+@section('title', $booking->payment_status === 'paid' ? 'Booking Confirmed!' : 'Processing Payment…')
 
 @section('content')
 <section class="section">
     <div class="container">
+        @if($booking->payment_status !== 'paid')
+        {{-- Webhook hasn't fired yet — show processing state and auto-refresh --}}
+        <div class="confirmation-card" style="text-align:center">
+            <div class="confirmation-icon" style="color:#f59e0b">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <h1 style="color:#92400e">Processing Your Payment…</h1>
+            <p class="confirmation-subtitle">
+                We've received your payment request and are confirming it with Xendit.<br>
+                <strong>Do not close this page.</strong> It will update automatically in a few seconds.
+            </p>
+            <p style="font-size:.85rem;color:#6b7280;margin-top:.5rem">
+                A confirmation email will be sent to <strong>{{ $booking->contact_email }}</strong> once confirmed.
+            </p>
+            <div style="margin-top:1.5rem">
+                <a href="{{ route('booking.show', $booking) }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-clipboard-list"></i> View Booking
+                </a>
+            </div>
+        </div>
+        @else
         <div class="confirmation-card">
             <div class="confirmation-icon">
                 <i class="fas fa-check-circle"></i>
@@ -11,7 +32,7 @@
             <h1>Booking Confirmed!</h1>
             <p class="confirmation-subtitle">
                 Thank you, <strong>{{ $booking->contact_name }}</strong>!
-                Your booking has been confirmed and a confirmation email will be sent to
+                Your booking has been confirmed and a confirmation email has been sent to
                 <strong>{{ $booking->contact_email }}</strong>.
             </p>
 
@@ -67,6 +88,25 @@
                 </ul>
             </div>
         </div>
+        @endif
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+// Auto-refresh while Xendit webhook is still being processed
+@if($booking->payment_status !== 'paid')
+(function() {
+    var key = 'confPoll';
+    var attempts = parseInt(sessionStorage.getItem(key) || '0', 10);
+    if (attempts < 8) {
+        sessionStorage.setItem(key, attempts + 1);
+        setTimeout(function() { window.location.reload(); }, 3000);
+    }
+})();
+@else
+sessionStorage.removeItem('confPoll');
+@endif
+</script>
+@endpush

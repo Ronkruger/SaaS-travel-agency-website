@@ -422,9 +422,9 @@ class XenditController extends Controller
             abort(403);
         }
 
-        $booking->load(['tour', 'payment']);
-        return view('checkout.confirmation', compact('booking'))
-            ->with('success', 'Payment successful! Your booking is confirmed.');
+        // Reload from DB — the webhook may have already updated payment_status.
+        $booking->refresh()->load(['tour', 'payment']);
+        return view('checkout.confirmation', compact('booking'));
     }
 
     /**
@@ -454,7 +454,10 @@ class XenditController extends Controller
         $term = (int) $request->query('term', 0);
         $termLabel = $term === 0 ? 'Down Payment' : 'Month ' . $term;
 
+        // Reload from DB so we get the latest payment_status from webhook.
+        // Pass payment_processing so checkout.show polls until webhook confirms.
         return redirect()->route('checkout.show', $booking)
-            ->with('success', "Payment for {$termLabel} received! Thank you.");
+            ->with('success', "Payment for {$termLabel} received! Thank you.")
+            ->with('payment_processing', true);
     }
 }
