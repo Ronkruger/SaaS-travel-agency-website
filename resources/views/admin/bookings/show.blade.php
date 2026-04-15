@@ -313,6 +313,15 @@
                                         <i class="fas fa-bell"></i> Remind
                                     </button>
                                 </form>
+                                @if(!empty($term['xendit_invoice_id']) && $booking->payment_method === 'xendit')
+                                <form action="{{ route('admin.bookings.resync-xendit', [$booking, $term['term']]) }}" method="POST" style="display:inline;margin-top:.3rem"
+                                      onsubmit="return confirm('Fetch this term\'s payment status from Xendit and mark as paid if complete?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-xs btn-ghost" style="color:#7c3aed;white-space:nowrap;margin-top:.25rem" title="Re-check payment status from Xendit (use when webhook failed)">
+                                        <i class="fas fa-sync-alt"></i> Resync
+                                    </button>
+                                </form>
+                                @endif
                                 @endif
                             </td>
                         </tr>

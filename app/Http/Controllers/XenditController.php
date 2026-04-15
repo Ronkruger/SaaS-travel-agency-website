@@ -216,52 +216,69 @@ class XenditController extends Controller
                     ? ($termNumbers[0] === 0 ? 'Down Payment' : 'Month ' . $termNumbers[0])
                     : implode(' + ', array_map(fn($n) => $n === 0 ? 'Down Payment' : 'Month ' . $n, $termNumbers));
                 $emailAmountPaid = (float) ($data['amount'] ?? 0);
+                $termLabels      = implode(', ', array_map(fn($n) => $n === 0 ? 'Downpayment' : 'Month ' . $n, $termNumbers));
+                $channel         = strtoupper($data['payment_channel'] ?? $data['payment_method'] ?? 'Xendit');
+                $xenditRef       = substr($data['id'] ?? '', -8);
 
-                DB::transaction(function () use ($booking, $termNumbers, $data) {
-                    $schedule  = $booking->installment_schedule ?? [];
-                    $paidTotal = (float) ($data['amount'] ?? 0);
+                try {
+                    DB::transaction(function () use ($booking, $termNumbers, $data, $termLabels) {
+                        $schedule  = $booking->installment_schedule ?? [];
+                        $paidTotal = (float) ($data['amount'] ?? 0);
 
-                    foreach ($schedule as &$entry) {
-                        if (in_array((int) $entry['term'], $termNumbers) && $entry['status'] !== 'paid') {
-                            $paidAmt = $entry['xendit_paid_amount'] ?? $entry['amount'];
-                            $entry['status']        = 'paid';
-                            $entry['paid_at']       = now()->toDateTimeString();
-                            $entry['custom_amount'] = $paidAmt != $entry['amount'] ? $paidAmt : null;
+                        foreach ($schedule as &$entry) {
+                            if (in_array((int) $entry['term'], $termNumbers) && $entry['status'] !== 'paid') {
+                                $paidAmt = $entry['xendit_paid_amount'] ?? $entry['amount'];
+                                $entry['status']        = 'paid';
+                                $entry['paid_at']       = now()->toDateTimeString();
+                                $entry['custom_amount'] = $paidAmt != $entry['amount'] ? $paidAmt : null;
+                            }
                         }
-                    }
-                    unset($entry);
+                        unset($entry);
 
-                    $allPaid = collect($schedule)->every(fn($t) => $t['status'] === 'paid');
+                        $allPaid = collect($schedule)->every(fn($t) => $t['status'] === 'paid');
 
-                    $termLabels = implode(', ', array_map(fn($n) => $n === 0 ? 'Downpayment' : 'Month ' . $n, $termNumbers));
-                    Payment::create([
-                        'transaction_id'         => Payment::generateTransactionId(),
-                        'booking_id'             => $booking->id,
-                        'user_id'                => $booking->user_id,
-                        'amount'                 => $paidTotal,
-                        'currency'               => 'PHP',
-                        'method'                 => $data['payment_method'] ?? 'xendit',
-                        'status'                 => 'completed',
-                        'gateway_transaction_id' => $data['id'] ?? null,
-                        'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
-                        'notes'                  => 'Installment ' . $termLabels,
-                        'paid_at'                => now(),
+                        Payment::create([
+                            'transaction_id'         => Payment::generateTransactionId(),
+                            'booking_id'             => $booking->id,
+                            'user_id'                => $booking->user_id,
+                            'amount'                 => $paidTotal,
+                            'currency'               => 'PHP',
+                            'method'                 => $data['payment_method'] ?? 'xendit',
+                            'status'                 => 'completed',
+                            'gateway_transaction_id' => $data['id'] ?? null,
+                            'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
+                            'notes'                  => 'Installment ' . $termLabels,
+                            'paid_at'                => now(),
+                        ]);
+
+                        $booking->update([
+                            'installment_schedule' => array_values($schedule),
+                            'status'               => 'confirmed',
+                            'payment_status'       => $allPaid ? 'paid' : 'partial',
+                        ]);
+                    });
+                } catch (\Throwable $e) {
+                    Log::error('MULTITERM webhook DB transaction failed', [
+                        'external_id' => $externalId,
+                        'booking_id'  => $booking->id,
+                        'error'       => $e->getMessage(),
                     ]);
+                    return response()->json(['error' => 'Processing failed'], 500);
+                }
 
-                    $booking->update([
-                        'installment_schedule' => array_values($schedule),
-                        'status'               => 'confirmed',
-                        'payment_status'       => $allPaid ? 'paid' : 'partial',
-                    ]);
-
-                    // Notify all admins
+                // Notify admins AFTER transaction commits (not inside it, so rollback won't kill the notif)
+                try {
                     \App\Models\AdminNotification::broadcast(
                         'payment_received',
                         'Payment Received — ' . $booking->booking_number,
-                        $booking->contact_name . ': ₱' . number_format($paidTotal, 2) . ' (' . $termLabels . ')',
+                        $booking->contact_name . ': ₱' . number_format($emailAmountPaid, 2) . ' (' . $emailTermLabel . ')'
+                            . ($channel ? ' via ' . $channel : '')
+                            . ($xenditRef ? ' · Ref: #' . $xenditRef : ''),
                         route('admin.bookings.show', $booking) . '#payments',
                     );
-                });
+                } catch (\Throwable $e) {
+                    Log::error('MULTITERM admin notification failed: ' . $e->getMessage());
+                }
 
                 try {
                     if ($booking->contact_email) {
@@ -290,61 +307,75 @@ class XenditController extends Controller
             }
 
             if ($status === 'PAID' || $status === 'SETTLED') {
-                DB::transaction(function () use ($booking, $termNumber, $data) {
-                    $schedule = $booking->installment_schedule ?? [];
-
-                    // Find and mark the term as paid
-                    $allPaid = true;
-                    foreach ($schedule as &$entry) {
-                        if ($entry['term'] == $termNumber && $entry['status'] !== 'paid') {
-                            // Verify invoice ID if stored
-                            $storedId = $entry['xendit_invoice_id'] ?? null;
-                            if ($storedId && $storedId !== ($data['id'] ?? null)) {
-                                Log::warning('Installment invoice ID mismatch', [
-                                    'booking_id' => $booking->id, 'term' => $termNumber,
-                                ]);
-                            }
-                            $entry['status']  = 'paid';
-                            $entry['paid_at'] = now()->toDateTimeString();
-                        }
-                        if ($entry['status'] !== 'paid') {
-                            $allPaid = false;
-                        }
-                    }
-                    unset($entry);
-
-                    // Record a Payment row for this term
-                    $termLabel = $termNumber === 0 ? 'Downpayment' : 'Installment Month ' . $termNumber;
-                    Payment::create([
-                        'transaction_id'         => Payment::generateTransactionId(),
-                        'booking_id'             => $booking->id,
-                        'user_id'                => $booking->user_id,
-                        'amount'                 => $data['amount'] ?? collect($schedule)->firstWhere('term', $termNumber)['amount'] ?? 0,
-                        'currency'               => 'PHP',
-                        'method'                 => $data['payment_method'] ?? 'xendit',
-                        'status'                 => 'completed',
-                        'gateway_transaction_id' => $data['id'] ?? null,
-                        'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
-                        'notes'                  => $termLabel,
-                        'paid_at'                => now(),
-                    ]);
-
-                    $booking->update([
-                        'installment_schedule' => $schedule,
-                        'status'               => 'confirmed',
-                        'payment_status'       => $allPaid ? 'paid' : 'partial',
-                    ]);
-                });
-
-                // Notify admins for this term payment
                 $notifTermLabel = $termNumber === 0 ? 'Down Payment' : 'Month ' . $termNumber;
                 $notifAmount    = (float) ($data['amount'] ?? 0);
-                \App\Models\AdminNotification::broadcast(
-                    'payment_received',
-                    'Payment Received — ' . $booking->booking_number,
-                    $booking->contact_name . ': ₱' . number_format($notifAmount, 2) . ' (' . $notifTermLabel . ')',
-                    route('admin.bookings.show', $booking) . '#payments',
-                );
+                $channel        = strtoupper($data['payment_channel'] ?? $data['payment_method'] ?? 'Xendit');
+                $xenditRef      = substr($data['id'] ?? '', -8);
+
+                try {
+                    DB::transaction(function () use ($booking, $termNumber, $data) {
+                        $schedule = $booking->installment_schedule ?? [];
+
+                        $allPaid = true;
+                        foreach ($schedule as &$entry) {
+                            if ($entry['term'] == $termNumber && $entry['status'] !== 'paid') {
+                                $storedId = $entry['xendit_invoice_id'] ?? null;
+                                if ($storedId && $storedId !== ($data['id'] ?? null)) {
+                                    Log::warning('Installment invoice ID mismatch', [
+                                        'booking_id' => $booking->id, 'term' => $termNumber,
+                                    ]);
+                                }
+                                $entry['status']  = 'paid';
+                                $entry['paid_at'] = now()->toDateTimeString();
+                            }
+                            if ($entry['status'] !== 'paid') {
+                                $allPaid = false;
+                            }
+                        }
+                        unset($entry);
+
+                        $termLabel = $termNumber === 0 ? 'Downpayment' : 'Installment Month ' . $termNumber;
+                        Payment::create([
+                            'transaction_id'         => Payment::generateTransactionId(),
+                            'booking_id'             => $booking->id,
+                            'user_id'                => $booking->user_id,
+                            'amount'                 => $data['amount'] ?? collect($schedule)->firstWhere('term', $termNumber)['amount'] ?? 0,
+                            'currency'               => 'PHP',
+                            'method'                 => $data['payment_method'] ?? 'xendit',
+                            'status'                 => 'completed',
+                            'gateway_transaction_id' => $data['id'] ?? null,
+                            'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
+                            'notes'                  => $termLabel,
+                            'paid_at'                => now(),
+                        ]);
+
+                        $booking->update([
+                            'installment_schedule' => $schedule,
+                            'status'               => 'confirmed',
+                            'payment_status'       => $allPaid ? 'paid' : 'partial',
+                        ]);
+                    });
+                } catch (\Throwable $e) {
+                    Log::error('INSTALLMENT webhook DB transaction failed', [
+                        'external_id' => $externalId,
+                        'booking_id'  => $booking->id,
+                        'error'       => $e->getMessage(),
+                    ]);
+                    return response()->json(['error' => 'Processing failed'], 500);
+                }
+
+                try {
+                    \App\Models\AdminNotification::broadcast(
+                        'payment_received',
+                        'Payment Received — ' . $booking->booking_number,
+                        $booking->contact_name . ': ₱' . number_format($notifAmount, 2) . ' (' . $notifTermLabel . ')'
+                            . ($channel ? ' via ' . $channel : '')
+                            . ($xenditRef ? ' · Ref: #' . $xenditRef : ''),
+                        route('admin.bookings.show', $booking) . '#payments',
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('INSTALLMENT admin notification failed: ' . $e->getMessage());
+                }
 
                 // Send confirmation email outside the transaction
                 try {
@@ -388,38 +419,56 @@ class XenditController extends Controller
         }
 
         if ($status === 'PAID' || $status === 'SETTLED') {
-            DB::transaction(function () use ($booking, $data) {
-                if ($booking->payment_status === 'paid') return; // idempotency
+            $channel   = strtoupper($data['payment_channel'] ?? $data['payment_method'] ?? 'Xendit');
+            $xenditRef = substr($data['id'] ?? '', -8);
 
-                Payment::create([
-                    'transaction_id'         => Payment::generateTransactionId(),
-                    'booking_id'             => $booking->id,
-                    'user_id'                => $booking->user_id,
-                    'amount'                 => $booking->total_amount,
-                    'currency'               => 'PHP',
-                    'method'                 => $data['payment_method'] ?? 'xendit',
-                    'status'                 => 'completed',
-                    'gateway_transaction_id' => $data['id'] ?? null,
-                    // SECURITY: Only store sanitized gateway response
-                    'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
-                    'paid_at'                => now(),
+            try {
+                DB::transaction(function () use ($booking, $data) {
+                    if ($booking->payment_status === 'paid') return; // idempotency
+
+                    Payment::create([
+                        'transaction_id'         => Payment::generateTransactionId(),
+                        'booking_id'             => $booking->id,
+                        'user_id'                => $booking->user_id,
+                        'amount'                 => $booking->total_amount,
+                        'currency'               => 'PHP',
+                        'method'                 => $data['payment_method'] ?? 'xendit',
+                        'status'                 => 'completed',
+                        'gateway_transaction_id' => $data['id'] ?? null,
+                        // SECURITY: Only store sanitized gateway response
+                        'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse($data),
+                        'paid_at'                => now(),
+                    ]);
+
+                    $booking->update([
+                        'status'         => 'confirmed',
+                        'payment_status' => 'paid',
+                    ]);
+
+                    $booking->tour()->increment('total_bookings');
+                });
+            } catch (\Throwable $e) {
+                Log::error('BOOKING webhook DB transaction failed', [
+                    'external_id' => $externalId,
+                    'booking_id'  => $booking->id,
+                    'error'       => $e->getMessage(),
                 ]);
-
-                $booking->update([
-                    'status'         => 'confirmed',
-                    'payment_status' => 'paid',
-                ]);
-
-                $booking->tour()->increment('total_bookings');
-            });
+                return response()->json(['error' => 'Processing failed'], 500);
+            }
 
             // Notify admins of full payment
-            \App\Models\AdminNotification::broadcast(
-                'payment_received',
-                'Payment Received — ' . $booking->booking_number,
-                $booking->contact_name . ': ₱' . number_format($booking->total_amount, 2) . ' (Full Payment)',
-                route('admin.bookings.show', $booking) . '#payments',
-            );
+            try {
+                \App\Models\AdminNotification::broadcast(
+                    'payment_received',
+                    'Payment Received — ' . $booking->booking_number,
+                    $booking->contact_name . ': ₱' . number_format($booking->total_amount, 2) . ' (Full Payment)'
+                        . ($channel ? ' via ' . $channel : '')
+                        . ($xenditRef ? ' · Ref: #' . $xenditRef : ''),
+                    route('admin.bookings.show', $booking) . '#payments',
+                );
+            } catch (\Throwable $e) {
+                Log::error('BOOKING admin notification failed: ' . $e->getMessage());
+            }
 
             // Send booking confirmation email outside the transaction
             try {
