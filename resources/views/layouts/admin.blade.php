@@ -273,10 +273,96 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
 </script>
 @stack('scripts')
 <script>
+// ── Notification Sound & Browser Permission ───────────────────────────────────
+(function () {
+    const PERM_KEY  = 'dgadmin_notif_init';
+    const SOUND_KEY = 'dgadmin_sound_on';
+
+    // --- Web Audio beep (double-tone) ---
+    let audioCtx = null;
+
+    function unlockAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Play a silent buffer to satisfy autoplay policy
+        const buf = audioCtx.createBuffer(1, 1, 22050);
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+    }
+
+    window._playNotifSound = function () {
+        if (!localStorage.getItem(SOUND_KEY)) return;
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            [0, 0.17].forEach(function (offset) {
+                const osc  = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine'; osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + offset);
+                gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + offset + 0.025);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + offset + 0.22);
+                osc.start(audioCtx.currentTime + offset);
+                osc.stop(audioCtx.currentTime + offset + 0.22);
+            });
+        } catch (e) {}
+    };
+
+    window._showBrowserNotif = function (title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try { new Notification(title, { body: body, icon: '/favicon.svg' }); } catch (e) {}
+        }
+    };
+
+    // --- One-time permission banner ---
+    function showBanner() {
+        if (localStorage.getItem(PERM_KEY)) return;
+        const banner = document.createElement('div');
+        banner.id = 'notif-perm-banner';
+        banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.28);z-index:99999;display:flex;align-items:center;gap:12px;font-size:.84rem;max-width:500px;width:calc(100% - 40px);animation:slideUp .3s ease';
+        banner.innerHTML = '<i class="fas fa-bell" style="font-size:1.05rem;flex-shrink:0"></i>'
+            + '<span style="flex:1">Enable sound &amp; notifications for new bookings and payments?</span>'
+            + '<div style="display:flex;gap:8px;flex-shrink:0">'
+            + '<button id="notif-perm-allow" style="background:#fff;color:#1e3a5f;border:none;padding:5px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer">Enable</button>'
+            + '<button id="notif-perm-skip" style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:.8rem;cursor:pointer">Later</button>'
+            + '</div>';
+        document.body.appendChild(banner);
+
+        document.getElementById('notif-perm-allow').addEventListener('click', function () {
+            localStorage.setItem(PERM_KEY, 'enabled');
+            localStorage.setItem(SOUND_KEY, '1');
+            unlockAudio();
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            banner.remove();
+        });
+        document.getElementById('notif-perm-skip').addEventListener('click', function () {
+            localStorage.setItem(PERM_KEY, 'dismissed');
+            banner.remove();
+        });
+    }
+
+    // Restore sound flag if previously enabled
+    if (localStorage.getItem(PERM_KEY) === 'enabled') {
+        localStorage.setItem(SOUND_KEY, '1');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', showBanner);
+    } else {
+        showBanner();
+    }
+})();
+</script>
+<style>
+@keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+</style>
+<script>
 // ── Notification Bell ─────────────────────────────────────────────────────────
 (function () {
     const POLL_INTERVAL = 30000; // 30 s
     let dropdownOpen = false;
+    let prevCount = -1; // -1 = initial load (don't sound on first fetch)
 
     function fetchNotifications() {
         fetch('{{ route('admin.notifications.unread') }}', {
@@ -287,6 +373,17 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
             const badge = document.getElementById('notif-badge');
             const list  = document.getElementById('notif-list');
             if (!badge || !list) return;
+
+            // Sound + browser notification when new items arrive (skip the very first poll)
+            if (prevCount !== -1 && data.count > prevCount) {
+                window._playNotifSound && window._playNotifSound();
+                const first = data.notifications && data.notifications[0];
+                window._showBrowserNotif && window._showBrowserNotif(
+                    first ? first.title : 'New Notification',
+                    first ? first.body  : ''
+                );
+            }
+            prevCount = data.count;
 
             if (data.count > 0) {
                 badge.textContent = data.count > 99 ? '99+' : data.count;
