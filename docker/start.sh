@@ -9,6 +9,7 @@ cd /var/www
 # Laravel bootstrap (optimizations are non-fatal; migrate is required)
 php artisan config:cache  || echo "[warn] config:cache failed, continuing..."
 php artisan route:cache   || echo "[warn] route:cache failed, continuing..."
+php artisan view:clear    || echo "[warn] view:clear failed, continuing..."
 php artisan view:cache    || echo "[warn] view:cache failed, continuing..."
 php artisan migrate --force
 php artisan db:seed --class=AdminUserSeeder --force
