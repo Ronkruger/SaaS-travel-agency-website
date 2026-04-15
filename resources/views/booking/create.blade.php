@@ -14,6 +14,13 @@
         <div class="booking-layout">
             <!-- Booking Form -->
             <div class="booking-form-main">
+                @error('error')
+                <div class="alert alert-danger" style="margin-bottom:1.25rem">
+                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                    <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+                </div>
+                @enderror
+
                 <form action="{{ route('booking.store') }}" method="POST" id="bookingForm">
                     @csrf
                     <input type="hidden" name="tour_id" value="{{ $tour->id }}">

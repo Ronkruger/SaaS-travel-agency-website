@@ -198,7 +198,10 @@ class BookingController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             \Log::error('Booking failed: ' . $e->getMessage(), ['exception' => $e]);
-            return back()->withErrors(['error' => 'Booking failed. Please try again.'])->withInput();
+            $message = config('app.debug')
+                ? 'Booking failed: ' . $e->getMessage()
+                : 'Booking failed. Please try again.';
+            return back()->withErrors(['error' => $message])->withInput();
         }
     }
 
