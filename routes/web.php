@@ -51,6 +51,10 @@ Route::post('/contact', [ContactController::class, 'send'])->name('contact.send'
 
 // Xendit payment callbacks (CSRF-exempt, no auth required for webhook)
 Route::post('/xendit/webhook', [XenditController::class, 'webhook'])->name('xendit.webhook');
+Route::get('/xendit/webhook', fn () => response()->json([
+    'status' => 'ok',
+    'message' => 'Xendit webhook endpoint is reachable. Use POST to submit webhook data.',
+]))->name('xendit.webhook.health');
 Route::middleware('auth')->group(function () {
     Route::get('/xendit/success/{booking}', [XenditController::class, 'success'])->name('xendit.success');
     Route::get('/xendit/failure/{booking}', [XenditController::class, 'failure'])->name('xendit.failure');

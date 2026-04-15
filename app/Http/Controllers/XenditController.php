@@ -173,6 +173,13 @@ class XenditController extends Controller
      */
     public function webhook(Request $request)
     {
+        Log::info('Xendit webhook HIT', [
+            'ip'          => $request->ip(),
+            'external_id' => $request->input('external_id'),
+            'status'      => $request->input('status'),
+            'has_token'   => $request->hasHeader('x-callback-token'),
+        ]);
+
         $token = $request->header('x-callback-token');
         $ip = $request->ip();
         $data = $request->all();
