@@ -1,10 +1,76 @@
 @extends('layouts.app')
-@section('title', $booking->payment_status === 'paid' ? 'Booking Confirmed!' : 'Processing Payment…')
+@section('title', $booking->payment_status === 'paid' ? 'Booking Confirmed!' : ($booking->payment_status === 'partial' ? 'Booking Confirmed — Installment Active' : 'Processing Payment…'))
 
 @section('content')
 <section class="section">
     <div class="container">
-        @if($booking->payment_status !== 'paid')
+        @if($booking->payment_status === 'partial')
+        {{-- Installment first payment received — booking confirmed, more terms to follow --}}
+        <div class="confirmation-card">
+            <div class="confirmation-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1>Booking Confirmed!</h1>
+            <p class="confirmation-subtitle">
+                Thank you, <strong>{{ $booking->contact_name }}</strong>!<br>
+                Your first payment has been received and your booking is now confirmed.
+                A confirmation email has been sent to <strong>{{ $booking->contact_email }}</strong>.
+            </p>
+
+            <div class="confirmation-details">
+                <div class="detail-row">
+                    <span>Booking Number</span>
+                    <strong class="text-primary">{{ $booking->booking_number }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Tour</span>
+                    <strong>{{ $booking->tour->title }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Tour Date</span>
+                    <strong>{{ $booking->tour_date->format('F d, Y') }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Guests</span>
+                    <strong>{{ $booking->total_guests }} person(s)</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Payment Plan</span>
+                    <strong>{{ $booking->installment_months }} monthly installment(s)</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Terms Paid</span>
+                    <strong class="text-green">
+                        {{ collect($booking->installment_schedule ?? [])->where('status', 'paid')->count() }}
+                        of {{ count($booking->installment_schedule ?? []) }}
+                    </strong>
+                </div>
+                <div class="detail-row">
+                    <span>Remaining Balance</span>
+                    <strong>₱{{ number_format(collect($booking->installment_schedule ?? [])->where('status', '!=', 'paid')->sum('amount'), 2) }}</strong>
+                </div>
+            </div>
+
+            <div class="confirmation-tips">
+                <h4><i class="fas fa-info-circle"></i> What's Next?</h4>
+                <ul>
+                    <li><i class="fas fa-envelope"></i> A confirmation email has been sent to <strong>{{ $booking->contact_email }}</strong>.</li>
+                    <li><i class="fas fa-calendar-alt"></i> We'll remind you before each installment due date.</li>
+                    <li><i class="fas fa-credit-card"></i> You can pay the next term anytime from your booking page.</li>
+                    <li><i class="fas fa-times-circle"></i> Free cancellation up to 48 hours before departure.</li>
+                </ul>
+            </div>
+
+            <div class="confirmation-actions">
+                <a href="{{ route('checkout.show', $booking) }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-alt"></i> View Payment Schedule
+                </a>
+                <a href="{{ route('booking.show', $booking) }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-clipboard-list"></i> View Booking Details
+                </a>
+            </div>
+        </div>
+        @elseif($booking->payment_status !== 'paid')
         {{-- Webhook hasn't fired yet — show processing state and auto-refresh --}}
         <div class="confirmation-card" style="text-align:center">
             <div class="confirmation-icon" style="color:#f59e0b">
@@ -95,7 +161,7 @@
 
 @push('scripts')
 <script>
-@if($booking->payment_status !== 'paid')
+@if($booking->payment_status !== 'paid' && $booking->payment_status !== 'partial')
 // Poll the lightweight status endpoint instead of reloading the whole page
 (function() {
     var statusUrl = '{{ parse_url(route("checkout.payment-status", $booking), PHP_URL_PATH) }}';

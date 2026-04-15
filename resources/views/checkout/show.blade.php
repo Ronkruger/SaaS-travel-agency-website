@@ -17,7 +17,13 @@
             <div class="checkout-step-divider"><i class="fas fa-chevron-right"></i></div>
             <div class="checkout-step active"><i class="fas fa-credit-card"></i> Payment</div>
             <div class="checkout-step-divider"><i class="fas fa-chevron-right"></i></div>
+            @if($booking->payment_status !== 'unpaid')
+            <a href="{{ route('checkout.confirmation', $booking) }}" style="text-decoration:none">
+                <div class="checkout-step completed"><i class="fas fa-check-circle"></i> Confirmation</div>
+            </a>
+            @else
             <div class="checkout-step"><i class="fas fa-check-circle"></i> Confirmation</div>
+            @endif
         </div>
 
         <div class="checkout-layout">
@@ -250,8 +256,8 @@
 
                         @if($booking->payment_status !== 'unpaid')
                         <div style="margin-top:1.25rem">
-                            <a href="{{ route('booking.show', $booking) }}" class="btn btn-primary btn-lg btn-block">
-                                <i class="fas fa-check-circle"></i> View My Booking
+                            <a href="{{ route('checkout.confirmation', $booking) }}" class="btn btn-primary btn-lg btn-block">
+                                <i class="fas fa-check-circle"></i> View Confirmation
                             </a>
                             <p style="margin:.5rem 0 0;font-size:.8rem;color:#6b7280;text-align:center">
                                 You can track your payment schedule and booking details there.
