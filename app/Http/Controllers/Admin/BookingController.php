@@ -188,12 +188,38 @@ class BookingController extends Controller
                 ? ' (custom — scheduled ₱' . number_format($scheduledAmount, 2) . ')'
                 : '';
 
+            // Create a Payment record (same as the Xendit webhook would)
+            Payment::create([
+                'transaction_id'         => Payment::generateTransactionId(),
+                'booking_id'             => $booking->id,
+                'user_id'                => $booking->user_id,
+                'amount'                 => $customAmt,
+                'currency'               => 'PHP',
+                'method'                 => $booking->payment_method ?? 'manual',
+                'status'                 => 'completed',
+                'gateway_transaction_id' => null,
+                'gateway_response'       => null,
+                'notes'                  => 'Installment ' . $termLabel . ' (admin verified)',
+                'paid_at'                => now(),
+            ]);
+
             \App\Models\AdminNotification::broadcast(
                 'payment_received',
                 'Payment Received',
                 $booking->booking_number . ' — ' . $booking->contact_name . ': ' . $termLabel . ' ' . $paidAmount . $note,
-                route('admin.bookings.show', $booking),
+                route('admin.bookings.show', $booking) . '#payments',
             );
+
+            // Send confirmation email to client
+            try {
+                $booking->refresh()->load('tour');
+                if ($booking->contact_email) {
+                    Mail::to($booking->contact_email)
+                        ->send(new BookingConfirmationMail($booking, $termLabel, true, $customAmt));
+                }
+            } catch (\Throwable $e) {
+                Log::error('Failed to send installment confirmation email (admin mark paid): ' . $e->getMessage());
+            }
         }
 
         return back()->with('success', 'Term ' . $term . ' marked as ' . $validated['status'] . '.');
