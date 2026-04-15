@@ -14,17 +14,17 @@ class NotificationController extends Controller
     {
         $adminId = auth('admin')->id();
 
-        $notifications = AdminNotification::where(function ($q) use ($adminId) {
+        $baseQuery = fn () => AdminNotification::where(function ($q) use ($adminId) {
             $q->where('admin_user_id', $adminId)
               ->orWhereNull('admin_user_id');
-        })
-            ->where('is_read', false)
-            ->latest()
-            ->limit(20)
+        })->where('is_read', false);
+
+        $totalUnread   = $baseQuery()->count();
+        $notifications = $baseQuery()->latest()->limit(20)
             ->get(['id', 'type', 'title', 'body', 'url', 'created_at']);
 
         return response()->json([
-            'count'         => $notifications->count(),
+            'count'         => $totalUnread,
             'notifications' => $notifications,
         ]);
     }
