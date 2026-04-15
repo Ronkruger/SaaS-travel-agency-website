@@ -456,7 +456,7 @@ class XenditController extends Controller
         // Reload from DB so we get the latest payment_status from webhook.
         // Pass payment_processing so checkout.show polls until webhook confirms.
         return redirect()->route('checkout.show', $booking)
-            ->with('success', "Payment for {$termLabel} received! Thank you.")
+            ->with('success', "Payment submitted for {$termLabel}. Your schedule will update shortly.")
             ->with('payment_processing', true);
     }
 }

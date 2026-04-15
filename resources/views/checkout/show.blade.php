@@ -248,16 +248,21 @@
                         </div>
                         @endif
 
-                        <div style="margin-top:1.5rem;padding:1rem;background:#f8fafc;border-radius:.75rem;font-size:.875rem;color:#374151">
+                        @if($booking->payment_status !== 'unpaid')
+                        <div style="margin-top:1.25rem">
+                            <a href="{{ route('booking.show', $booking) }}" class="btn btn-primary btn-lg btn-block">
+                                <i class="fas fa-check-circle"></i> View My Booking
+                            </a>
+                            <p style="margin:.5rem 0 0;font-size:.8rem;color:#6b7280;text-align:center">
+                                You can track your payment schedule and booking details there.
+                            </p>
+                        </div>
+                        @endif
+
+                        <div style="margin-top:1.25rem;padding:1rem;background:#f8fafc;border-radius:.75rem;font-size:.875rem;color:#374151">
                             <strong><i class="fas fa-university"></i> Bank Transfer Details</strong><br>
                             <span class="text-muted">Our team will send you bank account details via email at <strong>{{ $booking->contact_email }}</strong>.</span>
                         </div>
-
-                        @if($booking->payment_status !== 'unpaid')
-                        <a href="{{ route('booking.show', $booking) }}" class="btn btn-primary btn-lg btn-block mt-4">
-                            <i class="fas fa-check-circle"></i> View My Booking
-                        </a>
-                        @endif
                     </div>
                 </div>
 
