@@ -358,67 +358,102 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
 @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
 </style>
 <script>
-// ── Notification Bell ─────────────────────────────────────────────────────────
+// ── Notification Bell (SSE real-time) ─────────────────────────────────────────
 (function () {
-    const POLL_INTERVAL = 30000; // 30 s
     let dropdownOpen = false;
-    let prevCount = -1; // -1 = initial load (don't sound on first fetch)
 
-    function fetchNotifications() {
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function updateBadge(count) {
+        const badge = document.getElementById('notif-badge');
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function renderList(notifications) {
+        const list = document.getElementById('notif-list');
+        if (!list) return;
+        if (!notifications || notifications.length === 0) {
+            list.innerHTML = '<div style="padding:1.25rem;text-align:center;color:var(--gray-400);font-size:.8rem">No new notifications</div>';
+            return;
+        }
+        list.innerHTML = notifications.map(n => {
+            const ago  = timeAgo(n.created_at);
+            const href = n.url || '#';
+            return `<a href="${href}" onclick="markNotifRead(event,${n.id},'${href}')"
+                style="display:block;padding:.65rem 1rem;border-bottom:1px solid var(--gray-100);text-decoration:none;color:inherit;transition:background .15s"
+                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''"
+                data-id="${n.id}">
+                <div style="font-size:.8rem;font-weight:600;color:var(--gray-800);margin-bottom:.15rem">${escHtml(n.title)}</div>
+                <div style="font-size:.75rem;color:var(--gray-500);margin-bottom:.25rem;line-height:1.4">${escHtml(n.body)}</div>
+                <div style="font-size:.7rem;color:var(--gray-400)">${ago}</div>
+            </a>`;
+        }).join('');
+    }
+
+    // Fetch the dropdown list on demand (when drawer opens or after mark-read etc.)
+    function fetchAndRender() {
         fetch('{{ route('admin.notifications.unread') }}', {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(r => r.json())
         .then(data => {
-            const badge = document.getElementById('notif-badge');
-            const list  = document.getElementById('notif-list');
-            if (!badge || !list) return;
-
-            // Sound + browser notification when new items arrive (skip the very first poll)
-            if (prevCount !== -1 && data.count > prevCount) {
-                window._playNotifSound && window._playNotifSound();
-                const first = data.notifications && data.notifications[0];
-                window._showBrowserNotif && window._showBrowserNotif(
-                    first ? first.title : 'New Notification',
-                    first ? first.body  : ''
-                );
-            }
-            prevCount = data.count;
-
-            if (data.count > 0) {
-                badge.textContent = data.count > 99 ? '99+' : data.count;
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
-
-            if (data.notifications.length === 0) {
-                list.innerHTML = '<div style="padding:1.25rem;text-align:center;color:var(--gray-400);font-size:.8rem">No new notifications</div>';
-                return;
-            }
-
-            list.innerHTML = data.notifications.map(n => {
-                const ago = timeAgo(n.created_at);
-                const href = n.url || '#';
-                return `<a href="${href}" onclick="markNotifRead(event, ${n.id}, '${href}')"
-                    style="display:block;padding:.65rem 1rem;border-bottom:1px solid var(--gray-100);text-decoration:none;color:inherit;transition:background .15s"
-                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''"
-                    data-id="${n.id}">
-                    <div style="font-size:.8rem;font-weight:600;color:var(--gray-800);margin-bottom:.15rem">${escHtml(n.title)}</div>
-                    <div style="font-size:.75rem;color:var(--gray-500);margin-bottom:.25rem;line-height:1.4">${escHtml(n.body)}</div>
-                    <div style="font-size:.7rem;color:var(--gray-400)">${ago}</div>
-                </a>`;
-            }).join('');
+            updateBadge(data.count);
+            renderList(data.notifications);
         })
         .catch(() => {});
     }
 
+    // ── SSE connection ────────────────────────────────────────────────────────
+    function connectSSE() {
+        if (typeof EventSource === 'undefined') {
+            // Rare old browser — fall back to polling every 5 s
+            fetchAndRender();
+            setInterval(fetchAndRender, 5000);
+            return;
+        }
+
+        const src = new EventSource('{{ route('admin.notifications.stream') }}');
+
+        // Initial state — populate badge + dropdown silently (no sound)
+        src.addEventListener('init', function (e) {
+            const data = JSON.parse(e.data);
+            updateBadge(data.count);
+            if (dropdownOpen) renderList(data.notifications);
+        });
+
+        // New notification arrived — sound + browser notif + badge update
+        src.addEventListener('notification', function (e) {
+            const data  = JSON.parse(e.data);
+            const first = data.notifications && data.notifications[0];
+            window._playNotifSound && window._playNotifSound();
+            window._showBrowserNotif && window._showBrowserNotif(
+                first ? first.title : 'New Notification',
+                first ? first.body  : ''
+            );
+            updateBadge(data.count);
+            if (dropdownOpen) renderList(data.notifications);
+        });
+
+        src.onerror = function () {
+            // EventSource will auto-reconnect with exponential back-off.
+            // No manual action needed; Last-Event-ID is sent automatically.
+        };
+    }
+
+    connectSSE();
+
+    // ── Bell UI ───────────────────────────────────────────────────────────────
     window.toggleNotifDropdown = function () {
         const dd = document.getElementById('notif-dropdown');
         if (!dd) return;
         dropdownOpen = !dropdownOpen;
         dd.style.display = dropdownOpen ? 'flex' : 'none';
-        if (dropdownOpen) fetchNotifications();
+        if (dropdownOpen) fetchAndRender();
     };
 
     window.markNotifRead = function (e, id, href) {
@@ -428,7 +463,7 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
         }).finally(() => {
             if (href && href !== '#') window.location.href = href;
-            else fetchNotifications();
+            else fetchAndRender();
         });
     };
 
@@ -436,7 +471,7 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
         fetch('{{ route('admin.notifications.read-all') }}', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
-        }).then(() => fetchNotifications());
+        }).then(() => fetchAndRender());
     };
 
     window.clearAllNotifs = function () {
@@ -444,7 +479,7 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
         fetch('{{ route('admin.notifications.clear') }}', {
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
-        }).then(() => fetchNotifications());
+        }).then(() => fetchAndRender());
     };
 
     // Close dropdown when clicking outside
@@ -459,7 +494,7 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
 
     function timeAgo(dateStr) {
         const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-        if (diff < 60)  return diff + 's ago';
+        if (diff < 60)   return diff + 's ago';
         if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
         if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
         return Math.floor(diff / 86400) + 'd ago';
@@ -468,10 +503,6 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
     function escHtml(str) {
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
-
-    // Initial fetch + polling
-    fetchNotifications();
-    setInterval(fetchNotifications, POLL_INTERVAL);
 })();
 </script>
 </body>
