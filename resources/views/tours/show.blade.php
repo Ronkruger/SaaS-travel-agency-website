@@ -683,7 +683,15 @@
                     @endif
 
                     <!-- Book Now Button (internal) -->
-                    @auth
+                    @php
+                        $allDeparturesFull = $tour->schedules->isNotEmpty() && $tour->schedules->every(fn($s) => ($s->available_seats - $s->booked_seats) <= 0 || $s->status === 'sold_out');
+                    @endphp
+                    @if($allDeparturesFull)
+                        <button class="btn btn-block btn-lg mt-3" disabled
+                                style="background:#dc2626;color:#fff;font-weight:700;cursor:not-allowed;opacity:1;border:none">
+                            <i class="fas fa-ban"></i> Fully Booked
+                        </button>
+                    @elseif(auth()->check())
                         <a href="{{ route('booking.create', ['tour_id' => $tour->id]) }}"
                            class="btn btn-primary btn-block btn-lg mt-3">
                             <i class="fas fa-calendar-check"></i> Book Now
@@ -692,7 +700,7 @@
                         <a href="{{ route('login') }}" class="btn btn-primary btn-block btn-lg mt-3">
                             <i class="fas fa-sign-in-alt"></i> Login to Book
                         </a>
-                    @endauth
+                    @endif
 
                     <!-- External Booking / Flipbook Links -->
                     @php

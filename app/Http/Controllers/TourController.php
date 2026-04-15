@@ -79,6 +79,7 @@ class TourController extends Controller
             default      => $query->latest(),
         };
 
+        $query->with('schedules');
         $tours      = $query->paginate(12)->withQueryString();
         $categories = Category::where('is_active', true)->get();
         $continents = Tour::active()->whereNotNull('continent')->distinct()->pluck('continent')->sort()->values();

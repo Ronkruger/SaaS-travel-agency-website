@@ -76,9 +76,18 @@
                 <small>per person</small>
             @endif
         </div>
-        <a href="{{ route('tours.show', $tour->slug) }}" class="btn btn-primary btn-sm">
-            View Details
-        </a>
+        @php
+            $allFull = $tour->schedules->isNotEmpty() && $tour->schedules->every(fn($s) => ($s->available_seats - $s->booked_seats) <= 0 || $s->status === 'sold_out');
+        @endphp
+        @if($allFull)
+            <span class="btn btn-sm" style="background:#dc2626;color:#fff;cursor:default;pointer-events:none;font-weight:700">
+                <i class="fas fa-ban"></i> Fully Booked
+            </span>
+        @else
+            <a href="{{ route('tours.show', $tour->slug) }}" class="btn btn-primary btn-sm">
+                View Details
+            </a>
+        @endif
     </div>
 </div>
 
