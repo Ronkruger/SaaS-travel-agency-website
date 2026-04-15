@@ -140,7 +140,7 @@ class CheckoutController extends Controller
             return redirect()->away($invoiceUrl);
         } catch (\Throwable $e) {
             Log::error('Xendit installment invoice creation failed: ' . $e->getMessage(), ['exception' => $e]);
-            $msg = config('app.debug') ? 'Payment error: ' . $e->getMessage() : 'Could not initiate payment. Please try again.';
+            $msg = 'Payment error: ' . $e->getMessage();
             return back()->withErrors(['error' => $msg]);
         }
     }
@@ -194,7 +194,7 @@ class CheckoutController extends Controller
             return redirect()->away($invoiceUrl);
         } catch (\Throwable $e) {
             Log::error('Xendit balance payment failed: ' . $e->getMessage(), ['exception' => $e]);
-            $msg = config('app.debug') ? 'Payment error: ' . $e->getMessage() : 'Could not initiate payment. Please try again.';
+            $msg = 'Payment error: ' . $e->getMessage();
             return back()->withErrors(['error' => $msg]);
         }
     }
