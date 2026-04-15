@@ -56,8 +56,20 @@ class Booking extends Model
     public static function generateBookingNumber(): string
     {
         $year = date('Y');
-        $count = static::whereYear('created_at', $year)->count() + 1;
-        return 'DG-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
+        // Include soft-deleted rows so we never collide with a deleted booking's unique number.
+        // Retry until we find a number that isn't already taken.
+        do {
+            $count  = static::withTrashed()->whereYear('created_at', $year)->count() + 1;
+            $number = 'DG-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
+            $exists = static::withTrashed()->where('booking_number', $number)->exists();
+            if ($exists) {
+                // Another row has this number; bump counter by the existing total + 1
+                $count = static::withTrashed()->whereYear('created_at', $year)->count() + mt_rand(1, 10);
+                $number = 'DG-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
+            }
+        } while (static::withTrashed()->where('booking_number', $number)->exists());
+
+        return $number;
     }
 
     public function user()
