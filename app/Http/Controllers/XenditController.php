@@ -211,6 +211,12 @@ class XenditController extends Controller
             }
 
             if ($status === 'PAID' || $status === 'SETTLED') {
+                // Build label and amount before entering the transaction so they're available for the email
+                $emailTermLabel = count($termNumbers) === 1
+                    ? ($termNumbers[0] === 0 ? 'Down Payment' : 'Month ' . $termNumbers[0])
+                    : implode(' + ', array_map(fn($n) => $n === 0 ? 'Down Payment' : 'Month ' . $n, $termNumbers));
+                $emailAmountPaid = (float) ($data['amount'] ?? 0);
+
                 DB::transaction(function () use ($booking, $termNumbers, $data) {
                     $schedule  = $booking->installment_schedule ?? [];
                     $paidTotal = (float) ($data['amount'] ?? 0);
@@ -261,7 +267,7 @@ class XenditController extends Controller
                     if ($booking->contact_email) {
                         $booking->refresh()->load('tour');
                         Mail::to($booking->contact_email)
-                            ->send(new BookingConfirmationMail($booking, 'Payment Received', true));
+                            ->send(new BookingConfirmationMail($booking, $emailTermLabel, true, $emailAmountPaid));
                     }
                 } catch (\Throwable $e) {
                     Log::error('Failed to send multi-term confirmation email: ' . $e->getMessage());
@@ -334,8 +340,9 @@ class XenditController extends Controller
                 try {
                     $termLabel = $termNumber === 0 ? 'Down Payment' : 'Month ' . $termNumber;
                     $booking->refresh()->load('tour');
+                    $amountPaid = (float) ($data['amount'] ?? collect($booking->installment_schedule)->firstWhere('term', $termNumber)['amount'] ?? 0);
                     Mail::to($booking->contact_email)
-                        ->send(new BookingConfirmationMail($booking, $termLabel, true));
+                        ->send(new BookingConfirmationMail($booking, $termLabel, true, $amountPaid));
                 } catch (\Throwable $e) {
                     Log::error('Failed to send installment confirmation email: ' . $e->getMessage());
                 }

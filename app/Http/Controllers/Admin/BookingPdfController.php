@@ -80,7 +80,7 @@ class BookingPdfController extends Controller
 
         try {
             Mail::to($booking->contact_email)
-                ->send(new BookingConfirmationMail($booking, null, false, $pdfContent, $filename));
+                ->send(new BookingConfirmationMail($booking, null, false, null, $pdfContent, $filename));
 
             return back()->with('success', "Booking confirmation PDF sent to {$booking->contact_email}.");
         } catch (\Throwable $e) {

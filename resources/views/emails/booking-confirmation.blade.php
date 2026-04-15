@@ -57,7 +57,7 @@
         @if($isInstallment)
         <div class="alert alert-success">
             <strong>Payment received!</strong> Your installment payment of
-            <strong>₱{{ number_format(collect($booking->installment_schedule)->firstWhere('term', $termLabel ? (int) filter_var($termLabel, FILTER_SANITIZE_NUMBER_INT) : 0)['amount'] ?? 0, 2) }}</strong>
+            <strong>₱{{ number_format($amountPaid ?? 0, 2) }}</strong>
             for <strong>{{ $termLabel }}</strong> on booking
             <strong>{{ $booking->booking_number }}</strong> has been successfully processed.
         </div>

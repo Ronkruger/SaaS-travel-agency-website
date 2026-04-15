@@ -18,6 +18,7 @@ class BookingConfirmationMail extends Mailable
         public readonly Booking $booking,
         public readonly ?string $termLabel = null,
         public readonly bool    $isInstallment = false,
+        public readonly ?float  $amountPaid = null,
         public readonly ?string $pdfContent = null,  // raw PDF bytes for attachment
         public readonly ?string $pdfFilename = null,
     ) {}
