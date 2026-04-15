@@ -129,7 +129,7 @@
         <button class="alert-close" onclick="this.parentElement.remove()">×</button>
     </div>
 @endif
-@if($errors->any())
+@if($errors->any() && !$errors->has('error'))
     <div class="alert alert-danger">
         <i class="fas fa-exclamation-triangle"></i>
         <ul class="mb-0">

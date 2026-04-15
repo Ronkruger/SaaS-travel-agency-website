@@ -29,7 +29,6 @@ class XenditController extends Controller
         $apiInstance = new InvoiceApi();
 
         // Build term labels and items
-        $termNumbers = array_column($coveredTerms, null, 'term');
         $termNums    = array_map(fn($c) => $c['term']['term'], $coveredTerms);
         $firstTerm   = $coveredTerms[0]['term']['term'];
 
