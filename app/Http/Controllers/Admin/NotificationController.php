@@ -30,100 +30,35 @@ class NotificationController extends Controller
     }
 
     /**
-     * GET /admin/notifications/stream — Server-Sent Events stream.
-     * Sends an `init` event on connect (full unread state, no sound),
-     * then a `notification` event whenever new items appear (triggers sound).
-     * Browser EventSource auto-reconnects; Last-Event-ID prevents re-sending seen items.
+     * GET /admin/notifications/stream — kept for backward compatibility.
+     * Now responds with a single `init` event and closes immediately so it
+     * no longer holds a PHP-FPM worker. The JS side has switched to polling.
      */
     public function stream(): StreamedResponse
     {
-        // Release session lock so other tabs/requests aren't blocked.
         request()->session()->save();
 
         $adminId = auth('admin')->id();
-        $lastId  = (int) request()->header('Last-Event-ID', 0);
 
-        return response()->stream(function () use ($adminId, $lastId) {
-            set_time_limit(0);
-            ignore_user_abort(true);
+        $notifications = AdminNotification::where(function ($q) use ($adminId) {
+            $q->where('admin_user_id', $adminId)
+              ->orWhereNull('admin_user_id');
+        })->where('is_read', false)->latest()->limit(20)
+          ->get(['id', 'type', 'title', 'body', 'url', 'created_at']);
 
-            $query = function (bool $onlyNew) use ($adminId, &$lastId) {
-                $q = AdminNotification::where(function ($q) use ($adminId) {
-                    $q->where('admin_user_id', $adminId)
-                      ->orWhereNull('admin_user_id');
-                })->where('is_read', false)->latest()->limit(20);
-
-                if ($onlyNew && $lastId > 0) {
-                    $q->where('id', '>', $lastId);
-                }
-
-                return $q->get(['id', 'type', 'title', 'body', 'url', 'created_at']);
-            };
-
-            $countUnread = function () use ($adminId) {
-                return AdminNotification::where(function ($q) use ($adminId) {
-                    $q->where('admin_user_id', $adminId)
-                      ->orWhereNull('admin_user_id');
-                })->where('is_read', false)->count();
-            };
-
-            $emit = function (string $event, array $payload, ?int $id = null) {
-                if ($id !== null) {
-                    echo "id: {$id}\n";
-                }
-                echo "event: {$event}\n";
-                echo 'data: ' . json_encode($payload) . "\n\n";
-                @ob_flush();
-                @flush();
-            };
-
-            // ── Initial state (no sound on client side) ────────────────
-            $initial = $query(false);
-            $maxId   = $initial->isNotEmpty() ? $initial->first()->id : 0;
-            if ($maxId > $lastId) {
-                $lastId = $maxId;
-            }
-            $emit('init', [
-                'count'         => $initial->count(),
-                'notifications' => $initial,
-            ], $lastId ?: null);
-
-            // ── Streaming loop ─────────────────────────────────────────
-            $tick = 0;
-            while (true) {
-                sleep(3);
-
-                if (connection_aborted()) {
-                    break;
-                }
-
-                $new = $query(true); // only rows with id > $lastId
-
-                if ($new->isNotEmpty()) {
-                    $lastId = $new->first()->id;
-                    $emit('notification', [
-                        'count'         => $countUnread(),
-                        'notifications' => $new,
-                    ], $lastId);
-                } else {
-                    // Keepalive comment — prevents proxies and Railway from closing idle connections
-                    echo ": ka\n\n";
-                    @ob_flush();
-                    @flush();
-                }
-
-                // Gracefully cycle the connection every ~20 s so PHP workers don't
-                // accumulate indefinitely (EventSource auto-reconnects transparently).
-                $tick += 3;
-                if ($tick >= 20) {
-                    break;
-                }
-            }
+        return response()->stream(function () use ($notifications) {
+            echo "event: init\n";
+            echo 'data: ' . json_encode([
+                'count'         => $notifications->count(),
+                'notifications' => $notifications,
+            ]) . "\n\n";
+            @ob_flush();
+            @flush();
         }, 200, [
             'Content-Type'      => 'text/event-stream; charset=utf-8',
             'Cache-Control'     => 'no-cache, no-store',
-            'X-Accel-Buffering' => 'no',   // disable nginx buffering
-            'Connection'        => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+            'Connection'        => 'close',
         ]);
     }
 

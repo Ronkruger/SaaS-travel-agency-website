@@ -313,7 +313,7 @@
                                         <i class="fas fa-bell"></i> Remind
                                     </button>
                                 </form>
-                                @if(!empty($term['xendit_invoice_id']) && $booking->payment_method === 'xendit')
+                                @if(!empty($term['xendit_invoice_id']))
                                 <form action="{{ route('admin.bookings.resync-xendit', [$booking, $term['term']]) }}" method="POST" style="display:inline;margin-top:.3rem"
                                       onsubmit="return confirm('Fetch this term\'s payment status from Xendit and mark as paid if complete?')">
                                     @csrf

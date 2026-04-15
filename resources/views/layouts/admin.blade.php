@@ -408,44 +408,49 @@ NProgress.configure({ showSpinner: false, minimum: 0.1, speed: 280 });
         .catch(() => {});
     }
 
-    // ── SSE connection ────────────────────────────────────────────────────────
-    function connectSSE() {
-        if (typeof EventSource === 'undefined') {
-            // Rare old browser — fall back to polling every 5 s
-            fetchAndRender();
-            setInterval(fetchAndRender, 5000);
-            return;
-        }
+    // ── Polling (replaces SSE — SSE held PHP-FPM workers and blocked Xendit webhooks) ──
+    let lastNotifId = 0;
 
-        const src = new EventSource('{{ route('admin.notifications.stream') }}');
+    function pollNotifications() {
+        fetch('{{ route('admin.notifications.unread') }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const notifications = data.notifications || [];
+            const newMaxId = notifications.length > 0 ? notifications[0].id : 0;
 
-        // Initial state — populate badge + dropdown silently (no sound)
-        src.addEventListener('init', function (e) {
-            const data = JSON.parse(e.data);
-            updateBadge(data.count);
-            if (dropdownOpen) renderList(data.notifications);
-        });
+            if (lastNotifId === 0) {
+                // First load — populate badge silently, no sound
+                lastNotifId = newMaxId;
+                updateBadge(data.count);
+                if (dropdownOpen) renderList(notifications);
+                return;
+            }
 
-        // New notification arrived — sound + browser notif + badge update
-        src.addEventListener('notification', function (e) {
-            const data  = JSON.parse(e.data);
-            const first = data.notifications && data.notifications[0];
-            window._playNotifSound && window._playNotifSound();
-            window._showBrowserNotif && window._showBrowserNotif(
-                first ? first.title : 'New Notification',
-                first ? first.body  : ''
-            );
-            updateBadge(data.count);
-            if (dropdownOpen) renderList(data.notifications);
-        });
-
-        src.onerror = function () {
-            // EventSource will auto-reconnect with exponential back-off.
-            // No manual action needed; Last-Event-ID is sent automatically.
-        };
+            // New notifications arrived since last poll
+            if (newMaxId > lastNotifId) {
+                const newItems = notifications.filter(n => n.id > lastNotifId);
+                lastNotifId = newMaxId;
+                window._playNotifSound && window._playNotifSound();
+                const first = newItems[0];
+                window._showBrowserNotif && window._showBrowserNotif(
+                    first ? first.title : 'New Notification',
+                    first ? first.body  : ''
+                );
+                updateBadge(data.count);
+                if (dropdownOpen) renderList(notifications);
+            } else {
+                updateBadge(data.count);
+                if (dropdownOpen) renderList(notifications);
+            }
+        })
+        .catch(() => {});
     }
 
-    connectSSE();
+    // Initial load then poll every 5 seconds
+    pollNotifications();
+    setInterval(pollNotifications, 5000);
 
     // ── Bell UI ───────────────────────────────────────────────────────────────
     window.toggleNotifDropdown = function () {
