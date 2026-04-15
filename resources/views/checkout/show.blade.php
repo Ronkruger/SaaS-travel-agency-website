@@ -38,29 +38,42 @@
                     </div>
                     <div class="card-body">
 
-                        @if($booking->payment_method === 'installment')
+                        @if($booking->payment_status === 'paid')
                         <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
                             <p style="margin:0;font-size:.925rem">
                                 <i class="fas fa-check-circle" style="color:#16a34a"></i>
-                                <strong>Booking confirmed!</strong> Please follow the payment schedule below.
-                                Our team will contact you to coordinate payments.
+                                <strong>Booking confirmed!</strong> All payments have been received. See you on your tour!
+                            </p>
+                        </div>
+                        @elseif($booking->payment_status === 'partial')
+                        <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
+                            <p style="margin:0;font-size:.925rem">
+                                <i class="fas fa-info-circle" style="color:#1d4ed8"></i>
+                                <strong>Payment in progress.</strong> Your installment plan is active. Please keep up with the schedule below.
                             </p>
                         </div>
                         @else
-                        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
+                        <div style="background:#fefce8;border:1px solid #fde047;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
                             <p style="margin:0;font-size:.925rem">
-                                <i class="fas fa-check-circle" style="color:#16a34a"></i>
-                                <strong>Booking confirmed!</strong> Please follow the payment schedule below.
-                                Our team will contact you to coordinate payments.
+                                <i class="fas fa-exclamation-circle" style="color:#ca8a04"></i>
+                                <strong>Payment required.</strong> Your booking is reserved but not yet confirmed. Complete your
+                                @if($booking->payment_method === 'installment' && $booking->downpayment_amount > 0)
+                                    down payment
+                                @elseif($booking->payment_method === 'installment')
+                                    first installment
+                                @else
+                                    payment
+                                @endif
+                                to confirm your slot.
                             </p>
                         </div>
                         @endif
 
-                        @if($booking->downpayment_amount > 0)
+                        @if($booking->downpayment_amount > 0 && $booking->payment_status === 'unpaid')
                         <div style="background:#fefce8;border:1px solid #fde047;border-radius:.75rem;padding:.875rem 1.125rem;margin-bottom:1.25rem">
                             <strong><i class="fas fa-exclamation-circle" style="color:#ca8a04"></i> Down Payment Required</strong>
                             <p style="margin:.4rem 0 0;font-size:.9rem">
-                                Please send <strong>₱{{ number_format($booking->downpayment_amount, 2) }}</strong>
+                                Please pay <strong>₱{{ number_format($booking->downpayment_amount, 2) }}</strong>
                                 within 7 days to secure your slot.
                             </p>
                         </div>

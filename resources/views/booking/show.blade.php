@@ -149,7 +149,7 @@
                             </div>
                         </div>
 
-                        @if($booking->status === 'unpaid')
+                        @if($booking->payment_status === 'unpaid')
                             <a href="{{ route('checkout.show', $booking) }}" class="btn btn-primary btn-block mt-3">
                                 <i class="fas fa-credit-card"></i> Complete Payment
                             </a>
