@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\DIYTourController as AdminDIYTourController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\TourScheduleController as AdminTourScheduleController;
 use App\Http\Controllers\Admin\BookingPdfController;
+use App\Http\Controllers\Admin\PaymentReceiptController;
 use App\Http\Controllers\Admin\BookingImportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
@@ -240,6 +241,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::get('/bookings/{booking}/pdf', [BookingPdfController::class, 'preview'])->name('bookings.pdf.preview');
     Route::get('/bookings/{booking}/pdf/download', [BookingPdfController::class, 'download'])->name('bookings.pdf.download');
     Route::post('/bookings/{booking}/pdf/email', [BookingPdfController::class, 'email'])->name('bookings.pdf.email');
+    // Payment Receipt PDF
+    Route::get('/payments/{payment}/receipt', [PaymentReceiptController::class, 'preview'])->name('payments.receipt.preview');
+    Route::get('/payments/{payment}/receipt/download', [PaymentReceiptController::class, 'download'])->name('payments.receipt.download');
     Route::post('/bookings/{booking}/send-payment-reminder', [AdminBookingController::class, 'sendPaymentReminder'])->name('bookings.send-payment-reminder');
     Route::post('/bookings/{booking}/resync-xendit/{term}', [AdminBookingController::class, 'resyncXenditPayment'])->name('bookings.resync-xendit');
 

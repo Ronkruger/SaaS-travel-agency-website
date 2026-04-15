@@ -158,6 +158,7 @@
                             <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">System Txn</th>
                             <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Paid At</th>
                             <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #bfdbfe">Status</th>
+                            <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #bfdbfe">Receipt</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -184,6 +185,10 @@
                                 @else
                                     <span style="background:#fef9c3;color:#854d0e;padding:.2rem .65rem;border-radius:1rem;font-size:.78rem">{{ ucfirst($pmt->status) }}</span>
                                 @endif
+                            </td>
+                            <td style="padding:.6rem .75rem;text-align:center;white-space:nowrap">
+                                <a href="{{ route('admin.payments.receipt.preview', $pmt) }}" target="_blank" title="View Receipt" style="color:#2563eb;margin-right:.4rem"><i class="fas fa-eye"></i></a>
+                                <a href="{{ route('admin.payments.receipt.download', $pmt) }}" title="Download Receipt" style="color:#2563eb"><i class="fas fa-download"></i></a>
                             </td>
                         </tr>
                         @endforeach
