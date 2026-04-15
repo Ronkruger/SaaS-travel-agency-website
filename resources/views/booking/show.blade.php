@@ -111,6 +111,141 @@
                         </div>
                     </div>
                 </div>
+
+                @if($booking->payment_method === 'installment' && !empty($booking->installment_schedule))
+                @php
+                    $sched        = $booking->installment_schedule;
+                    $paidItems    = collect($sched)->where('status', 'paid');
+                    $pendingItems = collect($sched)->where('status', '!=', 'paid');
+                    $remaining    = $pendingItems->sum('amount');
+                    $nextDue      = $pendingItems->first();
+                @endphp
+                <!-- Installment Payment Schedule -->
+                <div class="card mb-4">
+                    <div class="card-header" style="background:#faf5ff;border-bottom:1px solid #e9d5ff">
+                        <h4 style="color:#6d28d9"><i class="fas fa-calendar-alt"></i> Installment Payment Schedule</h4>
+                    </div>
+                    <div class="card-body">
+
+                        @if(session('success'))
+                        <div class="alert alert-success mb-3"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+                        @endif
+                        @if(session('info'))
+                        <div class="alert alert-info mb-3"><i class="fas fa-info-circle"></i> {{ session('info') }}</div>
+                        @endif
+                        @error('error')
+                        <div class="alert alert-danger mb-3"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
+                        @enderror
+
+                        {{-- Summary bar --}}
+                        <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem">
+                            <div style="flex:1;min-width:120px;background:#f0fdf4;border:1px solid #86efac;border-radius:.625rem;padding:.75rem 1rem;text-align:center">
+                                <div style="font-size:1.2rem;font-weight:800;color:#166534">{{ $paidItems->count() }}/{{ count($sched) }}</div>
+                                <div style="font-size:.78rem;color:#15803d">Terms Paid</div>
+                            </div>
+                            <div style="flex:1;min-width:120px;background:#faf5ff;border:1px solid #d8b4fe;border-radius:.625rem;padding:.75rem 1rem;text-align:center">
+                                <div style="font-size:1.2rem;font-weight:800;color:#6d28d9">₱{{ number_format($remaining, 2) }}</div>
+                                <div style="font-size:.78rem;color:#7c3aed">Remaining Balance</div>
+                            </div>
+                            @if($nextDue)
+                            <div style="flex:1;min-width:120px;background:#fffbeb;border:1px solid #fcd34d;border-radius:.625rem;padding:.75rem 1rem;text-align:center">
+                                <div style="font-size:1rem;font-weight:700;color:#92400e">{{ \Carbon\Carbon::parse($nextDue['due_date'])->format('M d, Y') }}</div>
+                                <div style="font-size:.78rem;color:#b45309">Next Due Date</div>
+                            </div>
+                            @endif
+                        </div>
+
+                        {{-- Schedule table --}}
+                        <div style="overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+                            <thead>
+                                <tr style="background:#f5f3ff;color:#6d28d9;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em">
+                                    <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #e9d5ff">Term</th>
+                                    <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #e9d5ff">Due Date</th>
+                                    <th style="padding:.5rem .75rem;text-align:right;border-bottom:2px solid #e9d5ff">Amount</th>
+                                    <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #e9d5ff">Status</th>
+                                    <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #e9d5ff">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($sched as $term)
+                            <tr style="border-bottom:1px solid #f3e8ff{{ $term['status'] === 'paid' ? ';background:#f0fdf4' : ($term === $nextDue ? ';background:#fffbeb' : '') }}">
+                                <td style="padding:.6rem .75rem">
+                                    @if($term['type'] === 'downpayment') <strong>Down Payment</strong>
+                                    @else Month {{ $term['term'] }} @endif
+                                </td>
+                                <td style="padding:.6rem .75rem">{{ \Carbon\Carbon::parse($term['due_date'])->format('M d, Y') }}</td>
+                                <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format($term['amount'], 2) }}</td>
+                                <td style="padding:.6rem .75rem;text-align:center">
+                                    @if($term['status'] === 'paid')
+                                        <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600"><i class="fas fa-check"></i> Paid</span>
+                                        @if(!empty($term['paid_at']))
+                                            <div style="font-size:.73rem;color:#6b7280;margin-top:.2rem">{{ \Carbon\Carbon::parse($term['paid_at'])->format('M d, Y') }}</div>
+                                        @endif
+                                    @else
+                                        <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">Pending</span>
+                                    @endif
+                                </td>
+                                <td style="padding:.5rem .75rem;text-align:center">
+                                    @if($term['status'] !== 'paid' && $term === $nextDue)
+                                    <form method="POST" action="{{ parse_url(route('checkout.installment.pay', [$booking, $term['term']]), PHP_URL_PATH) }}" class="pay-form" style="display:inline">
+                                        @csrf
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem">
+                                            <button type="submit" class="pay-submit-btn"
+                                                style="background:#6d28d9;color:#fff;border:none;border-radius:.4rem;padding:.35rem .85rem;font-size:.82rem;cursor:pointer;white-space:nowrap;font-weight:600">
+                                                <i class="fas fa-credit-card"></i> Pay ₱{{ number_format($term['amount'], 0) }}
+                                            </button>
+                                            <input type="number" name="custom_amount" min="1" step="1"
+                                                placeholder="Or custom ₱"
+                                                style="width:120px;padding:.25rem .4rem;font-size:.75rem;border:1px solid #d8b4fe;border-radius:.35rem;text-align:right">
+                                        </div>
+                                    </form>
+                                    @elseif($term['status'] !== 'paid')
+                                        <span style="font-size:.8rem;color:#94a3b8">—</span>
+                                    @else
+                                        <span style="color:#86efac;font-size:.85rem"><i class="fas fa-check-circle"></i></span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr style="font-weight:700;background:#f5f3ff">
+                                    <td colspan="2" style="padding:.6rem .75rem">Total</td>
+                                    <td style="padding:.6rem .75rem;text-align:right">₱{{ number_format(collect($sched)->sum('amount'), 2) }}</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        </div>
+
+                        {{-- Pay remaining balance --}}
+                        @if($remaining > 0 && $paidItems->count() > 0)
+                        <div style="margin-top:1.25rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:.75rem;padding:1rem 1.25rem">
+                            <strong style="font-size:.9rem"><i class="fas fa-wallet" style="color:#0284c7"></i> Pay Remaining Balance</strong>
+                            <p style="margin:.35rem 0 .75rem;font-size:.85rem;color:#374151">
+                                Outstanding: <strong>₱{{ number_format($remaining, 2) }}</strong> across {{ $pendingItems->count() }} pending term(s).
+                            </p>
+                            <form method="POST" action="{{ parse_url(route('checkout.pay-balance', $booking), PHP_URL_PATH) }}" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center" class="pay-form">
+                                @csrf
+                                <div style="display:flex;align-items:center;border:1px solid #93c5fd;border-radius:.5rem;overflow:hidden;background:#fff">
+                                    <span style="padding:.45rem .75rem;background:#e0f2fe;color:#0369a1;font-weight:700;font-size:.9rem;border-right:1px solid #93c5fd">₱</span>
+                                    <input type="number" name="custom_amount" min="1" step="1"
+                                        placeholder="{{ number_format($remaining, 0) }}"
+                                        style="padding:.45rem .75rem;border:none;outline:none;font-size:.9rem;width:150px">
+                                </div>
+                                <button type="submit" class="pay-submit-btn"
+                                    style="background:#0284c7;color:#fff;border:none;border-radius:.5rem;padding:.5rem 1.25rem;font-size:.875rem;font-weight:600;cursor:pointer">
+                                    <i class="fas fa-credit-card"></i> Pay via Xendit
+                                </button>
+                            </form>
+                            <p style="margin:.5rem 0 0;font-size:.75rem;color:#6b7280">Leave blank to pay the full remaining balance of ₱{{ number_format($remaining, 2) }}</p>
+                        </div>
+                        @endif
+
+                    </div>
+                </div>
+                @endif
             </div>
 
             <!-- Price Summary -->
@@ -202,3 +337,22 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+// Duplicate-submit guard for installment pay buttons
+document.querySelectorAll('.pay-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        if (form.dataset.submitting === '1') { e.preventDefault(); return; }
+        form.dataset.submitting = '1';
+        var btn = form.querySelector('.pay-submit-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting…'; }
+    });
+    window.addEventListener('pageshow', function() {
+        form.dataset.submitting = '0';
+        var btn = form.querySelector('.pay-submit-btn');
+        if (btn) { btn.disabled = false; }
+    });
+});
+</script>
+@endpush
