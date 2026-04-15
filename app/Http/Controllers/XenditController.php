@@ -494,6 +494,7 @@ class XenditController extends Controller
 
     /**
      * User is redirected here after successful Xendit payment.
+     * Verifies with Xendit API and records the payment if the webhook missed it.
      */
     public function success(Booking $booking)
     {
@@ -502,7 +503,75 @@ class XenditController extends Controller
             abort(403);
         }
 
-        // Reload from DB — the webhook may have already updated payment_status.
+        sleep(2);
+        $booking->refresh()->load(['tour', 'payment']);
+
+        // If webhook already recorded the payment, just show confirmation
+        if ($booking->payment_status === 'paid') {
+            return view('checkout.confirmation', compact('booking'));
+        }
+
+        // Webhook hasn't processed — verify directly with Xendit
+        if ($booking->xendit_invoice_id) {
+            try {
+                Configuration::setXenditKey(config('xendit.secret_key'));
+                $api     = new InvoiceApi();
+                $invoice = $api->getInvoiceById($booking->xendit_invoice_id);
+                $xenditStatus = strtoupper($invoice->getStatus() ?? '');
+
+                if (in_array($xenditStatus, ['PAID', 'SETTLED'])) {
+                    $channel   = strtoupper($invoice->getPaymentMethod() ?? 'Xendit');
+                    $xenditRef = substr($invoice->getId(), -8);
+
+                    DB::transaction(function () use ($booking, $invoice) {
+                        Payment::create([
+                            'transaction_id'         => Payment::generateTransactionId(),
+                            'booking_id'             => $booking->id,
+                            'user_id'                => $booking->user_id,
+                            'amount'                 => $booking->total_amount,
+                            'currency'               => 'PHP',
+                            'method'                 => 'xendit',
+                            'status'                 => 'completed',
+                            'gateway_transaction_id' => $invoice->getId(),
+                            'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse([
+                                'id' => $invoice->getId(), 'status' => 'PAID', 'source' => 'success_redirect',
+                            ]),
+                            'paid_at'                => now(),
+                        ]);
+
+                        $booking->update([
+                            'status'         => 'confirmed',
+                            'payment_status' => 'paid',
+                        ]);
+
+                        $booking->tour()->increment('total_bookings');
+                    });
+
+                    \App\Models\AdminNotification::broadcast(
+                        'payment_received',
+                        'Payment Received — ' . $booking->booking_number,
+                        $booking->contact_name . ': ₱' . number_format($booking->total_amount, 2) . ' (Full Payment)'
+                            . ' via ' . $channel . ' · Ref: #' . $xenditRef,
+                        route('admin.bookings.show', $booking) . '#payments',
+                    );
+
+                    try {
+                        $booking->refresh()->load('tour');
+                        Mail::to($booking->contact_email)
+                            ->send(new BookingConfirmationMail($booking));
+                    } catch (\Throwable $e) {
+                        Log::error('Success redirect email failed: ' . $e->getMessage());
+                    }
+
+                    Log::info('Full payment recorded via success redirect (webhook missed)', [
+                        'booking_id' => $booking->id,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::error('Success redirect Xendit verification failed: ' . $e->getMessage());
+            }
+        }
+
         $booking->refresh()->load(['tour', 'payment']);
         return view('checkout.confirmation', compact('booking'));
     }
@@ -523,6 +592,8 @@ class XenditController extends Controller
 
     /**
      * User is redirected here after a successful installment term payment.
+     * As a safety net, we check the Xendit invoice status directly and record
+     * the payment here if the webhook hasn't done so yet (covers webhook failures).
      */
     public function installmentSuccess(Request $request, Booking $booking)
     {
@@ -534,10 +605,113 @@ class XenditController extends Controller
         $term = (int) $request->query('term', 0);
         $termLabel = $term === 0 ? 'Down Payment' : 'Month ' . $term;
 
-        // Reload from DB so we get the latest payment_status from webhook.
-        // Pass payment_processing so checkout.show polls until webhook confirms.
+        // Give the webhook a moment to process first
+        sleep(2);
+        $booking->refresh();
+
+        // Check if the webhook already handled this payment
+        $schedule = $booking->installment_schedule ?? [];
+        $entry    = collect($schedule)->firstWhere('term', $term);
+        $alreadyPaid = $entry && ($entry['status'] ?? '') === 'paid';
+
+        if (!$alreadyPaid) {
+            // Webhook hasn't processed yet — verify directly with Xendit API
+            $invoiceId = $entry['xendit_invoice_id'] ?? null;
+
+            if ($invoiceId) {
+                try {
+                    Configuration::setXenditKey(config('xendit.secret_key'));
+                    $api     = new InvoiceApi();
+                    $invoice = $api->getInvoiceById($invoiceId);
+                    $xenditStatus = strtoupper($invoice->getStatus() ?? '');
+
+                    if (in_array($xenditStatus, ['PAID', 'SETTLED'])) {
+                        $paidAmount = (float) ($invoice->getAmount() ?? $entry['amount'] ?? 0);
+                        $channel    = strtoupper($invoice->getPaymentMethod() ?? 'Xendit');
+                        $xenditId   = $invoice->getId();
+
+                        // Find ALL terms covered by this invoice (multi-term support)
+                        $coveredTerms = [];
+                        foreach ($schedule as $idx => $t) {
+                            if (($t['xendit_invoice_id'] ?? null) === $invoiceId && ($t['status'] ?? '') !== 'paid') {
+                                $coveredTerms[] = $idx;
+                            }
+                        }
+
+                        if (!empty($coveredTerms)) {
+                            DB::transaction(function () use (&$schedule, $coveredTerms, $booking, $paidAmount, $xenditId) {
+                                foreach ($coveredTerms as $idx) {
+                                    $schedule[$idx]['status']  = 'paid';
+                                    $schedule[$idx]['paid_at'] = now()->toDateTimeString();
+                                }
+
+                                $allPaid = collect($schedule)->every(fn($t) => $t['status'] === 'paid');
+
+                                $termNums   = array_map(fn($idx) => $schedule[$idx]['term'], $coveredTerms);
+                                $termLabels = implode(', ', array_map(fn($n) => $n === 0 ? 'Downpayment' : 'Month ' . $n, $termNums));
+
+                                Payment::create([
+                                    'transaction_id'         => Payment::generateTransactionId(),
+                                    'booking_id'             => $booking->id,
+                                    'user_id'                => $booking->user_id,
+                                    'amount'                 => $paidAmount,
+                                    'currency'               => 'PHP',
+                                    'method'                 => 'xendit',
+                                    'status'                 => 'completed',
+                                    'gateway_transaction_id' => $xenditId,
+                                    'gateway_response'       => XenditWebhookValidator::sanitizeGatewayResponse([
+                                        'id' => $xenditId, 'status' => 'PAID', 'source' => 'success_redirect',
+                                    ]),
+                                    'notes'                  => 'Installment ' . $termLabels . ' (redirect verify)',
+                                    'paid_at'                => now(),
+                                ]);
+
+                                $booking->update([
+                                    'installment_schedule' => array_values($schedule),
+                                    'status'               => 'confirmed',
+                                    'payment_status'       => $allPaid ? 'paid' : 'partial',
+                                ]);
+                            });
+
+                            // Notify admins
+                            $termNums   = array_map(fn($idx) => $schedule[$idx]['term'], $coveredTerms);
+                            $termLabels = implode(', ', array_map(fn($n) => $n === 0 ? 'Down Payment' : 'Month ' . $n, $termNums));
+                            $xenditRef  = substr($xenditId, -8);
+
+                            \App\Models\AdminNotification::broadcast(
+                                'payment_received',
+                                'Payment Received — ' . $booking->booking_number,
+                                $booking->contact_name . ': ₱' . number_format($paidAmount, 2) . ' (' . $termLabels . ')'
+                                    . ' via ' . $channel . ' · Ref: #' . $xenditRef,
+                                route('admin.bookings.show', $booking) . '#payments',
+                            );
+
+                            // Send confirmation email
+                            try {
+                                $booking->refresh()->load('tour');
+                                if ($booking->contact_email) {
+                                    Mail::to($booking->contact_email)
+                                        ->send(new BookingConfirmationMail($booking, $termLabels, true, $paidAmount));
+                                }
+                            } catch (\Throwable $e) {
+                                Log::error('Redirect verify email failed: ' . $e->getMessage());
+                            }
+
+                            Log::info('Payment recorded via success redirect (webhook missed)', [
+                                'booking_id' => $booking->id,
+                                'invoice_id' => $invoiceId,
+                                'terms'      => $termNums,
+                            ]);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('Success redirect Xendit verification failed: ' . $e->getMessage());
+                }
+            }
+        }
+
         return redirect()->route('checkout.show', $booking)
-            ->with('success', "Payment submitted for {$termLabel}. Your schedule will update shortly.")
+            ->with('success', "Payment for {$termLabel} has been confirmed!")
             ->with('payment_processing', true);
     }
 }
