@@ -4,7 +4,72 @@
 @section('content')
 <section class="section">
     <div class="container">
-        @if($booking->payment_status === 'partial')
+        @if($booking->payment_status === 'paid' && $booking->payment_method === 'installment')
+        {{-- Installment fully paid — celebratory confirmation --}}
+        <div class="confirmation-card">
+            <div class="celebration-check" style="width:5.5rem;height:5.5rem;margin:0 auto 1.5rem">
+                <svg class="checkmark-svg" viewBox="0 0 52 52">
+                    <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark-tick" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+            <h1 style="color:#166534">All Payments Complete!</h1>
+            <p class="confirmation-subtitle">
+                Congratulations, <strong>{{ $booking->contact_name }}</strong>!<br>
+                You've completed all installment payments. Your booking is fully confirmed!
+            </p>
+
+            @php
+                $schedule = $booking->installment_schedule ?? [];
+                $totalPaid = collect($schedule)->where('status', 'paid')->sum('amount');
+            @endphp
+            <div class="confirmation-details">
+                <div class="detail-row">
+                    <span>Booking Number</span>
+                    <strong class="text-primary">{{ $booking->booking_number }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Tour</span>
+                    <strong>{{ $booking->tour->title }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Tour Date</span>
+                    <strong>{{ $booking->tour_date->format('F d, Y') }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Guests</span>
+                    <strong>{{ $booking->total_guests }} person(s)</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Total Paid</span>
+                    <strong class="text-green">₱{{ number_format($totalPaid, 2) }}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Terms Completed</span>
+                    <strong class="text-green">{{ count($schedule) }} / {{ count($schedule) }} <i class="fas fa-check-circle"></i></strong>
+                </div>
+            </div>
+
+            <div class="confirmation-actions">
+                <a href="{{ route('checkout.show', $booking) }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-receipt"></i> View Payment History
+                </a>
+                <a href="{{ route('booking.show', $booking) }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-clipboard-list"></i> View Booking Details
+                </a>
+            </div>
+
+            <div class="confirmation-tips">
+                <h4><i class="fas fa-info-circle"></i> What's Next?</h4>
+                <ul>
+                    <li><i class="fas fa-envelope"></i> Confirmation emails have been sent for each payment.</li>
+                    <li><i class="fas fa-phone"></i> Our team will contact you 48 hours before your tour.</li>
+                    <li><i class="fas fa-calendar"></i> Meet at {{ $booking->tour->meeting_point ?? 'the designated meeting point' }} on {{ $booking->tour_date->format('M d, Y') }}.</li>
+                    <li><i class="fas fa-suitcase"></i> Pack your bags and get ready for an amazing trip!</li>
+                </ul>
+            </div>
+        </div>
+        @elseif($booking->payment_status === 'partial')
         {{-- Installment first payment received — booking confirmed, more terms to follow --}}
         <div class="confirmation-card">
             <div class="confirmation-icon">

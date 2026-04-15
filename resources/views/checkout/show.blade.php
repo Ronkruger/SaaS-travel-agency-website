@@ -45,11 +45,115 @@
                     <div class="card-body">
 
                         @if($booking->payment_status === 'paid')
-                        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
-                            <p style="margin:0;font-size:.925rem">
-                                <i class="fas fa-check-circle" style="color:#16a34a"></i>
-                                <strong>Booking confirmed!</strong> All payments have been received. See you on your tour!
-                            </p>
+                        {{-- ── FULLY PAID CELEBRATION ──────────────────────────── --}}
+                        <div class="payment-complete-celebration">
+                            {{-- Confetti canvas --}}
+                            <canvas id="confettiCanvas"></canvas>
+
+                            <div class="celebration-content">
+                                {{-- Animated checkmark --}}
+                                <div class="celebration-check">
+                                    <svg class="checkmark-svg" viewBox="0 0 52 52">
+                                        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                                        <path class="checkmark-tick" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                                    </svg>
+                                </div>
+
+                                <h2 class="celebration-title">All Payments Complete!</h2>
+                                <p class="celebration-subtitle">
+                                    Congratulations, <strong>{{ $booking->contact_name }}</strong>! You've successfully completed
+                                    all {{ count($booking->installment_schedule ?? []) }} installment payments.
+                                </p>
+
+                                {{-- Stats cards --}}
+                                @php
+                                    $schedule = $booking->installment_schedule ?? [];
+                                    $totalPaid = collect($schedule)->where('status', 'paid')->sum('amount');
+                                    $lastPaid = collect($schedule)->where('status', 'paid')->pluck('paid_at')->filter()->sort()->last();
+                                @endphp
+                                <div class="celebration-stats">
+                                    <div class="celebration-stat">
+                                        <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                                        <div class="stat-value">₱{{ number_format($totalPaid, 2) }}</div>
+                                        <div class="stat-label">Total Paid</div>
+                                    </div>
+                                    <div class="celebration-stat">
+                                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                                        <div class="stat-value">{{ count($schedule) }}/{{ count($schedule) }}</div>
+                                        <div class="stat-label">Terms Completed</div>
+                                    </div>
+                                    <div class="celebration-stat">
+                                        <div class="stat-icon"><i class="fas fa-plane-departure"></i></div>
+                                        <div class="stat-value">{{ $booking->tour_date->format('M d') }}</div>
+                                        <div class="stat-label">Tour Date</div>
+                                    </div>
+                                </div>
+
+                                {{-- Completed schedule --}}
+                                <div class="celebration-schedule">
+                                    <h5 style="margin-bottom:.75rem;color:#166534"><i class="fas fa-list-check"></i> Payment History</h5>
+                                    <div style="overflow-x:auto">
+                                    <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+                                        <thead>
+                                            <tr style="background:#dcfce7;color:#166534;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em">
+                                                <th style="padding:.4rem .75rem;text-align:left">Term</th>
+                                                <th style="padding:.4rem .75rem;text-align:left">Due Date</th>
+                                                <th style="padding:.4rem .75rem;text-align:right">Amount</th>
+                                                <th style="padding:.4rem .75rem;text-align:left">Paid On</th>
+                                                <th style="padding:.4rem .75rem;text-align:center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($schedule as $term)
+                                            <tr style="border-bottom:1px solid #bbf7d0">
+                                                <td style="padding:.5rem .75rem">
+                                                    @if(($term['type'] ?? '') === 'downpayment') <strong>Down Payment</strong>
+                                                    @else Month {{ $term['term'] }} @endif
+                                                </td>
+                                                <td style="padding:.5rem .75rem">{{ \Carbon\Carbon::parse($term['due_date'])->format('M d, Y') }}</td>
+                                                <td style="padding:.5rem .75rem;text-align:right;font-weight:600">₱{{ number_format($term['amount'], 2) }}</td>
+                                                <td style="padding:.5rem .75rem;font-size:.82rem;color:#374151">
+                                                    {{ !empty($term['paid_at']) ? \Carbon\Carbon::parse($term['paid_at'])->format('M d, Y') : '—' }}
+                                                </td>
+                                                <td style="padding:.5rem .75rem;text-align:center">
+                                                    <span style="background:#166534;color:#fff;padding:.15rem .55rem;border-radius:1rem;font-size:.75rem;font-weight:700">
+                                                        <i class="fas fa-check"></i> Paid
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr style="font-weight:700;background:#f0fdf4">
+                                                <td colspan="2" style="padding:.5rem .75rem">Total</td>
+                                                <td style="padding:.5rem .75rem;text-align:right;color:#166534">₱{{ number_format($totalPaid, 2) }}</td>
+                                                <td colspan="2"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                    </div>
+                                </div>
+
+                                {{-- Actions --}}
+                                <div class="celebration-actions">
+                                    <a href="{{ route('booking.show', $booking) }}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-clipboard-list"></i> View Booking Details
+                                    </a>
+                                    <a href="{{ route('tours.index') }}" class="btn btn-outline btn-lg">
+                                        <i class="fas fa-compass"></i> Explore More Tours
+                                    </a>
+                                </div>
+
+                                <div style="margin-top:1.25rem;background:#f0fdf4;border:1px solid #86efac;border-radius:.75rem;padding:1rem 1.25rem;text-align:left">
+                                    <strong><i class="fas fa-info-circle" style="color:#16a34a"></i> What's Next?</strong>
+                                    <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.875rem;color:#374151;list-style:none">
+                                        <li style="padding:.25rem 0"><i class="fas fa-envelope" style="color:#16a34a;width:1.25rem"></i> Confirmation emails have been sent for each payment.</li>
+                                        <li style="padding:.25rem 0"><i class="fas fa-phone" style="color:#16a34a;width:1.25rem"></i> Our team will contact you 48 hours before your tour.</li>
+                                        <li style="padding:.25rem 0"><i class="fas fa-map-marker-alt" style="color:#16a34a;width:1.25rem"></i> Meet at {{ $booking->tour->meeting_point ?? 'the designated meeting point' }} on {{ $booking->tour_date->format('M d, Y') }}.</li>
+                                        <li style="padding:.25rem 0"><i class="fas fa-suitcase" style="color:#16a34a;width:1.25rem"></i> Pack your bags and get ready for an amazing trip!</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         @elseif($booking->payment_status === 'partial')
                         <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
@@ -75,6 +179,7 @@
                         </div>
                         @endif
 
+                        @if($booking->payment_status !== 'paid')
                         @if($booking->downpayment_amount > 0 && $booking->payment_status === 'unpaid')
                         <div style="background:#fefce8;border:1px solid #fde047;border-radius:.75rem;padding:.875rem 1.125rem;margin-bottom:1.25rem">
                             <strong><i class="fas fa-exclamation-circle" style="color:#ca8a04"></i> Down Payment Required</strong>
@@ -269,6 +374,7 @@
                             <strong><i class="fas fa-university"></i> Bank Transfer Details</strong><br>
                             <span class="text-muted">Our team will send you bank account details via email at <strong>{{ $booking->contact_email }}</strong>.</span>
                         </div>
+                        @endif {{-- end payment_status !== paid --}}
                     </div>
                 </div>
 
@@ -359,6 +465,38 @@
 
 @push('scripts')
 <script>
+{{-- ── Confetti for fully-paid celebration ────────────────────────────── --}}
+@if($booking->payment_status === 'paid' && in_array($booking->payment_method, ['cash', 'installment']))
+(function() {
+    var canvas = document.getElementById('confettiCanvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W, H, particles = [], colors = ['#16a34a','#22c55e','#4ade80','#86efac','#fde047','#60a5fa','#a78bfa','#f472b6'];
+    function resize() { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; }
+    resize(); window.addEventListener('resize', resize);
+    for (var i = 0; i < 120; i++) {
+        particles.push({ x: Math.random()*W, y: Math.random()*H - H, w: 4+Math.random()*6, h: 8+Math.random()*4, color: colors[Math.floor(Math.random()*colors.length)], vx: (Math.random()-.5)*3, vy: 1.5+Math.random()*3, rot: Math.random()*360, vr: (Math.random()-.5)*6, opacity: 1 });
+    }
+    var frame = 0, maxFrames = 200;
+    function draw() {
+        if (frame > maxFrames) { ctx.clearRect(0,0,W,H); return; }
+        ctx.clearRect(0,0,W,H);
+        var fadeStart = maxFrames * 0.7;
+        particles.forEach(function(p) {
+            p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+            if (frame > fadeStart) p.opacity = Math.max(0, 1 - (frame - fadeStart) / (maxFrames - fadeStart));
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+            ctx.globalAlpha = p.opacity; ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+            ctx.restore();
+        });
+        frame++;
+        requestAnimationFrame(draw);
+    }
+    setTimeout(draw, 600);
+})();
+@endif
+
 function toggleFutureTerms() {
     const body = document.getElementById('futureTermsBody');
     const btn  = document.getElementById('futureTermsBtn');

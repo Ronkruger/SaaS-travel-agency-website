@@ -603,6 +603,28 @@ h4 { font-size: 1.25rem; }
 .confirmation-tips li { display: flex; align-items: flex-start; gap: .75rem; padding: .375rem 0; font-size: .9375rem; }
 .confirmation-tips li i { color: var(--primary); margin-top: .25rem; flex-shrink: 0; }
 
+/* --- Payment Complete Celebration ------------ */
+.payment-complete-celebration { position: relative; overflow: hidden; border-radius: var(--radius-lg); }
+.payment-complete-celebration canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.celebration-content { position: relative; z-index: 2; text-align: center; padding: 2rem 0 1rem; }
+.celebration-check { margin: 0 auto 1.5rem; width: 5.5rem; height: 5.5rem; }
+.checkmark-svg { width: 100%; height: 100%; border-radius: 50%; display: block; stroke-width: 2; stroke: #16a34a; stroke-miterlimit: 10; animation: celebration-scale .3s ease-in-out .5s both; }
+.checkmark-circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 2; stroke-miterlimit: 10; stroke: #16a34a; fill: none; animation: celebration-stroke .6s cubic-bezier(.65,0,.45,1) forwards; }
+.checkmark-tick { stroke-dasharray: 48; stroke-dashoffset: 48; transform-origin: 50% 50%; animation: celebration-stroke .3s cubic-bezier(.65,0,.45,1) .6s forwards; }
+@keyframes celebration-stroke { 100% { stroke-dashoffset: 0; } }
+@keyframes celebration-scale { 0%,100% { transform: none; } 50% { transform: scale3d(1.1,1.1,1); } }
+.celebration-title { font-size: 1.75rem; font-weight: 800; color: #166534; margin-bottom: .5rem; animation: celebration-fade-up .6s ease .8s both; }
+.celebration-subtitle { font-size: 1rem; color: var(--gray-500); max-width: 480px; margin: 0 auto 2rem; animation: celebration-fade-up .6s ease 1s both; }
+@keyframes celebration-fade-up { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: translateY(0); } }
+.celebration-stats { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem; animation: celebration-fade-up .6s ease 1.2s both; }
+.celebration-stat { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-lg); padding: 1.25rem 1.75rem; min-width: 140px; text-align: center; transition: transform .2s; }
+.celebration-stat:hover { transform: translateY(-3px); }
+.stat-icon { font-size: 1.5rem; color: #16a34a; margin-bottom: .5rem; }
+.stat-value { font-size: 1.25rem; font-weight: 800; color: #14532d; }
+.stat-label { font-size: .78rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; margin-top: .15rem; }
+.celebration-schedule { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; text-align: left; animation: celebration-fade-up .6s ease 1.4s both; }
+.celebration-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; animation: celebration-fade-up .6s ease 1.6s both; }
+
 /* --- Tours Wishlist -------------------------- */
 .wishlist-active .fa-heart { color: var(--danger); }
 
@@ -1079,6 +1101,9 @@ h4 { font-size: 1.25rem; }
     .confirmation-card    { padding: 1.75rem 1rem; }
     .confirmation-details { padding: 1rem; }
     .confirmation-actions { flex-direction: column; align-items: stretch; }
+    .celebration-stats { gap: 1rem; }
+    .celebration-stat { min-width: 110px; padding: 1rem 1.25rem; }
+    .celebration-actions { flex-direction: column; align-items: stretch; }
     .payment-methods      { grid-template-columns: 1fr; }
     .booking-row          { flex-direction: column; align-items: flex-start; gap: .5rem; }
 
