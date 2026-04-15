@@ -195,7 +195,7 @@ class BookingController extends Controller
                 'user_id'                => $booking->user_id,
                 'amount'                 => $customAmt,
                 'currency'               => 'PHP',
-                'method'                 => $booking->payment_method ?? 'manual',
+                'method'                 => 'manual',
                 'status'                 => 'completed',
                 'gateway_transaction_id' => null,
                 'gateway_response'       => null,
