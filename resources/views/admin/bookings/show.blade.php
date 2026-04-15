@@ -377,8 +377,9 @@
                                     @endif
                                 </form>
                                 @if(($term['status'] ?? '') !== 'paid')
+                                @php $termOrdinal = $term['term']; @endphp
                                 <form action="{{ route('admin.bookings.send-payment-reminder', $booking) }}" method="POST" style="display:inline;margin-top:.3rem"
-                                      onsubmit="return confirm('Send payment reminder for Term {{ $term['term'] }} to {{ addslashes($booking->contact_email) }}?')"
+                                      onsubmit="return confirm('Send payment reminder for Term {{ $termOrdinal }} to {{ $booking->contact_email }}?')"
                                       >
                                     @csrf
                                     <input type="hidden" name="term" value="{{ $term['term'] }}">

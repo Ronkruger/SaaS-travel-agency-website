@@ -367,10 +367,13 @@ document.getElementById('cardExpiry')?.addEventListener('input', function() {
 });
 
 // Prevent form double submit
-document.getElementById('paymentForm').addEventListener('submit', function() {
-    const btn = document.getElementById('payBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-});
+const paymentForm = document.getElementById('paymentForm');
+if (paymentForm) {
+    paymentForm.addEventListener('submit', function() {
+        const btn = document.getElementById('payBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    });
+}
 </script>
 @endpush
