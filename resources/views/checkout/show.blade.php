@@ -387,24 +387,24 @@ document.querySelectorAll('.pay-form').forEach(function(form) {
     if (btn) btn.setAttribute('data-orig', btn.innerHTML);});
 
 // ── Webhook-processing poller ───────────────────────────────────────
-// After Xendit redirects the user back, the server-side webhook may still be
-// in flight. Use sessionStorage to poll until payment_status is updated.
+// Poll after returning from Xendit until the webhook updates payment_status.
 @if(session('payment_processing'))
 sessionStorage.setItem('payPoll', '0');
 @endif
 (function() {
     var pollKey = 'payPoll';
-    var raw = sessionStorage.getItem(pollKey);
-    if (raw === null) return; // not in a post-payment flow
-    var attempts = parseInt(raw, 10);
     @if(in_array($booking->payment_status, ['partial', 'paid']))
-    // Webhook processed — clear state, no more polling needed
+    // Webhook already processed — clear state
     sessionStorage.removeItem(pollKey);
     @else
-    // Still unpaid — reload after 3s if under attempt limit
-    if (attempts < 6) {
+    // Start polling automatically if we just came back from Xendit
+    // (flash sets it) OR if it was already running from a previous load
+    var raw = sessionStorage.getItem(pollKey);
+    if (raw === null) return;
+    var attempts = parseInt(raw, 10);
+    if (attempts < 20) {
         sessionStorage.setItem(pollKey, attempts + 1);
-        setTimeout(function() { window.location.reload(); }, 3000);
+        setTimeout(function() { window.location.reload(); }, 4000);
     } else {
         sessionStorage.removeItem(pollKey);
     }
