@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{booking}', [CheckoutController::class, 'show'])->name('show');
         Route::post('/{booking}', [CheckoutController::class, 'process'])->name('process');
         Route::get('/{booking}/confirmation', [CheckoutController::class, 'confirmation'])->name('confirmation');
+        Route::get('/{booking}/payment-status', [CheckoutController::class, 'paymentStatus'])->name('payment-status');
         Route::post('/{booking}/installment/{term}', [CheckoutController::class, 'payInstallmentTerm'])->name('installment.pay');
         Route::post('/{booking}/pay-balance', [CheckoutController::class, 'payBalance'])->name('pay-balance');
     });

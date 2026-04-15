@@ -63,6 +63,21 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Lightweight JSON endpoint — returns current payment_status.
+     * Used by the front-end poller so we avoid full page reloads.
+     */
+    public function paymentStatus(Booking $booking)
+    {
+        if (Gate::denies('view', $booking)) {
+            abort(403);
+        }
+
+        return response()->json([
+            'payment_status' => $booking->payment_status,
+        ]);
+    }
+
+    /**
      * Initiate Xendit payment for an installment term.
      * Accepts an optional custom_amount; if it covers multiple pending terms,
      * all covered terms are included in one invoice.

@@ -387,28 +387,33 @@ document.querySelectorAll('.pay-form').forEach(function(form) {
     if (btn) btn.setAttribute('data-orig', btn.innerHTML);});
 
 // ── Webhook-processing poller ───────────────────────────────────────
-// Poll after returning from Xendit until the webhook updates payment_status.
+// After Xendit redirects back, poll a lightweight JSON endpoint every 3s
+// until payment_status changes — then do ONE full reload to show updated UI.
 @if(session('payment_processing'))
-sessionStorage.setItem('payPoll', '0');
-@endif
 (function() {
-    var pollKey = 'payPoll';
-    @if(in_array($booking->payment_status, ['partial', 'paid']))
-    // Webhook already processed — clear state
-    sessionStorage.removeItem(pollKey);
-    @else
-    // Start polling automatically if we just came back from Xendit
-    // (flash sets it) OR if it was already running from a previous load
-    var raw = sessionStorage.getItem(pollKey);
-    if (raw === null) return;
-    var attempts = parseInt(raw, 10);
-    if (attempts < 20) {
-        sessionStorage.setItem(pollKey, attempts + 1);
-        setTimeout(function() { window.location.reload(); }, 4000);
-    } else {
-        sessionStorage.removeItem(pollKey);
+    var statusUrl = '{{ parse_url(route("checkout.payment-status", $booking), PHP_URL_PATH) }}';
+    var maxAttempts = 20;
+    var attempt = 0;
+
+    function poll() {
+        if (attempt >= maxAttempts) return;
+        attempt++;
+        fetch(statusUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.payment_status === 'partial' || data.payment_status === 'paid') {
+                    window.location.reload();
+                } else {
+                    setTimeout(poll, 3000);
+                }
+            })
+            .catch(function() {
+                setTimeout(poll, 5000);
+            });
     }
-    @endif
+
+    setTimeout(poll, 3000);
 })();
+@endif
 </script>
 @endpush

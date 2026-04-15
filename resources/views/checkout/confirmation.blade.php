@@ -95,18 +95,30 @@
 
 @push('scripts')
 <script>
-// Auto-refresh while Xendit webhook is still being processed
 @if($booking->payment_status !== 'paid')
+// Poll the lightweight status endpoint instead of reloading the whole page
 (function() {
-    var key = 'confPoll';
-    var attempts = parseInt(sessionStorage.getItem(key) || '0', 10);
-    if (attempts < 8) {
-        sessionStorage.setItem(key, attempts + 1);
-        setTimeout(function() { window.location.reload(); }, 3000);
+    var statusUrl = '{{ parse_url(route("checkout.payment-status", $booking), PHP_URL_PATH) }}';
+    var maxAttempts = 20;
+    var attempt = 0;
+
+    function poll() {
+        if (attempt >= maxAttempts) return;
+        attempt++;
+        fetch(statusUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.payment_status === 'partial' || data.payment_status === 'paid') {
+                    window.location.reload();
+                } else {
+                    setTimeout(poll, 3000);
+                }
+            })
+            .catch(function() { setTimeout(poll, 5000); });
     }
+
+    setTimeout(poll, 3000);
 })();
-@else
-sessionStorage.removeItem('confPoll');
 @endif
 </script>
 @endpush
