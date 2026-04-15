@@ -46,7 +46,7 @@ class SecurityHeaders
             "connect-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self' " . rtrim(config('app.url'), '/'),
+            "form-action 'self'",
         ]));
 
         return $response;

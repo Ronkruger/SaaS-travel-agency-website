@@ -156,7 +156,7 @@
                                     </td>
                                     @if($booking->payment_method === 'installment')
                                     <td style="padding:.5rem .75rem;text-align:center">
-                                        <form method="POST" action="{{ route('checkout.installment.pay', [$booking, $term['term']]) }}" style="display:inline" class="pay-form">
+                                        <form method="POST" action="{{ parse_url(route('checkout.installment.pay', [$booking, $term['term']]), PHP_URL_PATH) }}" style="display:inline" class="pay-form">
                                             @csrf
                                             <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem">
                                                 <button type="submit"
@@ -230,7 +230,7 @@
                                 Outstanding: <strong>₱{{ number_format($remainingBalance, 2) }}</strong> across {{ $pendingTerms->count() }} pending term(s).
                                 Enter a custom amount below — it will automatically cover as many months as possible.
                             </p>
-                            <form method="POST" action="{{ route('checkout.pay-balance', $booking) }}" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center" class="pay-form">
+                            <form method="POST" action="{{ parse_url(route('checkout.pay-balance', $booking), PHP_URL_PATH) }}" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center" class="pay-form">
                                 @csrf
                                 <div style="display:flex;align-items:center;border:1px solid #93c5fd;border-radius:.5rem;overflow:hidden;background:#fff">
                                     <span style="padding:.45rem .75rem;background:#e0f2fe;color:#0369a1;font-weight:700;font-size:.9rem;border-right:1px solid #93c5fd">₱</span>
@@ -277,7 +277,7 @@
                             You will be redirected to Xendit's secure payment page to complete your booking.<br>
                             Choose any payment method you prefer there.
                         </p>
-                        <form action="{{ route('checkout.process', $booking) }}" method="POST" class="pay-form">
+                        <form action="{{ parse_url(route('checkout.process', $booking), PHP_URL_PATH) }}" method="POST" class="pay-form">
                             @csrf
                             @error('error')
                                 <div class="alert alert-danger mb-3">
