@@ -275,10 +275,9 @@ class BookingController extends Controller
 
             $termLabel = $term['type'] === 'downpayment' ? 'down payment' : "term {$term['term']}";
             AdminActivityLog::record(
-                auth('admin')->user(),
                 'manual_payment_reminder',
-                "Sent manual payment reminder to {$booking->contact_email} for {$booking->booking_number} ({$termLabel})",
-                $booking
+                $booking,
+                "Sent manual payment reminder to {$booking->contact_email} for {$booking->booking_number} ({$termLabel})"
             );
         } catch (\Throwable $e) {
             Log::error("Manual payment reminder failed for {$booking->booking_number}: " . $e->getMessage());
@@ -734,7 +733,7 @@ class BookingController extends Controller
             return back()->with('error', 'Database error during resync: ' . $e->getMessage());
         }
 
-        AdminActivityLog::record('booking.resync_xendit', $booking->id, "Resynced Xendit payment for {$booking->booking_number} - {$termLabel}.");
+        AdminActivityLog::record('booking.resync_xendit', $booking, "Resynced Xendit payment for {$booking->booking_number} - {$termLabel}.");
         AdminNotification::broadcast(
             'payment_received',
             'Payment Synced — ' . $booking->booking_number,
