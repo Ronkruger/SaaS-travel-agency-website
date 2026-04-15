@@ -533,10 +533,10 @@
         <div class="card mb-4">
             <div class="card-header"><h4>Contact Information</h4></div>
             <div class="card-body">
-                <div class="detail-grid">
-                    <div class="detail-item"><span>Name</span><strong>{{ $booking->contact_name }}</strong></div>
-                    <div class="detail-item"><span>Email</span><strong>{{ $booking->contact_email }}</strong></div>
-                    <div class="detail-item"><span>Phone</span><strong>{{ $booking->contact_phone }}</strong></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem">
+                    <div class="detail-item" style="min-width:0"><span>Name</span><strong style="word-break:break-word">{{ $booking->contact_name }}</strong></div>
+                    <div class="detail-item" style="min-width:0;grid-column:span 2"><span>Email</span><strong style="word-break:break-all">{{ $booking->contact_email }}</strong></div>
+                    <div class="detail-item" style="min-width:0"><span>Phone</span><strong style="word-break:break-word">{{ $booking->contact_phone }}</strong></div>
                     @if($booking->user_id)
                     <div class="detail-item">
                         <span>Account</span>

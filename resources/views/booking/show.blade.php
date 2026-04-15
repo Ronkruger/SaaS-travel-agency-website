@@ -95,18 +95,18 @@
                 <div class="card mb-4">
                     <div class="card-header"><h4><i class="fas fa-user"></i> Contact Information</h4></div>
                     <div class="card-body">
-                        <div class="detail-grid">
-                            <div class="detail-item">
+                        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem">
+                            <div class="detail-item" style="min-width:0">
                                 <span>Name</span>
-                                <strong>{{ $booking->contact_name }}</strong>
+                                <strong style="word-break:break-word">{{ $booking->contact_name }}</strong>
                             </div>
-                            <div class="detail-item">
+                            <div class="detail-item" style="min-width:0">
                                 <span>Email</span>
-                                <strong>{{ $booking->contact_email }}</strong>
+                                <strong style="word-break:break-all">{{ $booking->contact_email }}</strong>
                             </div>
-                            <div class="detail-item">
+                            <div class="detail-item" style="min-width:0">
                                 <span>Phone</span>
-                                <strong>{{ $booking->contact_phone }}</strong>
+                                <strong style="word-break:break-word">{{ $booking->contact_phone }}</strong>
                             </div>
                         </div>
                     </div>
