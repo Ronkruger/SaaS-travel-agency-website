@@ -46,7 +46,6 @@ class SecurityHeaders
             "connect-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self'",
         ]));
 
         return $response;
