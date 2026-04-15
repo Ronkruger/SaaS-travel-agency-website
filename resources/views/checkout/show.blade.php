@@ -370,8 +370,19 @@ document.querySelectorAll('.pay-form').forEach(function(form) {
                 ? '<i class="fas fa-spinner fa-spin"></i> Redirecting to Xendit…'
                 : '<i class="fas fa-spinner fa-spin"></i> Processing…';
         }
+    });    // Reset if the page is shown from bfcache (back button) or after a CSP block
+    window.addEventListener('pageshow', function() {
+        form.dataset.submitting = '0';
+        var btn = form.querySelector('.pay-submit-btn');
+        if (btn) {
+            btn.disabled = false;
+            var orig = btn.getAttribute('data-orig');
+            if (orig) btn.innerHTML = orig;
+        }
     });
-});
+    // Store original label so we can restore it
+    var btn = form.querySelector('.pay-submit-btn');
+    if (btn) btn.setAttribute('data-orig', btn.innerHTML);});
 
 // ── Webhook-processing poller ───────────────────────────────────────
 // After Xendit redirects the user back, the server-side webhook may still be
