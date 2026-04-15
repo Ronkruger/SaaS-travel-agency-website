@@ -253,9 +253,11 @@
                             <span class="text-muted">Our team will send you bank account details via email at <strong>{{ $booking->contact_email }}</strong>.</span>
                         </div>
 
+                        @if($booking->payment_status !== 'unpaid')
                         <a href="{{ route('booking.show', $booking) }}" class="btn btn-primary btn-lg btn-block mt-4">
                             <i class="fas fa-check-circle"></i> View My Booking
                         </a>
+                        @endif
                     </div>
                 </div>
 
