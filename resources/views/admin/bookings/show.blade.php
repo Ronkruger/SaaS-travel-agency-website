@@ -128,63 +128,61 @@
             </div>
         </div>
 
-        {{-- ── XENDIT ONLINE PAYMENTS ─────────────────────────────── --}}
-        @if($booking->payment_method === 'xendit')
-        <div class="card mb-4" style="border:2px solid #bfdbfe">
-            <div class="card-header" style="background:#eff6ff">
-                <h4 style="color:#1e40af"><i class="fas fa-credit-card"></i> Xendit Online Payments</h4>
-            </div>
-            <div class="card-body">
-
-                {{-- Overall status + manual override --}}
-                <form action="{{ route('admin.bookings.payment-status', $booking) }}" method="POST" class="inline-form mb-4">
+        {{-- ── PAYMENT RECEIPTS (all methods) ────────────────────────────── --}}
+        <div id="payments" class="card mb-4" style="border:2px solid #bfdbfe">
+            <div class="card-header" style="background:#eff6ff;display:flex;align-items:center;justify-content:space-between">
+                <h4 style="color:#1e40af;margin:0"><i class="fas fa-receipt"></i> Payment Receipts</h4>
+                {{-- Manual override for all payment methods --}}
+                <form action="{{ route('admin.bookings.payment-status', $booking) }}" method="POST" style="display:flex;align-items:center;gap:.5rem;margin:0">
                     @csrf @method('PATCH')
-                    <label style="font-weight:600;margin-right:.5rem">Overall Payment Status:</label>
-                    <select name="payment_status" class="form-control" style="max-width:180px">
+                    <label style="font-weight:600;font-size:.875rem;white-space:nowrap">Overall Status:</label>
+                    <select name="payment_status" class="form-control" style="max-width:160px;font-size:.875rem">
                         @foreach(['unpaid' => 'Unpaid', 'partial' => 'Partially Paid', 'paid' => 'Fully Paid'] as $val => $label)
                             <option value="{{ $val }}" {{ $booking->payment_status === $val ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
                 </form>
-
-                @php $xenditPayments = $booking->payments->where('method', 'xendit')->sortByDesc('paid_at'); @endphp
-
-                @if($xenditPayments->count())
+            </div>
+            <div class="card-body">
+                @php $allPayments = $booking->payments->sortByDesc('paid_at'); @endphp
+                @if($allPayments->count())
                 <div style="overflow-x:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+                <table style="width:100%;border-collapse:collapse;font-size:.875rem">
                     <thead>
-                        <tr style="background:#dbeafe;color:#1e3a8a;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em">
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Transaction ID</th>
+                        <tr style="background:#dbeafe;color:#1e3a8a;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em">
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">For</th>
                             <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Amount</th>
                             <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Channel</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Gateway ID</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Notes</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Xendit ID</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">System Txn</th>
                             <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Paid At</th>
                             <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #bfdbfe">Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($xenditPayments as $pmt)
+                        @foreach($allPayments as $pmt)
+                        @php $channel = strtoupper($pmt->gateway_response['payment_channel'] ?? $pmt->gateway_response['payment_method'] ?? $pmt->method); @endphp
                         <tr style="border-bottom:1px solid #e2e8f0">
-                            <td style="padding:.6rem .75rem;font-family:monospace;font-size:.8rem">{{ $pmt->transaction_id }}</td>
-                            <td style="padding:.6rem .75rem;font-weight:600">₱{{ number_format($pmt->amount, 2) }}</td>
-                            <td style="padding:.6rem .75rem">
-                                @php $channel = $pmt->gateway_response['payment_channel'] ?? $pmt->gateway_response['payment_method'] ?? '—'; @endphp
-                                {{ strtoupper($channel) }}
+                            <td style="padding:.6rem .75rem;font-weight:600">{{ $pmt->notes ?: '—' }}</td>
+                            <td style="padding:.6rem .75rem;font-weight:700;color:#166534">₱{{ number_format($pmt->amount, 2) }}</td>
+                            <td style="padding:.6rem .75rem">{{ $channel }}</td>
+                            <td style="padding:.6rem .75rem;font-family:monospace;font-size:.78rem;color:#374151">
+                                {{ $pmt->gateway_transaction_id ?? '—' }}
                             </td>
-                            <td style="padding:.6rem .75rem;font-family:monospace;font-size:.8rem">{{ $pmt->gateway_transaction_id ?? '—' }}</td>
-                            <td style="padding:.6rem .75rem">{{ $pmt->notes ?? '—' }}</td>
-                            <td style="padding:.6rem .75rem">
+                            <td style="padding:.6rem .75rem;font-family:monospace;font-size:.78rem;color:#6b7280">
+                                {{ $pmt->transaction_id }}
+                            </td>
+                            <td style="padding:.6rem .75rem;white-space:nowrap">
                                 {{ $pmt->paid_at ? $pmt->paid_at->format('M d, Y H:i') : '—' }}
                             </td>
                             <td style="padding:.6rem .75rem;text-align:center">
                                 @if($pmt->status === 'completed')
-                                    <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
-                                        <i class="fas fa-check"></i> Paid
+                                    <span style="background:#dcfce7;color:#166534;padding:.2rem .65rem;border-radius:1rem;font-size:.78rem;font-weight:700">
+                                        <i class="fas fa-check-circle"></i> Verified
                                     </span>
                                 @else
-                                    <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">{{ ucfirst($pmt->status) }}</span>
+                                    <span style="background:#fef9c3;color:#854d0e;padding:.2rem .65rem;border-radius:1rem;font-size:.78rem">{{ ucfirst($pmt->status) }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -193,90 +191,18 @@
                 </table>
                 </div>
                 @else
-                <div style="background:#fef9c3;border:1px solid #fde047;border-radius:.5rem;padding:1rem;color:#854d0e;font-size:.9rem">
+                <div style="background:#fef9c3;border:1px solid #fde047;border-radius:.5rem;padding:1rem;color:#854d0e;font-size:.875rem">
                     <i class="fas fa-hourglass-half"></i>
-                    <strong>No Xendit payment received yet.</strong>
-                    Payment will be automatically recorded here once the client completes payment online.
-                    If the client has paid but this is empty, the Xendit webhook may have been delayed —
-                    you can manually update the Overall Payment Status above.
+                    <strong>No payments recorded yet.</strong>
+                    @if($booking->payment_method === 'xendit' || $booking->payment_method === 'installment')
+                        Payments will appear here automatically once processed via Xendit.
+                    @else
+                        Use "Mark Paid" below to record cash payments.
+                    @endif
                 </div>
                 @endif
             </div>
         </div>
-        @endif
-
-        {{-- ── XENDIT ONLINE PAYMENTS ─────────────────────────────── --}}
-        @if($booking->payment_method === 'xendit')
-        <div class="card mb-4" style="border:2px solid #bfdbfe">
-            <div class="card-header" style="background:#eff6ff">
-                <h4 style="color:#1e40af"><i class="fas fa-credit-card"></i> Xendit Online Payments</h4>
-            </div>
-            <div class="card-body">
-
-                {{-- Overall status + manual override --}}
-                <form action="{{ route('admin.bookings.payment-status', $booking) }}" method="POST" class="inline-form mb-4">
-                    @csrf @method('PATCH')
-                    <label style="font-weight:600;margin-right:.5rem">Overall Payment Status:</label>
-                    <select name="payment_status" class="form-control" style="max-width:180px">
-                        @foreach(['unpaid' => 'Unpaid', 'partial' => 'Partially Paid', 'paid' => 'Fully Paid'] as $val => $label)
-                            <option value="{{ $val }}" {{ $booking->payment_status === $val ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </form>
-
-                @php $xenditPayments = $booking->payments->sortByDesc('paid_at'); @endphp
-
-                @if($xenditPayments->count())
-                <div style="overflow-x:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:.9rem">
-                    <thead>
-                        <tr style="background:#dbeafe;color:#1e3a8a;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em">
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Transaction ID</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Amount</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Channel</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Gateway ID</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:2px solid #bfdbfe">Paid At</th>
-                            <th style="padding:.5rem .75rem;text-align:center;border-bottom:2px solid #bfdbfe">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($xenditPayments as $pmt)
-                        <tr style="border-bottom:1px solid #e2e8f0">
-                            <td style="padding:.6rem .75rem;font-family:monospace;font-size:.8rem">{{ $pmt->transaction_id }}</td>
-                            <td style="padding:.6rem .75rem;font-weight:600">₱{{ number_format($pmt->amount, 2) }}</td>
-                            <td style="padding:.6rem .75rem">
-                                @php $channel = $pmt->gateway_response['payment_channel'] ?? $pmt->gateway_response['payment_method'] ?? strtoupper($pmt->method); @endphp
-                                {{ strtoupper($channel) }}
-                            </td>
-                            <td style="padding:.6rem .75rem;font-family:monospace;font-size:.8rem">{{ $pmt->gateway_transaction_id ?? '—' }}</td>
-                            <td style="padding:.6rem .75rem">{{ $pmt->paid_at ? $pmt->paid_at->format('M d, Y H:i') : '—' }}</td>
-                            <td style="padding:.6rem .75rem;text-align:center">
-                                @if($pmt->status === 'completed')
-                                    <span style="background:#dcfce7;color:#166534;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem;font-weight:600">
-                                        <i class="fas fa-check"></i> Paid
-                                    </span>
-                                @else
-                                    <span style="background:#fef9c3;color:#854d0e;padding:.2rem .6rem;border-radius:1rem;font-size:.8rem">{{ ucfirst($pmt->status) }}</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                </div>
-                @else
-                <div style="background:#fef9c3;border:1px solid #fde047;border-radius:.5rem;padding:1rem;color:#854d0e;font-size:.9rem">
-                    <i class="fas fa-hourglass-half"></i>
-                    <strong>No Xendit payment received yet.</strong>
-                    Payment will automatically appear here once the client completes the Xendit payment online.
-                    If the client has paid but nothing shows here, the webhook may have been delayed —
-                    you can manually update the Overall Payment Status above.
-                </div>
-                @endif
-            </div>
-        </div>
-        @endif
 
         @if(in_array($booking->payment_method, ['cash', 'installment']))
         {{-- ── CASH PAYMENT MANAGEMENT ────────────────────────────── --}}
@@ -781,4 +707,22 @@
         @endforelse
     </div>
 </div>
+@push('scripts')
+<script>
+// Scroll to #payments section when notification deep-links here
+if (window.location.hash === '#payments') {
+    document.addEventListener('DOMContentLoaded', function () {
+        var el = document.getElementById('payments');
+        if (el) {
+            setTimeout(function () {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                el.style.transition = 'box-shadow .4s';
+                el.style.boxShadow = '0 0 0 3px #3b82f6';
+                setTimeout(function () { el.style.boxShadow = ''; }, 2000);
+            }, 200);
+        }
+    });
+}
+</script>
+@endpush
 @endsection

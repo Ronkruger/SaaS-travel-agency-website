@@ -257,9 +257,9 @@ class XenditController extends Controller
                     // Notify all admins
                     \App\Models\AdminNotification::broadcast(
                         'payment_received',
-                        'Online Payment Received',
-                        $booking->booking_number . ' — ' . $booking->contact_name . ': ₱' . number_format($paidTotal, 2) . ' via Xendit (' . $termLabels . ')',
-                        route('admin.bookings.show', $booking),
+                        'Payment Received — ' . $booking->booking_number,
+                        $booking->contact_name . ': ₱' . number_format($paidTotal, 2) . ' (' . $termLabels . ')',
+                        route('admin.bookings.show', $booking) . '#payments',
                     );
                 });
 
@@ -336,11 +336,21 @@ class XenditController extends Controller
                     ]);
                 });
 
+                // Notify admins for this term payment
+                $notifTermLabel = $termNumber === 0 ? 'Down Payment' : 'Month ' . $termNumber;
+                $notifAmount    = (float) ($data['amount'] ?? 0);
+                \App\Models\AdminNotification::broadcast(
+                    'payment_received',
+                    'Payment Received — ' . $booking->booking_number,
+                    $booking->contact_name . ': ₱' . number_format($notifAmount, 2) . ' (' . $notifTermLabel . ')',
+                    route('admin.bookings.show', $booking) . '#payments',
+                );
+
                 // Send confirmation email outside the transaction
                 try {
                     $termLabel = $termNumber === 0 ? 'Down Payment' : 'Month ' . $termNumber;
                     $booking->refresh()->load('tour');
-                    $amountPaid = (float) ($data['amount'] ?? collect($booking->installment_schedule)->firstWhere('term', $termNumber)['amount'] ?? 0);
+                    $amountPaid = $notifAmount ?: (float) (collect($booking->installment_schedule)->firstWhere('term', $termNumber)['amount'] ?? 0);
                     Mail::to($booking->contact_email)
                         ->send(new BookingConfirmationMail($booking, $termLabel, true, $amountPaid));
                 } catch (\Throwable $e) {
@@ -402,6 +412,14 @@ class XenditController extends Controller
 
                 $booking->tour()->increment('total_bookings');
             });
+
+            // Notify admins of full payment
+            \App\Models\AdminNotification::broadcast(
+                'payment_received',
+                'Payment Received — ' . $booking->booking_number,
+                $booking->contact_name . ': ₱' . number_format($booking->total_amount, 2) . ' (Full Payment)',
+                route('admin.bookings.show', $booking) . '#payments',
+            );
 
             // Send booking confirmation email outside the transaction
             try {
