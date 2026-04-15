@@ -112,10 +112,10 @@ class NotificationController extends Controller
                     @flush();
                 }
 
-                // Gracefully cycle the connection every ~55 s so PHP workers don't
+                // Gracefully cycle the connection every ~20 s so PHP workers don't
                 // accumulate indefinitely (EventSource auto-reconnects transparently).
                 $tick += 3;
-                if ($tick >= 55) {
+                if ($tick >= 20) {
                     break;
                 }
             }

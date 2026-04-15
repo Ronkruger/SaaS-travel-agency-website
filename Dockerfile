@@ -31,6 +31,9 @@ RUN chmod -R 775 storage bootstrap/cache \
 # Nginx config template (PORT substituted at runtime by start.sh)
 COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
 
+# PHP-FPM pool config — increase worker count so SSE connections don't starve webhooks
+COPY docker/php-fpm-www.conf /usr/local/etc/php-fpm.d/www.conf
+
 # Startup script
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh

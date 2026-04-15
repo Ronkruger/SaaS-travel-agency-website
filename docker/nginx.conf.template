@@ -16,10 +16,25 @@ http {
             try_files $uri $uri/ /index.php?$query_string;
         }
 
+        # SSE endpoint — disable buffering and extend timeout so the stream
+        # stays open long enough without nginx killing it prematurely.
+        location ~ ^/index\.php$ {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+
+            # Extend for SSE streams (our cycle is 20 s, but allow headroom).
+            fastcgi_read_timeout 90s;
+
+            # Disable nginx output buffering so SSE events reach the browser immediately.
+            fastcgi_buffering off;
+        }
+
         location ~ \.php$ {
             fastcgi_pass 127.0.0.1:9000;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
+            fastcgi_read_timeout 90s;
         }
 
         location ~ /\.ht {
