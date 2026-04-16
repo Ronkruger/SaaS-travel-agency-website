@@ -117,7 +117,7 @@
                             <div class="action-btns">
                                 <a href="{{ route('admin.bookings.show', $booking) }}"
                                    class="btn btn-xs btn-outline">
-                                    <i class="fas fa-eye"></i> View
+                                    <i class="fas fa-eye"></i> <span class="btn-text-mobile">View</span>
                                 </a>
                                 @if(auth('admin')->user()->isSuperAdmin())
                                     <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST"

@@ -140,7 +140,7 @@
                     <i class="fas fa-bell"></i>
                     <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;border-radius:99px;padding:1px 4px;min-width:16px;text-align:center;line-height:1.4"></span>
                 </button>
-                <div id="notif-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:360px;background:#fff;border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:9999;overflow:hidden;flex-direction:column;max-height:460px">
+                <div id="notif-dropdown" style="display:none;position:absolute;right:-1rem;top:calc(100% + 6px);width:min(360px, calc(100vw - 2rem));background:#fff;border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:9999;overflow:hidden;flex-direction:column;max-height:460px">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid var(--gray-100);flex-shrink:0">
                         <strong style="font-size:.875rem">Notifications</strong>
                         <div style="display:flex;gap:.75rem;align-items:center">

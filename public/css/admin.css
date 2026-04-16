@@ -448,19 +448,24 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .sidebar-close { display: block; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .admin-header { padding: 0 1rem; gap: .5rem; }
-    .header-user span { display: none; }
+    .header-user > div:first-child { display: none; }
     .header-user { padding: .5rem; gap: .25rem; }
 }
 @media (max-width: 600px) {
     .admin-content { padding: 1.25rem; }
     .admin-header { padding: 0 .75rem; gap: .4rem; height: 56px; }
-    .header-breadcrumb .breadcrumbs { font-size: .75rem; }
+    .header-breadcrumb { display: none; }
     .stats-grid { grid-template-columns: 1fr; }
     .filter-row { flex-direction: column; }
     .page-title-row { flex-direction: column; align-items: flex-start; }
     .data-table th, .data-table td { padding: .625rem .75rem; font-size: .875rem; }
     .modal-content  { max-width: calc(100vw - 2rem); }
-    .action-btns    { flex-wrap: wrap; }
+    .action-btns    { flex-wrap: nowrap; gap: .3rem; }
+    .action-btns .btn { padding: .3rem .5rem; font-size: .75rem; white-space: nowrap; }
+    .action-btns .btn .fa-eye,
+    .action-btns .btn .fa-trash,
+    .action-btns .btn .fa-hand-paper { margin-right: 0; }
+    .action-btns .btn-text-mobile { display: none; }
 }
 
 @media (max-width: 480px) {

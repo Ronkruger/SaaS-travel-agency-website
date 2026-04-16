@@ -26,13 +26,24 @@
 .slot-row:last-child { border-bottom:none; }
 .seats-mini-bar { width:100%; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-top:.5rem; }
 .seats-mini-fill { height:100%; border-radius:4px; }
+
+/* Mobile responsive for booking show */
+@media (max-width: 768px) {
+    .booking-admin-layout { grid-template-columns: 1fr !important; }
+    .approve-bar { flex-direction: column; text-align: center; }
+    .approve-bar__info { flex-direction: column; text-align: center; }
+    .approve-bar__actions { justify-content: center; }
+    .inline-form { flex-direction: column; }
+    .inline-form .form-control { width: 100%; }
+    .slot-avail-card { overflow-x: auto; }
+}
 </style>
 @endpush
 
 @section('content')
 <div class="page-title-row">
     <h2>Booking #{{ $booking->booking_number }}</h2>
-    <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
         {{-- PDF Actions --}}
         <a href="{{ route('admin.bookings.pdf.preview', $booking) }}" target="_blank"
            class="btn btn-outline" title="Preview PDF">
