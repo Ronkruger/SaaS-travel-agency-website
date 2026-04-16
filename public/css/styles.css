@@ -354,11 +354,13 @@ h4 { font-size: 1.25rem; }
 .auth-footer a { color: var(--primary); font-weight: 600; }
 
 /* --- Profile Page ----------------------------- */
-.profile-grid { display: grid; grid-template-columns: 260px 1fr; gap: 2rem; align-items: start; }
-.profile-sidebar { position: sticky; top: 100px; }
-.profile-avatar-card { text-align: center; padding: 2rem; background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-300); margin-bottom: 1rem; }
+.profile-grid { display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start; }
+.profile-sidebar { position: sticky; top: 100px; min-width: 0; }
+.profile-avatar-card { text-align: center; padding: 2rem 1.25rem; background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-300); margin-bottom: 1rem; overflow: hidden; }
 .avatar-circle { width: 5rem; height: 5rem; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
 .avatar-circle i { font-size: 2.25rem; color: var(--white); }
+.profile-avatar-card h3 { margin: 0 0 .25rem; font-size: 1.1rem; word-break: break-word; }
+.profile-avatar-card p { margin: 0 0 .75rem; font-size: .82rem; color: var(--gray-700); word-break: break-all; overflow-wrap: anywhere; line-height: 1.4; }
 .profile-nav { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-300); overflow: hidden; }
 .profile-nav a { display: flex; align-items: center; gap: .75rem; padding: .875rem 1.25rem; border-bottom: 1px solid var(--gray-300); font-weight: 500; color: var(--gray-700); transition: all var(--transition); }
 .profile-nav a:last-child { border-bottom: none; }
@@ -912,12 +914,18 @@ h4 { font-size: 1.25rem; }
     .mobile-menu-btn { display: flex; }
     .navbar-actions .btn-outline { display: none; }
 
+    /* Push actions + hamburger to the far right */
+    .navbar .container { gap: .75rem; }
+    .navbar-brand { margin-right: auto; }
+    .navbar-actions { order: 1; }
+    .mobile-menu-btn { order: 2; }
+
     /* Mobile nav drawer (full-screen overlay) */
     .navbar-nav {
         display: none;
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 999;
+        z-index: 1002;
         background: var(--white);
         flex-direction: column;
         padding: 5rem 1.5rem 2rem;
@@ -983,7 +991,7 @@ h4 { font-size: 1.25rem; }
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, .45);
-    z-index: 998;
+    z-index: 1001;
     cursor: pointer;
 }
 .nav-backdrop.open { display: block; }
@@ -1006,6 +1014,7 @@ h4 { font-size: 1.25rem; }
         background: var(--gray-100);
         border: none;
         cursor: pointer;
+        z-index: 1003;
     }
     .navbar-nav-close:hover { color: var(--gray-900); background: var(--gray-300); }
 }
@@ -1019,6 +1028,10 @@ h4 { font-size: 1.25rem; }
 
     /* Scale logo down slightly */
     .navbar-brand svg { height: 30px; width: auto; }
+
+    /* Compact user button on mobile */
+    .user-btn { padding: .4rem .75rem; font-size: .85rem; gap: .35rem; }
+    .user-btn .fa-chevron-down { font-size: .6rem; }
 
     /* Hero */
     .hero { min-height: 100svh; }
@@ -1243,13 +1256,14 @@ table { width: 100%; }
 .promo-banner-link:hover .promo-banner-img{opacity:.93}
 
 /* Media Embeds */
+.section-media-embeds { padding: 4rem 0; }
 .media-embeds-grid{display:grid;gap:24px;align-items:stretch}
 .media-embeds-grid.two-cols{grid-template-columns:1fr 1fr}
-.media-embeds-grid.one-col{grid-template-columns:1fr;max-width:680px;margin:0 auto}
-.media-embed-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08);display:flex;flex-direction:column}
-.media-embed-label{padding:12px 18px;font-weight:700;font-size:.85rem;color:#1e293b;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f1f5f9;flex-shrink:0}
-.media-embed-label .fab.fa-facebook{color:#1877f2;font-size:1.05rem}
-.media-embed-label .fab.fa-youtube{color:#ff0000;font-size:1.05rem}
+.media-embeds-grid.one-col{grid-template-columns:1fr;max-width:720px;margin:0 auto}
+.media-embed-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.07);display:flex;flex-direction:column;border:1px solid rgba(0,0,0,.04)}
+.media-embed-label{padding:14px 20px;font-weight:700;font-size:.9rem;color:#1e293b;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f1f5f9;flex-shrink:0;background:#fafbfc}
+.media-embed-label .fab.fa-facebook{color:#1877f2;font-size:1.15rem}
+.media-embed-label .fab.fa-youtube{color:#ff0000;font-size:1.15rem}
 /* Carousel */
 .media-carousel{position:relative;overflow:hidden}
 /* Horizontal (YouTube) */
@@ -1260,10 +1274,10 @@ table { width: 100%; }
 .media-carousel-fb .media-carousel-slide{display:none;justify-content:center;align-items:flex-start;padding:16px 12px}
 .media-carousel-fb .media-carousel-slide.active{display:flex}
 .media-carousel-fb .media-carousel-slide>*{max-width:100%}
-.media-carousel-yt{flex:1;min-height:320px}
+.media-carousel-yt{flex:1}
 .media-carousel-yt .media-carousel-track{height:100%}
 .media-carousel-yt .media-carousel-slide{height:100%}
-.yt-responsive{position:relative;height:100%}
+.yt-responsive{position:relative;width:100%;padding-top:56.25%;overflow:hidden}
 .yt-responsive iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
 .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.4rem;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s}
 .carousel-btn:hover{background:rgba(0,0,0,.72)}
@@ -1282,9 +1296,13 @@ table { width: 100%; }
 .media-carousel-yt .carousel-dot.active{background:#fff}
 @media(max-width:768px){
     .media-embeds-grid.two-cols{grid-template-columns:1fr}
-    .media-carousel-yt{min-height:220px}
+    .section-media-embeds { padding: 3rem 0; }
     .icon-strip-circle{width:54px;height:54px;font-size:1.25rem}
     .icon-strip-item{min-width:62px;font-size:.75rem}
+}
+@media(max-width:480px){
+    .media-embed-card{border-radius:12px}
+    .media-embed-label{padding:10px 14px;font-size:.82rem}
 }
 
 

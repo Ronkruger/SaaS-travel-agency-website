@@ -214,38 +214,56 @@ function carouselShift(id, dir) {
         <div class="section-header text-center">
             <span class="section-label">How Would You Like to Travel?</span>
             <h2>Choose Your Perfect Adventure</h2>
+            <p class="section-subtitle">Whether you prefer a ready-made experience or a fully custom journey, we've got you covered.</p>
         </div>
         <div class="diy-choice-grid">
+            {{-- Package Tours Card --}}
             <div class="diy-choice-card package-card">
-                <div class="diy-choice-icon">📦</div>
+                <div class="diy-card-header">
+                    <div class="diy-choice-icon-wrap package-icon-wrap">
+                        <i class="fas fa-suitcase-rolling"></i>
+                    </div>
+                    <span class="diy-card-badge package-badge">Popular</span>
+                </div>
                 <h3>Package Tours</h3>
-                <p>Pre-designed, expertly curated itineraries. Everything planned — just show up and enjoy.</p>
+                <p class="diy-card-desc">Pre-designed, expertly curated itineraries. Everything planned — just show up and enjoy.</p>
                 <ul class="diy-choice-features">
-                    <li>✓ From ₱150,000 per person</li>
-                    <li>✓ Guaranteed departures</li>
-                    <li>✓ Group &amp; private options</li>
+                    <li><i class="fas fa-check-circle"></i> From ₱150,000 per person</li>
+                    <li><i class="fas fa-check-circle"></i> Guaranteed departures</li>
+                    <li><i class="fas fa-check-circle"></i> Group &amp; private options</li>
                 </ul>
-                <a href="{{ route('tours.index') }}" class="btn btn-outline">Browse Tours</a>
+                <a href="{{ route('tours.index') }}" class="diy-card-btn package-btn">
+                    Browse Tours <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
+
+            {{-- Create Your Own Tour Card --}}
             <div class="diy-choice-card diy-card featured">
-                <div class="diy-ai-badge">✨ AI-Powered</div>
-                <div class="diy-choice-icon">🗺️</div>
+                <div class="diy-card-header">
+                    <div class="diy-choice-icon-wrap diy-icon-wrap">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                    </div>
+                    <span class="diy-card-badge ai-badge"><i class="fas fa-bolt"></i> AI-Powered</span>
+                </div>
                 <h3>Create Your Own Tour</h3>
-                <p>Tell our AI your dream trip. It designs a personalised itinerary you can fully customise.</p>
+                <p class="diy-card-desc">Tell our AI your dream trip. It designs a personalised itinerary you can fully customise.</p>
                 <ul class="diy-choice-features">
-                    <li>✓ 100% customisable</li>
-                    <li>✓ AI route optimisation</li>
-                    <li>✓ Real-time pricing</li>
-                    <li>✓ Interactive map builder</li>
+                    <li><i class="fas fa-check-circle"></i> 100% customisable</li>
+                    <li><i class="fas fa-check-circle"></i> AI route optimisation</li>
+                    <li><i class="fas fa-check-circle"></i> Real-time pricing</li>
+                    <li><i class="fas fa-check-circle"></i> Interactive map builder</li>
                 </ul>
-                <a href="{{ route('diy.index') }}" class="btn btn-primary">
+                <a href="{{ route('diy.index') }}" class="diy-card-btn diy-btn">
                     Start Building <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
-        <div class="diy-quiz-cta text-center mt-4">
-            <span>💡 Not sure which is right for you?</span>
-            <a href="{{ route('diy.index') }}" class="diy-quiz-link">Take our 2-minute quiz to find your ideal tour style</a>
+        <div class="diy-quiz-cta text-center">
+            <div class="diy-quiz-cta-inner">
+                <i class="fas fa-lightbulb"></i>
+                <span>Not sure which is right for you?</span>
+                <a href="{{ route('diy.index') }}" class="diy-quiz-link">Take our 2-minute quiz <i class="fas fa-arrow-right"></i></a>
+            </div>
         </div>
     </div>
 </section>
