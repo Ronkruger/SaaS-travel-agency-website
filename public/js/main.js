@@ -18,9 +18,13 @@
     const navbarNav   = document.querySelector('.navbar-nav');
     const navBackdrop = document.getElementById('navBackdrop');
     const navClose    = document.getElementById('navClose');
+    const navParent   = navbarNav ? navbarNav.parentNode : null;
+    const navNextSib  = navbarNav ? navbarNav.nextSibling : null;
 
     function openNav() {
         if (!navbarNav) return;
+        // Move drawer to body so it escapes the navbar stacking context
+        document.body.appendChild(navbarNav);
         navbarNav.classList.add('open');
         if (mobileBtn)   { mobileBtn.classList.add('open'); mobileBtn.setAttribute('aria-expanded', 'true'); }
         if (navBackdrop) navBackdrop.classList.add('open');
@@ -33,6 +37,11 @@
         if (mobileBtn)   { mobileBtn.classList.remove('open'); mobileBtn.setAttribute('aria-expanded', 'false'); }
         if (navBackdrop) navBackdrop.classList.remove('open');
         document.body.style.overflow = '';
+        // Move drawer back into navbar for desktop layout
+        if (navParent) {
+            if (navNextSib) { navParent.insertBefore(navbarNav, navNextSib); }
+            else { navParent.appendChild(navbarNav); }
+        }
     }
 
     if (mobileBtn)   mobileBtn.addEventListener('click', function () {

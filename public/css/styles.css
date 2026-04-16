@@ -925,7 +925,7 @@ h4 { font-size: 1.25rem; }
         display: none;
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 1002;
+        z-index: 1050;
         background: var(--white);
         flex-direction: column;
         padding: 5rem 1.5rem 2rem;
@@ -991,7 +991,7 @@ h4 { font-size: 1.25rem; }
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, .45);
-    z-index: 1001;
+    z-index: 1040;
     cursor: pointer;
 }
 .nav-backdrop.open { display: block; }
@@ -1014,7 +1014,7 @@ h4 { font-size: 1.25rem; }
         background: var(--gray-100);
         border: none;
         cursor: pointer;
-        z-index: 1003;
+        z-index: 2;
     }
     .navbar-nav-close:hover { color: var(--gray-900); background: var(--gray-300); }
 }
