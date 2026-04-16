@@ -19,6 +19,9 @@ class DIYTourQuote extends Model
         'terms_conditions',
         'generated_by',
         'status',
+        'xendit_invoice_id',
+        'payment_type',
+        'pax_count',
     ];
 
     protected $casts = [
@@ -29,6 +32,16 @@ class DIYTourQuote extends Model
     public function itinerary(): BelongsTo
     {
         return $this->belongsTo(DIYTourItinerary::class, 'itinerary_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'diy_quote_id');
+    }
+
+    public function totalPaid(): float
+    {
+        return (float) $this->payments()->where('status', 'completed')->sum('amount');
     }
 
     public function isExpired(): bool

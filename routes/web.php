@@ -37,6 +37,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\BookingClaimController;
 use App\Http\Controllers\Admin\AdminStaffController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\DIYCheckoutController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,6 +46,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/favicon.ico', fn () => response()->file(public_path('favicon.svg'), ['Content-Type' => 'image/svg+xml']));
 Route::get('/about', [ContactController::class, 'about'])->name('about');
 Route::get('/destinations', [DestinationsController::class, 'index'])->name('destinations.index');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
@@ -283,6 +285,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
         Route::patch('/{diySession}/status', [AdminDIYTourController::class, 'updateStatus'])->name('diy.status');
         Route::post('/{diySession}/approve', [AdminDIYTourController::class, 'approve'])->name('diy.approve');
         Route::post('/{diySession}/reject', [AdminDIYTourController::class, 'reject'])->name('diy.reject');
+        Route::post('/{diySession}/mark-paid', [AdminDIYTourController::class, 'markPaid'])->name('diy.mark-paid');
         Route::delete('/{diySession}', [AdminDIYTourController::class, 'destroy'])->name('diy.destroy');
     });
 
@@ -345,6 +348,14 @@ Route::prefix('diy')->name('diy.')->group(function () {
     Route::post('/{token}/quote', [DIYTourController::class, 'requestQuote'])->name('request-quote');
     // Quote review page
     Route::get('/{token}/quote', [DIYTourController::class, 'quote'])->name('quote');
+    // Checkout & Payment (auth required)
+    Route::middleware('auth')->group(function () {
+        Route::get('/{token}/checkout', [DIYCheckoutController::class, 'show'])->name('checkout.show');
+        Route::post('/{token}/checkout', [DIYCheckoutController::class, 'process'])->name('checkout.process');
+        Route::get('/{token}/checkout/success', [DIYCheckoutController::class, 'success'])->name('checkout.success');
+        Route::get('/{token}/checkout/failure', [DIYCheckoutController::class, 'failure'])->name('checkout.failure');
+        Route::get('/{token}/confirmation', [DIYCheckoutController::class, 'confirmation'])->name('confirmation');
+    });
     // Invite collaborator (auth required)
     Route::post('/{token}/invite', [DIYTourController::class, 'invite'])->name('invite')->middleware('auth');
 });

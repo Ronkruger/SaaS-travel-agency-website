@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\DIYPaymentConfirmationMail;
 use App\Mail\DIYTourQuoteMail;
 use App\Models\DIYTourSession;
 use App\Models\DIYTourItinerary;
 use App\Models\DIYTourQuote;
+use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -40,7 +43,7 @@ class DIYTourController extends Controller
 
     public function show(DIYTourSession $diySession)
     {
-        $diySession->load(['user', 'itineraries.quotes', 'collaborators.user']);
+        $diySession->load(['user', 'itineraries.quotes.payments', 'collaborators.user']);
         $itinerary = $diySession->latestItinerary;
 
         return view('admin.diy.show', compact('diySession', 'itinerary'));
@@ -130,6 +133,66 @@ class DIYTourController extends Controller
         $diySession->update(['admin_status' => 'rejected']);
         return redirect()->route('admin.diy.show', $diySession)
             ->with('success', 'DIY tour request rejected.');
+    }
+
+    // -------------------------------------------------------------------------
+    // Mark a DIY quote as paid (cash / manual payment)
+    // -------------------------------------------------------------------------
+
+    public function markPaid(Request $request, DIYTourSession $diySession)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'method' => 'required|in:cash,bank_transfer,manual',
+            'notes'  => 'nullable|string|max:255',
+        ]);
+
+        $itinerary = $diySession->latestItinerary;
+        $quote     = $itinerary?->latestQuote;
+
+        if (!$quote) {
+            return back()->with('error', 'No quote found for this session.');
+        }
+
+        DB::transaction(function () use ($validated, $quote, $diySession) {
+            $txnId = 'DIYCASH-' . $quote->id . '-' . now()->timestamp;
+
+            Payment::create([
+                'transaction_id'        => $txnId,
+                'diy_quote_id'          => $quote->id,
+                'user_id'               => $diySession->user_id,
+                'amount'                => $validated['amount'],
+                'currency'              => 'PHP',
+                'method'                => $validated['method'],
+                'status'                => 'completed',
+                'gateway_transaction_id' => null,
+                'notes'                 => $validated['notes'] ?? 'Recorded by admin',
+                'paid_at'               => now(),
+            ]);
+
+            $quote->update(['status' => 'accepted']);
+            $diySession->update(['status' => 'booked']);
+        });
+
+        // Send confirmation email to client
+        try {
+            $client = $diySession->user;
+            if ($client?->email) {
+                $payment = Payment::where('diy_quote_id', $quote->id)
+                    ->where('status', 'completed')
+                    ->latest('paid_at')
+                    ->first();
+
+                if ($payment) {
+                    $diySession->loadMissing('latestItinerary');
+                    Mail::to($client->email)->send(new DIYPaymentConfirmationMail($payment, $quote, $diySession));
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('DIY admin mark-paid confirmation email failed: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Payment recorded and quote marked as accepted.');
     }
 
     public function destroy(DIYTourSession $diySession)

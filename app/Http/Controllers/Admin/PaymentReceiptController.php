@@ -27,7 +27,7 @@ class PaymentReceiptController extends Controller
                 'defaultFont' => 'DejaVu Sans',
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
-                'dpi' => 96,
+                'dpi' => 150,
             ]);
 
         return $pdf->stream("receipt-{$payment->transaction_id}.pdf");
@@ -46,7 +46,7 @@ class PaymentReceiptController extends Controller
                 'defaultFont' => 'DejaVu Sans',
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
-                'dpi' => 96,
+                'dpi' => 150,
             ]);
 
         return $pdf->download("receipt-{$payment->transaction_id}.pdf");

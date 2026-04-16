@@ -80,9 +80,9 @@
             $allFull = $tour->schedules->isNotEmpty() && $tour->schedules->every(fn($s) => ($s->available_seats - $s->booked_seats) <= 0 || $s->status === 'sold_out');
         @endphp
         @if($allFull)
-            <span class="btn btn-sm" style="background:#dc2626;color:#fff;cursor:default;pointer-events:none;font-weight:700">
-                <i class="fas fa-ban"></i> Fully Booked
-            </span>
+            <a href="{{ route('tours.index', ['continent' => $tour->continent]) }}" class="btn btn-outline btn-sm" style="border-color:#1e3a5f;color:#1e3a5f;font-weight:600">
+                <i class="fas fa-compass"></i> Explore Similar Tours
+            </a>
         @else
             <a href="{{ route('tours.show', $tour->slug) }}" class="btn btn-primary btn-sm">
                 View Details

@@ -12,6 +12,7 @@ class Payment extends Model
     protected $fillable = [
         'transaction_id',
         'booking_id',
+        'diy_quote_id',
         'user_id',
         'amount',
         'currency',
@@ -32,6 +33,11 @@ class Payment extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function diyQuote()
+    {
+        return $this->belongsTo(DIYTourQuote::class, 'diy_quote_id');
     }
 
     public function user()

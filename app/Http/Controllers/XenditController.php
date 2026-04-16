@@ -206,6 +206,43 @@ class XenditController extends Controller
 
         Log::info('Xendit webhook received', ['external_id' => $externalId, 'status' => $status]);
 
+        // ── DIY TOUR QUOTE payment ───────────────────────────────────────
+        if (str_starts_with($externalId, 'DIYQUOTE-')) {
+            preg_match('/^DIYQUOTE-(\d+)-/', $externalId, $m);
+            $quote = \App\Models\DIYTourQuote::find($m[1] ?? null);
+
+            if (!$quote) {
+                return response()->json(['error' => 'Quote not found'], 404);
+            }
+
+            if ($status === 'PAID' || $status === 'SETTLED') {
+                $session = $quote->itinerary?->session;
+
+                if ($session) {
+                    try {
+                        \App\Http\Controllers\DIYCheckoutController::recordDIYPayment($quote, $session, [
+                            'id'             => $data['id'] ?? null,
+                            'amount'         => $data['amount'] ?? 0,
+                            'payment_method' => $data['payment_method'] ?? 'xendit',
+                            'status'         => $status,
+                            'source'         => 'webhook',
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::error('DIYQUOTE webhook payment recording failed', [
+                            'external_id' => $externalId,
+                            'quote_id'    => $quote->id,
+                            'error'       => $e->getMessage(),
+                        ]);
+                        return response()->json(['error' => 'Processing failed'], 500);
+                    }
+                }
+            } elseif ($status === 'EXPIRED' || $status === 'FAILED') {
+                Log::info('DIY quote payment expired/failed', ['quote_id' => $quote->id]);
+            }
+
+            return response()->json(['success' => true]);
+        }
+
         // ── MULTI-TERM installment payment (custom amount / pay-balance) ──
         if (str_starts_with($externalId, 'MULTITERM-')) {
             // external_id format: MULTITERM-{bookingId}-{t1}_{t2}_{t3}-{timestamp}

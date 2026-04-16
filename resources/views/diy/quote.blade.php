@@ -50,11 +50,22 @@
                     <p>{{ $latestQuote->terms_conditions }}</p>
                 </div>
                 @endif
-                @if($latestQuote->status === 'pending' && auth()->check())
+                @if($latestQuote->status === 'pending' && auth()->check() && !$latestQuote->isExpired())
                 <div class="quote-actions mt-3">
-                    <p class="text-muted">To confirm this quote and proceed to booking, please contact us:</p>
-                    <a href="mailto:bookings@discovergroup.com?subject=Quote%20Acceptance%20%23{{ $session->session_token }}" class="btn btn-primary">
-                        <i class="fas fa-envelope"></i> Accept Quote via Email
+                    <a href="{{ route('diy.checkout.show', $session->session_token) }}" class="btn btn-primary btn-lg" style="width:100%">
+                        <i class="fas fa-credit-card"></i> Proceed to Payment
+                    </a>
+                    <p class="text-muted mt-2" style="font-size:.8rem;text-align:center">
+                        Or contact us at <a href="mailto:bookings@discovergroup.com">bookings@discovergroup.com</a>
+                    </p>
+                </div>
+                @elseif($latestQuote->status === 'accepted')
+                <div class="quote-actions mt-3">
+                    <div style="background:#dcfce7;border:1px solid #86efac;border-radius:.5rem;padding:1rem;text-align:center;color:#166534;font-weight:600">
+                        <i class="fas fa-check-circle"></i> This quote has been paid
+                    </div>
+                    <a href="{{ route('diy.checkout.confirmation', $session->session_token) }}" class="btn btn-outline btn-full mt-2">
+                        <i class="fas fa-receipt"></i> View Confirmation
                     </a>
                 </div>
                 @endif

@@ -137,6 +137,94 @@
             </div>
             @endif
 
+            {{-- DIY Payments --}}
+            @php $latestQuote = $itinerary?->latestQuote; @endphp
+            @if($latestQuote)
+            <div class="card" id="diy-payments">
+                <div class="card-header" style="background:#eff6ff;display:flex;align-items:center;justify-content:space-between">
+                    <h4 style="color:#1e40af;margin:0"><i class="fas fa-credit-card"></i> Payments</h4>
+                    @php $totalPaid = $latestQuote->payments->where('status', 'completed')->sum('amount'); @endphp
+                    @if($totalPaid > 0)
+                        <span style="background:#dcfce7;color:#166534;padding:.25rem .75rem;border-radius:1rem;font-size:.8rem;font-weight:600">
+                            ₱{{ number_format($totalPaid, 2) }} paid
+                        </span>
+                    @endif
+                </div>
+                <div class="card-body">
+                    @if($latestQuote->payments->count())
+                    <div style="overflow-x:auto;margin-bottom:1rem">
+                        <table class="data-table" style="font-size:.875rem">
+                            <thead>
+                                <tr>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Transaction ID</th>
+                                    <th>Paid At</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($latestQuote->payments->sortByDesc('paid_at') as $pmt)
+                                <tr>
+                                    <td style="font-weight:700;color:#166534">₱{{ number_format($pmt->amount, 2) }}</td>
+                                    <td>{{ strtoupper($pmt->method) }}</td>
+                                    <td style="font-family:monospace;font-size:.78rem">{{ $pmt->transaction_id }}</td>
+                                    <td>{{ $pmt->paid_at?->format('M d, Y H:i') ?? '—' }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ $pmt->status === 'completed' ? 'confirmed' : 'pending' }}">
+                                            {{ ucfirst($pmt->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <p style="color:#94a3b8;font-size:.875rem;margin-bottom:1rem">No payments recorded yet.</p>
+                    @endif
+
+                    {{-- Admin: Mark as Paid (cash payment) --}}
+                    @if($latestQuote->status !== 'accepted')
+                    <div style="border-top:1px solid #e2e8f0;padding-top:1rem">
+                        <h5 style="font-size:.875rem;font-weight:600;margin-bottom:.75rem">
+                            <i class="fas fa-money-bill-wave" style="color:#16a34a"></i> Record Cash/Manual Payment
+                        </h5>
+                        <form action="{{ route('admin.diy.mark-paid', $diySession) }}" method="POST"
+                              onsubmit="return confirm('Record this payment and mark the quote as accepted?')">
+                            @csrf
+                            <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">
+                                <div style="flex:1;min-width:120px">
+                                    <label style="font-size:.8rem;color:#6b7280;font-weight:600">Amount (₱)</label>
+                                    @php $pricing = $itinerary?->pricing_data ?? []; $groupSize = $pricing['group_size'] ?? 1; @endphp
+                                    <input type="number" name="amount" class="form-control" step="0.01" min="1" required
+                                           value="{{ number_format($latestQuote->quoted_price_php * $groupSize, 2, '.', '') }}"
+                                           style="margin-top:.25rem">
+                                </div>
+                                <div style="flex:1;min-width:120px">
+                                    <label style="font-size:.8rem;color:#6b7280;font-weight:600">Payment Method</label>
+                                    <select name="method" class="form-control" style="margin-top:.25rem">
+                                        <option value="cash">Cash</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="manual">Manual / Other</option>
+                                    </select>
+                                </div>
+                                <div style="flex:2;min-width:180px">
+                                    <label style="font-size:.8rem;color:#6b7280;font-weight:600">Note</label>
+                                    <input type="text" name="notes" class="form-control" placeholder="e.g. Cash received at office"
+                                           style="margin-top:.25rem" maxlength="255">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="white-space:nowrap">
+                                    <i class="fas fa-check"></i> Mark as Paid
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            @endif
+
             {{-- Day-by-day Itinerary --}}
             @php $dayByDay = $itinerary?->itinerary_data['day_by_day'] ?? []; @endphp
             @if(!empty($dayByDay))
