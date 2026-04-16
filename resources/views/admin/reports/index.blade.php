@@ -92,7 +92,7 @@
 </div>
 
 {{-- Charts row --}}
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:2rem">
+<div class="admin-charts-grid">
 
     {{-- Daily Sales Bar Chart --}}
     <div class="card" style="padding:1.5rem">
@@ -139,7 +139,7 @@
 </div>
 
 {{-- Bottom row: daily table + top tours --}}
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+<div class="admin-2col-grid">
 
     {{-- Daily sales table --}}
     <div class="card" style="overflow:hidden">

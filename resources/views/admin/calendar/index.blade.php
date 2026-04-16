@@ -64,6 +64,23 @@
 .occ-filling   { background: #fef3c7; color: #92400e; border-left: 3px solid #f59e0b; }
 .occ-nearly    { background: #fee2e2; color: #991b1b; border-left: 3px solid #ef4444; }
 .occ-full      { background: #f3f4f6; color: #6b7280; border-left: 3px solid #9ca3af; text-decoration: line-through; }
+
+/* Mobile responsive */
+.cal-scroll-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -.5rem;
+    padding: 0 .5rem;
+}
+.cal-scroll-wrap .cal-grid {
+    min-width: 680px;
+}
+@media (max-width: 768px) {
+    .cal-cell { min-height: 80px; padding: 4px; }
+    .cal-event { font-size: .65rem; padding: 2px 4px; }
+    .cal-header-cell { padding: 6px 2px; font-size: .68rem; }
+    .cal-day-num { font-size: .72rem; }
+}
 </style>
 @endpush
 
@@ -73,7 +90,7 @@
         <h2>Tour Availability Calendar</h2>
         <p>{{ $month->format('F Y') }} — Schedules color-coded by occupancy</p>
     </div>
-    <div style="display:flex;gap:.5rem;align-items:center">
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
         <a href="{{ route('admin.calendar.index', ['month' => $month->copy()->subMonth()->format('Y-m')]) }}"
            class="btn btn-ghost btn-sm"><i class="fas fa-chevron-left"></i> Prev</a>
         <form action="{{ route('admin.calendar.index') }}" method="GET" style="display:inline">
@@ -101,6 +118,7 @@
     $today       = now()->toDateString();
 @endphp
 
+<div class="cal-scroll-wrap">
 <div class="cal-grid">
     @foreach(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
         <div class="cal-header-cell">{{ $day }}</div>
@@ -136,6 +154,7 @@
         </div>
     @endfor
 </div>
+</div>
 
 {{-- Monthly Schedule List (below calendar) --}}
 @if($schedules->isNotEmpty())
@@ -144,6 +163,7 @@
         <h4><i class="fas fa-list"></i> All Schedules — {{ $month->format('F Y') }}</h4>
     </div>
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="data-table">
             <thead>
                 <tr>
@@ -189,6 +209,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 @endif

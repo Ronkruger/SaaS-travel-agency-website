@@ -15,14 +15,20 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copy project files
-COPY . .
+# Copy only dependency files first (maximises Docker layer cache)
+COPY composer.json composer.lock ./
 
 # Create required runtime directories before composer post-autoload hook runs
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install PHP dependencies (cached unless composer.json/lock change)
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+# Now copy the rest of the project files
+COPY . .
+
+# Run post-install scripts (e.g. package:discover, autoload dump)
+RUN composer run-script post-autoload-dump --no-interaction 2>/dev/null || true
 
 # Set permissions
 RUN chmod -R 775 storage bootstrap/cache \

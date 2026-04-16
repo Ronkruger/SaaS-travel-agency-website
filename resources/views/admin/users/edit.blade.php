@@ -38,7 +38,7 @@
     @csrf
     @method('PUT')
 
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start">
+    <div class="admin-detail-grid">
 
         <!-- Left: Main fields -->
         <div>

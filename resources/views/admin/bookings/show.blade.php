@@ -606,7 +606,8 @@
             <div class="card-body">
                 @if($booking->tour->main_image)
                 <img src="{{ cdn_url($booking->tour->main_image) }}"
-                     alt="{{ $booking->tour->title }}" class="img-fluid rounded mb-3">
+                     alt="{{ $booking->tour->title }}" class="img-fluid rounded mb-3"
+                     style="max-height:200px;width:100%;object-fit:cover">
                 @endif
                 <h5>{{ $booking->tour->title }}</h5>
                 @if($booking->tour->destination)

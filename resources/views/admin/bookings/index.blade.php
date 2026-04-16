@@ -70,6 +70,7 @@
 
 <div class="card">
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="data-table">
             <thead>
                 <tr>
@@ -143,6 +144,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
     <div class="card-footer">{{ $bookings->links() }}</div>
 </div>

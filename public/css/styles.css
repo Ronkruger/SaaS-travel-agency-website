@@ -1050,13 +1050,18 @@ h4 { font-size: 1.25rem; }
     }
     .search-field:last-of-type { border-bottom: none; }
     .hero-stats {
-        gap: 1.25rem;
+        gap: 1rem 1.5rem;
         flex-wrap: wrap;
-        justify-content: space-around;
+        justify-content: center;
         padding-top: 1.5rem;
         margin-top: 1.5rem;
     }
+    .hero-stat {
+        min-width: 80px;
+        flex: 0 0 auto;
+    }
     .stat-num { font-size: 1.5rem; }
+    .stat-label { font-size: .75rem; }
 
     /* Sections */
     .section { padding: 3rem 0; }
@@ -1149,8 +1154,12 @@ h4 { font-size: 1.25rem; }
     .tour-hero-img { height: 240px; }
     .tour-info-grid { grid-template-columns: 1fr; }
     .categories-grid { grid-template-columns: repeat(2, 1fr); }
-    .hero-stats    { justify-content: space-around; gap: 1rem; }
+    .hero-stats    { justify-content: center; gap: .75rem 1.25rem; }
+    .hero-stat     { min-width: 70px; }
+    .stat-num      { font-size: 1.3rem; }
+    .stat-label    { font-size: .7rem; }
     .cta-btns      { flex-direction: column; align-items: center; }
+    .section-icon-strip { margin-top: -50px; padding: 24px 0 20px; }
 }
 
 /* ── Landscape on short phones ──────────────────── */

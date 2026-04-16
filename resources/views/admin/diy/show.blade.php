@@ -66,7 +66,7 @@
     </div>
 
     {{-- Two-column layout --}}
-    <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:1.5rem;align-items:start">
+    <div class="admin-detail-grid" id="diy-layout">
 
         {{-- LEFT: Itinerary + Quotes + Collaborators --}}
         <div>
@@ -335,10 +335,4 @@
 
 </div>
 
-<style>
-    /* Responsive stacking for DIY show page */
-    @media (max-width: 900px) {
-        #diy-layout { grid-template-columns: 1fr !important; }
-    }
-</style>
 @endsection

@@ -1,6 +1,7 @@
 .git
 .env
 .env.local
+vendor
 bootstrap/cache/*.php
 storage/logs/*.log
 storage/framework/cache/data

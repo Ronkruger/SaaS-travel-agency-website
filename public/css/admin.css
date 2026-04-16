@@ -146,6 +146,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     z-index: 1000;
     gap: 1rem;
     overflow: visible;
+    min-width: 0;
 }
 .sidebar-toggle {
     display: none;
@@ -153,11 +154,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     gap: 5px;
     padding: .5rem;
     color: var(--gray-700);
+    flex-shrink: 0;
 }
 .sidebar-toggle span { display: block; width: 22px; height: 2px; background: currentColor; transition: all var(--transition); }
-.admin-header-title { font-size: 1.1875rem; font-weight: 700; color: var(--gray-900); }
-.admin-header-actions { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
-.header-user { display: flex; align-items: center; gap: .625rem; padding: .5rem .875rem; border-radius: var(--radius); font-weight: 600; color: var(--gray-700); font-size: .9375rem; }
+.header-breadcrumb { min-width: 0; overflow: hidden; }
+.header-breadcrumb .breadcrumbs { flex-wrap: nowrap; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-bottom: 0; }
+.admin-header-title { font-size: 1.1875rem; font-weight: 700; color: var(--gray-900); white-space: nowrap; }
+.admin-header-actions { margin-left: auto; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+.header-user { display: flex; align-items: center; gap: .625rem; padding: .5rem .875rem; border-radius: var(--radius); font-weight: 600; color: var(--gray-700); font-size: .9375rem; white-space: nowrap; }
 
 /* --- Admin Content ---------------------------- */
 .admin-content { padding: 2rem; flex: 1; }
@@ -411,6 +415,31 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .booking-admin-layout { grid-template-columns: 1fr; }
     .form-layout { grid-template-columns: 1fr; }
 }
+
+/* Reusable admin grid layouts */
+.admin-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 1.5rem;
+    align-items: start;
+}
+.admin-charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.admin-2col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+@media (max-width: 900px) {
+    .admin-detail-grid { grid-template-columns: 1fr; }
+    .admin-charts-grid { grid-template-columns: 1fr; }
+    .admin-2col-grid   { grid-template-columns: 1fr; }
+}
 @media (max-width: 900px) {
     .admin-sidebar { transform: translateX(-100%); }
     .admin-sidebar.open { transform: translateX(0); }
@@ -418,9 +447,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .sidebar-toggle { display: flex; }
     .sidebar-close { display: block; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-header { padding: 0 1rem; gap: .5rem; }
+    .header-user span { display: none; }
+    .header-user { padding: .5rem; gap: .25rem; }
 }
 @media (max-width: 600px) {
     .admin-content { padding: 1.25rem; }
+    .admin-header { padding: 0 .75rem; gap: .4rem; height: 56px; }
+    .header-breadcrumb .breadcrumbs { font-size: .75rem; }
     .stats-grid { grid-template-columns: 1fr; }
     .filter-row { flex-direction: column; }
     .page-title-row { flex-direction: column; align-items: flex-start; }
@@ -602,14 +636,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .upload-progress-text .pct { color: #2563eb; font-weight: 700; }
 
 /* --- Global responsive hardening -------------- */
-html, body { max-width: 100%; overflow-x: hidden; }
 iframe, video, canvas, svg { max-width: 100%; }
 .form-control, .btn { max-width: 100%; }
 
-/* Keep complex admin tables readable on small devices by enabling horizontal scroll in cards */
+/* Keep complex admin tables readable on small devices by enabling horizontal scroll */
 @media (max-width: 767px) {
-    .card { overflow-x: auto; }
+    .card-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .card .data-table,
     .card .admin-table { min-width: 640px; }
-    .table-wrap { -webkit-overflow-scrolling: touch; }
+    .table-wrap,
+    .table-responsive { -webkit-overflow-scrolling: touch; overflow-x: auto; }
+    /* Inline tables (e.g. installment schedule) */
+    .card-body table:not(.data-table) { min-width: 500px; }
 }
