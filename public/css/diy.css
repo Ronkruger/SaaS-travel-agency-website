@@ -1449,10 +1449,19 @@ iframe, video, canvas, svg, img { max-width: 100%; height: auto; }
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         flex-wrap: nowrap;
+        gap: .25rem;
+        padding: .35rem .5rem;
     }
-    .map-tab, .map-view-label {
-        flex: 0 0 auto;
+    .map-view-label {
+        display: none;
+    }
+    .map-tab {
+        flex: 1 1 0;
+        text-align: center;
         white-space: nowrap;
+        padding: .35rem .5rem;
+        font-size: .78rem;
+        min-width: 0;
     }
 }
 

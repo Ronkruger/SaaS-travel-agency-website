@@ -30,20 +30,23 @@ class SecurityHeaders
 
         // Content Security Policy:
         // - unsafe-inline is required for inline <style> and <script> blocks used throughout Blade templates
-        // - cdnjs.cloudflare.com covers Font Awesome and NProgress
+        // - cdnjs.cloudflare.com covers Font Awesome, NProgress, GSAP
         // - fonts.googleapis.com / fonts.gstatic.com cover Google Fonts
+        // - api.mapbox.com covers Mapbox GL JS, CSS, tiles, and geocoding
         // - frame-src allows Facebook and YouTube embeds used in the public site
-        // - img-src allows Cloudinary (res.cloudinary.com), Facebook graph images, and data URIs
+        // - img-src allows Cloudinary (res.cloudinary.com), Facebook graph images, Mapbox tiles, and data URIs
         // - object-src 'none' blocks Flash/plugin-based attacks entirely
         // - base-uri 'self' prevents base tag hijacking
         $response->headers->set('Content-Security-Policy', implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com",
-            "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com",
+            "script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com api.mapbox.com",
+            "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com api.mapbox.com",
             "font-src 'self' data: fonts.gstatic.com cdnjs.cloudflare.com",
-            "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://graph.facebook.com https://*.fbcdn.net https://*.facebook.com",
+            "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://graph.facebook.com https://*.fbcdn.net https://*.facebook.com https://*.mapbox.com",
             "frame-src 'self' www.facebook.com facebook.com www.youtube.com youtube.com www.youtube-nocookie.com",
-            "connect-src 'self'",
+            "connect-src 'self' https://*.mapbox.com https://api.mapbox.com",
+            "worker-src 'self' blob:",
+            "child-src 'self' blob:",
             "object-src 'none'",
             "base-uri 'self'",
         ]));
