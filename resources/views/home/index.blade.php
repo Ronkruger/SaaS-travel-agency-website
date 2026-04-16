@@ -423,3 +423,194 @@ function carouselShift(id, dir) {
     </div>
 </section>
 @endsection
+
+@push('styles')
+<style>
+/* GSAP initial states — prevent flash of unstyled content */
+.gsap-hero-init .hero-label,
+.gsap-hero-init .hero-title-block,
+.gsap-hero-init .hero-title-script,
+.gsap-hero-init .hero-subtitle,
+.gsap-hero-init .hero-search,
+.gsap-hero-init .hero-stats .hero-stat,
+.gsap-hero-init .hero-scroll { opacity: 0; }
+.gsap-reveal { opacity: 0; transform: translateY(40px); }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof gsap === 'undefined') return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ── HERO ENTRANCE TIMELINE ──────────────────────────────── */
+    var hero = document.querySelector('.hero');
+    if (hero) {
+        hero.classList.add('gsap-hero-init');
+
+        var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+        tl.fromTo('.hero-label',
+            { opacity: 0, y: 30, scale: 0.9 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.7 }
+        )
+        .fromTo('.hero-title-block',
+            { opacity: 0, y: 50, clipPath: 'inset(0 0 100% 0)' },
+            { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8 },
+            '-=0.3'
+        )
+        .fromTo('.hero-title-script',
+            { opacity: 0, x: -60, rotationZ: -3 },
+            { opacity: 1, x: 0, rotationZ: 0, duration: 0.9 },
+            '-=0.4'
+        )
+        .fromTo('.hero-subtitle',
+            { opacity: 0, y: 25 },
+            { opacity: 0.9, y: 0, duration: 0.7 },
+            '-=0.4'
+        )
+        .fromTo('.hero-search',
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.7 },
+            '-=0.3'
+        )
+        .fromTo('.hero-stats .hero-stat',
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.5, stagger: 0.15 },
+            '-=0.3'
+        )
+        .fromTo('.hero-scroll',
+            { opacity: 0 },
+            { opacity: 0.7, duration: 0.5 },
+            '-=0.2'
+        );
+    }
+
+    /* ── ICON STRIP — stagger in from below ──────────────────── */
+    gsap.utils.toArray('.icon-strip-item').forEach(function (item) {
+        item.classList.add('gsap-reveal');
+    });
+    gsap.fromTo('.icon-strip-item',
+        { opacity: 0, y: 40, scale: 0.85 },
+        {
+            opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.08,
+            ease: 'back.out(1.4)',
+            scrollTrigger: { trigger: '.section-icon-strip', start: 'top 85%', once: true }
+        }
+    );
+
+    /* ── GENERIC SCROLL REVEAL for sections ──────────────────── */
+    var revealSections = [
+        { selector: '.section-media-embeds .section-header', y: 30 },
+        { selector: '.media-embed-card', y: 40, stagger: 0.2 },
+        { selector: '.section-diy-choice .section-header', y: 30 },
+        { selector: '.diy-choice-card', y: 50, stagger: 0.2 },
+        { selector: '.diy-quiz-cta', y: 20 },
+        { selector: '.section-gray .categories-grid .category-card', y: 30, stagger: 0.06 },
+        { selector: '.tours-grid .tour-card', y: 40, stagger: 0.1 },
+        { selector: '.section-dark .feature-card', y: 35, stagger: 0.08 },
+        { selector: '.tours-grid--4 .tour-card', y: 40, stagger: 0.1 },
+        { selector: '.reviews-grid .review-card', y: 30, stagger: 0.12 },
+    ];
+
+    revealSections.forEach(function (cfg) {
+        var els = gsap.utils.toArray(cfg.selector);
+        if (!els.length) return;
+
+        els.forEach(function (el) { el.classList.add('gsap-reveal'); });
+
+        var trigger = els[0].closest('section') || els[0].parentElement;
+
+        gsap.fromTo(cfg.selector,
+            { opacity: 0, y: cfg.y || 40 },
+            {
+                opacity: 1, y: 0,
+                duration: 0.6,
+                stagger: cfg.stagger || 0,
+                ease: 'power2.out',
+                scrollTrigger: { trigger: trigger, start: 'top 80%', once: true }
+            }
+        );
+    });
+
+    /* ── SECTION HEADERS — slide up with label ───────────────── */
+    gsap.utils.toArray('.section-header h2').forEach(function (h2) {
+        var header = h2.closest('.section-header');
+        if (!header || header.closest('.hero')) return;
+        var label = header.querySelector('.section-label');
+
+        gsap.fromTo(h2,
+            { opacity: 0, y: 25 },
+            {
+                opacity: 1, y: 0, duration: 0.6, ease: 'power2.out',
+                scrollTrigger: { trigger: header, start: 'top 85%', once: true }
+            }
+        );
+        if (label) {
+            gsap.fromTo(label,
+                { opacity: 0, y: 15 },
+                {
+                    opacity: 1, y: 0, duration: 0.5, ease: 'power2.out',
+                    scrollTrigger: { trigger: header, start: 'top 85%', once: true }
+                }
+            );
+        }
+    });
+
+    /* ── ADVENTURE CARDS — slight parallax tilt on hover ─────── */
+    document.querySelectorAll('.diy-choice-card').forEach(function (card) {
+        card.addEventListener('mouseenter', function () {
+            gsap.to(card, { scale: 1.03, duration: 0.3, ease: 'power2.out' });
+        });
+        card.addEventListener('mouseleave', function () {
+            gsap.to(card, { scale: 1, duration: 0.3, ease: 'power2.out' });
+        });
+    });
+
+    /* ── CTA SECTION — fade up on scroll ─────────────────────── */
+    var cta = document.querySelector('.cta-content');
+    if (cta) {
+        gsap.fromTo(cta,
+            { opacity: 0, y: 40 },
+            {
+                opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+                scrollTrigger: { trigger: '.cta-section', start: 'top 80%', once: true }
+            }
+        );
+    }
+
+    /* ── STAT NUMBER COUNT-UP ────────────────────────────────── */
+    document.querySelectorAll('.stat-num').forEach(function (el) {
+        var text = el.textContent.trim();
+        var match = text.match(/^([\d,]+)/);
+        if (!match) return;
+        var target = parseInt(match[1].replace(/,/g, ''), 10);
+        var suffix = text.replace(match[1], '');
+        var obj = { val: 0 };
+
+        gsap.to(obj, {
+            val: target,
+            duration: 2,
+            ease: 'power1.out',
+            delay: 0.8,
+            onUpdate: function () {
+                el.textContent = Math.round(obj.val).toLocaleString() + suffix;
+            }
+        });
+    });
+
+    /* ── WHY-US FEATURE ICONS — spin in ──────────────────────── */
+    gsap.fromTo('.feature-card .feature-icon',
+        { opacity: 0, scale: 0, rotation: -180 },
+        {
+            opacity: 1, scale: 1, rotation: 0,
+            duration: 0.6, stagger: 0.1,
+            ease: 'back.out(1.7)',
+            scrollTrigger: { trigger: '.section-dark .features-grid', start: 'top 80%', once: true }
+        }
+    );
+});
+</script>
+@endpush
