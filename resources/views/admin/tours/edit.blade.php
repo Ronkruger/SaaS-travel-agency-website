@@ -122,9 +122,9 @@
                             placeholder="e.g. Island Luxury, Adventure Series">
                     </div>
                     <div class="form-group">
-                        <label>Continent</label>
+                        <label>Region</label>
                         <select name="continent" class="form-control">
-                            <option value="">Select continent...</option>
+                            <option value="">Select region...</option>
                             @foreach(['Africa','Antarctica','Asia','Europe','North America','Oceania','South America'] as $c)
                                 <option value="{{ $c }}" {{ old('continent', $tour->continent) == $c ? 'selected' : '' }}>{{ $c }}</option>
                             @endforeach
@@ -143,14 +143,14 @@
                         <label class="d-flex align-items-center gap-2" style="cursor:pointer">
                             <input type="checkbox" name="guaranteed_departure" value="1"
                                 {{ old('guaranteed_departure', $tour->guaranteed_departure) ? 'checked' : '' }}>
-                            Guaranteed Departure
+                            Guaranteed Start
                         </label>
                     </div>
                 </div>
 
                 <div class="form-row-3">
                     <div class="form-group">
-                        <label>Booking PDF URL</label>
+                        <label>Enrollment PDF URL</label>
                         <input type="text" name="booking_pdf_url" class="form-control"
                             value="{{ old('booking_pdf_url', $tour->booking_pdf_url) }}" placeholder="https://...">
                     </div>
@@ -239,7 +239,7 @@
             <div class="card-header"><h4>Plan Dates</h4></div>
             <div class="card-body">
 
-                <h5>Travel Window</h5>
+                <h5>Availability Window</h5>
                 @php
                     $travelWindow = $tour->travel_window ?? [];
                 @endphp
@@ -257,10 +257,10 @@
                 </div>
 
                 <hr>
-                <h5>Specific Departure Dates</h5>
+                <h5>Specific Start Dates</h5>
                 <div id="departureDatesContainer"></div>
                 <button type="button" class="btn btn-outline btn-sm" onclick="addDepartureDate()">
-                    <i class="fas fa-plus"></i> Add Departure Date
+                    <i class="fas fa-plus"></i> Add Start Date
                 </button>
 
             </div>

@@ -88,7 +88,7 @@
 <div class="page-title-row">
     <div>
         <h2>Billing Calendar</h2>
-        <p>{{ $month->format('F Y') }} — Schedules color-coded by occupancy</p>
+        <p>{{ $month->format('F Y') }} — Active periods color-coded by usage</p>
     </div>
     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
         <a href="{{ route('admin.calendar.index', ['month' => $month->copy()->subMonth()->format('Y-m')]) }}"
@@ -160,7 +160,7 @@
 @if($schedules->isNotEmpty())
 <div class="card mt-4">
     <div class="card-header">
-        <h4><i class="fas fa-list"></i> All Schedules — {{ $month->format('F Y') }}</h4>
+        <h4><i class="fas fa-list"></i> All Active Periods — {{ $month->format('F Y') }}</h4>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -168,10 +168,10 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Tour</th>
-                    <th>Return</th>
-                    <th>Seats</th>
-                    <th>Booked</th>
+                    <th>Plan</th>
+                    <th>End Date</th>
+                    <th>Licenses</th>
+                    <th>In Use</th>
                     <th>Remaining</th>
                     <th>Status</th>
                     <th></th>

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', $tour->title . ' — Slot Tracker')
+@section('title', $tour->title . ' — Usage Monitor')
 
 @section('skeleton')
     @include('admin.partials.skeleton-table', ['showAction' => true, 'filterCount' => 0, 'cols' => 7, 'rows' => 6])
@@ -63,7 +63,7 @@
 @section('content')
 <div class="page-title-row">
     <div>
-        <h2><i class="fas fa-layer-group" style="color:#3b82f6"></i> Slot Tracker</h2>
+        <h2><i class="fas fa-layer-group" style="color:#3b82f6"></i> Usage Monitor</h2>
         <p style="margin:.25rem 0 0;color:#64748b;font-size:.9rem">{{ $tour->title }}</p>
     </div>
     <div style="display:flex;gap:.75rem;flex-wrap:wrap">
@@ -94,7 +94,7 @@
     </div>
     <div class="sched-stat">
         <div class="sched-stat__n" style="color:#0f172a">{{ $totalSeats }}</div>
-        <div class="sched-stat__l">Total Seats</div>
+        <div class="sched-stat__l">Total Licenses</div>
     </div>
     <div class="sched-stat">
         <div class="sched-stat__n" style="color:#f59e0b">{{ $totalBooked }}</div>
@@ -117,14 +117,14 @@
 {{-- Add Slot Form --}}
 <div id="addSlotForm" class="card mb-4" style="display:none">
     <div class="card-header" style="background:#f0fdf4;border-color:#86efac">
-        <h4 style="color:#166534"><i class="fas fa-plus-circle"></i> Add New Schedule Slot</h4>
+        <h4 style="color:#166534"><i class="fas fa-plus-circle"></i> Add New Period Slot</h4>
     </div>
     <div class="card-body">
         <form action="{{ route('admin.tours.schedules.store', $tour) }}" method="POST">
             @csrf
             <div class="form-row-inline">
                 <div class="form-group">
-                    <label>Departure Date *</label>
+                    <label>Start Date *</label>
                     <input type="date" name="departure_date" class="form-control" required value="{{ old('departure_date') }}">
                 </div>
                 <div class="form-group">
@@ -132,7 +132,7 @@
                     <input type="date" name="return_date" class="form-control" value="{{ old('return_date') }}">
                 </div>
                 <div class="form-group">
-                    <label>Total Seats *</label>
+                    <label>Total Licenses *</label>
                     <input type="number" name="available_seats" class="form-control" min="1" max="500" required value="{{ old('available_seats', 40) }}">
                 </div>
                 <div class="form-group">
@@ -245,12 +245,12 @@
 
     {{-- Edit Form (hidden by default) --}}
     <div class="edit-form" id="edit-{{ $sched->id }}">
-        <h5 style="margin-bottom:1rem;color:#334155"><i class="fas fa-edit"></i> Edit Slot</h5>
+        <h5 style="margin-bottom:1rem;color:#334155"><i class="fas fa-edit"></i> Edit Period Slot</h5>
         <form action="{{ route('admin.tours.schedules.update', [$tour, $sched]) }}" method="POST">
             @csrf @method('PUT')
             <div class="form-row-inline">
                 <div class="form-group">
-                    <label>Departure Date *</label>
+                    <label>Start Date *</label>
                     <input type="date" name="departure_date" class="form-control" required
                            value="{{ $sched->departure_date->format('Y-m-d') }}">
                 </div>
@@ -260,12 +260,12 @@
                            value="{{ $sched->return_date ? $sched->return_date->format('Y-m-d') : '' }}">
                 </div>
                 <div class="form-group">
-                    <label>Total Seats *</label>
+                    <label>Total Licenses *</label>
                     <input type="number" name="available_seats" class="form-control" min="1" max="500" required
                            value="{{ $sched->available_seats }}">
                 </div>
                 <div class="form-group">
-                    <label>Booked Seats *</label>
+                    <label>Used Licenses *</label>
                     <input type="number" name="booked_seats" class="form-control" min="0" required
                            value="{{ $sched->booked_seats }}">
                 </div>
@@ -309,7 +309,7 @@
         <table class="booking-mini-table">
             <thead>
                 <tr>
-                    <th>Booking #</th>
+                    <th>Sub #</th>
                     <th>Client Name</th>
                     <th style="text-align:center">PAX</th>
                     <th>Payment Terms</th>

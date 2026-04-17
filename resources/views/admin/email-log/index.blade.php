@@ -27,15 +27,15 @@
             <input type="text" name="email" value="{{ request('email') }}"
                 placeholder="Client email..." class="form-control">
             <input type="text" name="booking" value="{{ request('booking') }}"
-                placeholder="Booking # ..." class="form-control">
+                placeholder="Sub.." class="form-control">
             <select name="type" class="form-control">
                 <option value="">All Email Types</option>
                 @foreach([
-                    'BookingConfirmationMail'  => 'Booking Confirmation',
-                    'BookingReservationMail'   => 'Booking Reservation',
-                    'BookingRejectionMail'     => 'Booking Rejection / Cancellation',
+                    'BookingConfirmationMail'  => 'Subscription Confirmation',
+                    'BookingReservationMail'   => 'Subscription Reservation',
+                    'BookingRejectionMail'     => 'Subscription Rejection / Cancellation',
                     'PaymentFollowupMail'      => 'Payment Follow-up Reminder',
-                    'DIYTourQuoteMail'         => 'DIY Tour Quote',
+                    'DIYTourQuoteMail'         => 'Customuote',
                     'OtpMail'                  => 'OTP / Password Reset',
                 ] as $val => $label)
                     <option value="{{ $val }}" {{ request('type') === $val ? 'selected' : '' }}>{{ $label }}</option>
@@ -57,7 +57,7 @@
                     <th>To</th>
                     <th>Subject</th>
                     <th>Type</th>
-                    <th>Booking</th>
+                    <th>Subscriptionption</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -88,9 +88,9 @@
                                 $typeLabels = [
                                     'BookingConfirmationMail' => 'Confirmed',
                                     'BookingReservationMail'  => 'Reservation',
-                                    'BookingRejectionMail'    => 'Rejection',
+                                    'BookingRejectionMail'    => 'Cancelled',
                                     'PaymentFollowupMail'     => 'Pay Reminder',
-                                    'DIYTourQuoteMail'        => 'DIY Quote',
+                                    'DIYTourQuoteMail'        => 'Customtom Quote',
                                     'OtpMail'                 => 'OTP',
                                 ];
                                 $c = $typeColors[$log->mail_class] ?? ['bg'=>'#f1f5f9','color'=>'#475569'];
