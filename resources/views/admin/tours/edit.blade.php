@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Edit Tour: ' . $tour->title)
+@section('title', 'Edit Plan: ' . $tour->title)
 
 @section('skeleton')
     @include('admin.partials.skeleton-form')
@@ -7,7 +7,7 @@
 
 @section('breadcrumb')
     <a href="{{ route('admin.dashboard') }}">Dashboard</a> /
-    <a href="{{ route('admin.tours.index') }}">Tours</a> / Edit
+    <a href="{{ route('admin.tours.index') }}">Plans</a> / Edit
 @endsection
 
 @push('styles')
@@ -71,7 +71,7 @@
         <div class="card mb-3">
             <div class="card-body tour-form-header">
                 <div class="page-title-row" style="margin-bottom:.75rem">
-                    <h2 class="page-title">Edit Tour: {{ $tour->title }}</h2>
+                    <h2 class="page-title">Edit Plan: {{ $tour->title }}</h2>
                     <div style="display:flex;gap:.5rem">
                         <a href="{{ route('tours.show', $tour->slug) }}" target="_blank" class="btn btn-outline"><i class="fas fa-eye"></i> View</a>
                         <a href="{{ route('admin.tours.index') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
@@ -96,7 +96,7 @@
             <div class="card-body">
 
                 <div class="form-group">
-                    <label>Tour Title *</label>
+                    <label>Plan Title *</label>
                     <input type="text" name="title" id="title" value="{{ old('title', $tour->title) }}"
                         class="form-control @error('title') is-invalid @enderror" required>
                     @error('title')<span class="invalid-feedback">{{ $message }}</span>@enderror
@@ -117,7 +117,7 @@
 
                 <div class="form-row-2">
                     <div class="form-group">
-                        <label>Tour Line / Brand</label>
+                        <label>Plan Line / Brand</label>
                         <input type="text" name="line" class="form-control" value="{{ old('line', $tour->line) }}"
                             placeholder="e.g. Island Luxury, Adventure Series">
                     </div>
@@ -504,11 +504,11 @@
             <div class="card-header"><h4>Actions</h4></div>
             <div class="card-body">
                 <a href="{{ route('tours.show', $tour->slug) }}" target="_blank" class="btn btn-outline btn-block btn-sm">
-                    <i class="fas fa-eye"></i> Preview Tour
+                    <i class="fas fa-eye"></i> Preview Plan
                 </a>
                 <button type="button" class="btn btn-danger btn-block btn-sm mt-2"
                     onclick="if(confirm('Delete this tour? This cannot be undone.')) document.getElementById('deleteTourForm').submit()">
-                    <i class="fas fa-trash"></i> Delete Tour
+                    <i class="fas fa-trash"></i> Delete Plan
                 </button>
             </div>
         </div>

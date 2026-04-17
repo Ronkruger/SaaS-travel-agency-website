@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Tour Calendar')
+@section('title', 'Billing Calendar')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Tour Calendar
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Billing Calendar
 @endsection
 
 @push('styles')
@@ -87,7 +87,7 @@
 @section('content')
 <div class="page-title-row">
     <div>
-        <h2>Tour Availability Calendar</h2>
+        <h2>Billing Calendar</h2>
         <p>{{ $month->format('F Y') }} — Schedules color-coded by occupancy</p>
     </div>
     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">

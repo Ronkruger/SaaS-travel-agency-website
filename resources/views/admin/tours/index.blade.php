@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Tours')
+@section('title', 'Plans')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Tours
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Plans
 @endsection
 
 @section('skeleton')
@@ -12,11 +12,11 @@
 @section('content')
 <div class="page-title-row">
     <div>
-        <h2>All Tours</h2>
-        <p>Manage your tour catalog</p>
+        <h2>All Plans</h2>
+        <p>Manage your service plans</p>
     </div>
     <a href="{{ route('admin.tours.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Add New Tour
+        <i class="fas fa-plus"></i> Add New Plan
     </a>
 </div>
 
@@ -25,7 +25,7 @@
     <div class="card-body">
         <form action="{{ route('admin.tours.index') }}" method="GET" class="filter-row">
             <input type="text" name="search" value="{{ request('search') }}"
-                placeholder="Search tours..." class="form-control">
+                placeholder="Search plans..." class="form-control">
             <select name="status" class="form-control">
                 <option value="">All Status</option>
                 <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
@@ -33,7 +33,7 @@
                 <option value="trashed"  {{ request('status') === 'trashed'  ? 'selected' : '' }}>Trashed</option>
             </select>
             <select name="continent" class="form-control">
-                <option value="">All Continents</option>
+                <option value="">All Regions</option>
                 @foreach(['Africa','Antarctica','Asia','Europe','North America','Oceania','South America'] as $c)
                     <option value="{{ $c }}" {{ request('continent') === $c ? 'selected' : '' }}>{{ $c }}</option>
                 @endforeach
@@ -51,10 +51,10 @@
                 <tr>
                     <th style="width:60px">Image</th>
                     <th>Title</th>
-                    <th>Line / Continent</th>
+                    <th>Category</th>
                     <th>Price</th>
-                    <th>Days</th>
-                    <th>Bookings</th>
+                    <th>Duration</th>
+                    <th>Subscriptions</th>
                     <th>Rating</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -129,7 +129,7 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <form action="{{ route('admin.tours.destroy', $tour) }}" method="POST"
-                                          onsubmit="return confirm('Move to trash?')">
+                                          onsubmit="return confirm('Move plan to trash?')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-xs btn-danger" title="Trash">
                                             <i class="fas fa-trash"></i>
@@ -143,7 +143,7 @@
                                         </button>
                                     </form>
                                     <form action="{{ route('admin.tours.force-delete', $tour->id) }}" method="POST"
-                                          onsubmit="return confirm('Permanently delete this tour? This cannot be undone.')">
+                                          onsubmit="return confirm('Permanently delete this plan? This cannot be undone.')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-xs btn-danger" title="Delete Forever">
                                             <i class="fas fa-times-circle"></i> Delete Forever
@@ -155,7 +155,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">No tours found.</td>
+                        <td colspan="9" class="text-center text-muted py-4">No plans found.</td>
                     </tr>
                 @endforelse
             </tbody>

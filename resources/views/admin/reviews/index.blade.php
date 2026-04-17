@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Reviews')
+@section('title', 'Testimonials')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Reviews
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Testimonials
 @endsection
 
 @section('skeleton')
@@ -11,7 +11,7 @@
 
 @section('content')
 <div class="page-title-row">
-    <h2>Reviews</h2>
+    <h2>Testimonials</h2>
 </div>
 
 <div class="card mb-4">

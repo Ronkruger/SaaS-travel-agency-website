@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Bookings')
+@section('title', 'Subscriptions')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Bookings
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Subscriptions
 @endsection
 
 @section('skeleton')
@@ -12,16 +12,16 @@
 @section('content')
 <div class="page-title-row">
     <div>
-        <h2>All Bookings</h2>
-        <p>Manage tour reservations</p>
+        <h2>All Subscriptions</h2>
+        <p>Manage client subscriptions</p>
     </div>
     <div>
         @if(auth('admin')->user()->isSuperAdmin())
             <form action="{{ route('admin.bookings.destroy-all') }}" method="POST"
-                  onsubmit="return confirm('⚠️ DELETE ALL {{ $bookings->total() }} BOOKINGS?\n\nThis will permanently remove every booking and reset all slot counts.\n\nThis cannot be undone. Are you sure?')">
+                  onsubmit="return confirm('⚠️ DELETE ALL {{ $bookings->total() }} SUBSCRIPTIONS?\n\nThis will permanently remove every subscription record.\n\nThis cannot be undone. Are you sure?')">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger">
-                    <i class="fas fa-trash-alt"></i> Delete All Bookings ({{ $bookings->total() }})
+                    <i class="fas fa-trash-alt"></i> Delete All Subscriptions ({{ $bookings->total() }})
                 </button>
             </form>
         @endif
@@ -32,7 +32,7 @@
     <div class="card-body">
         <form action="{{ route('admin.bookings.index') }}" method="GET" class="filter-row">
             <input type="text" name="search" value="{{ request('search') }}"
-                placeholder="Booking #, name, email..." class="form-control">
+                placeholder="Subscription #, name, email..." class="form-control">
             <select name="status" class="form-control">
                 <option value="">All Status</option>
                 @foreach(['pending','confirmed','cancelled','completed','refunded'] as $s)
@@ -75,11 +75,11 @@
             <thead>
                 <tr>
                     <th style="width:36px"><input type="checkbox" id="select-all" title="Select all"></th>
-                    <th>Booking #</th>
+                    <th>Sub #</th>
                     <th>Client Name</th>
-                    <th>Tour</th>
-                    <th>Date</th>
-                    <th>Guests</th>
+                    <th>Plan</th>
+                    <th>Start Date</th>
+                    <th>Users</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th>Payment</th>
@@ -121,7 +121,7 @@
                                 </a>
                                 @if(auth('admin')->user()->isSuperAdmin())
                                     <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST"
-                                          onsubmit="return confirm('Permanently delete booking {{ $booking->booking_number }}? This cannot be undone.')">
+                                          onsubmit="return confirm('Permanently delete subscription {{ $booking->booking_number }}? This cannot be undone.')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-xs btn-danger">
                                             <i class="fas fa-trash"></i>
@@ -130,7 +130,7 @@
                                 @else
                                     <button type="button" class="btn btn-xs btn-warning"
                                             onclick="openDeleteRequestModal('booking', {{ $booking->id }}, '{{ $booking->booking_number }}')"
-                                            title="Request deletion">
+                                            title="Request cancellation">
                                         <i class="fas fa-hand-paper"></i>
                                     </button>
                                 @endif
@@ -139,7 +139,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" class="text-center text-muted py-4">No bookings found.</td>
+                        <td colspan="10" class="text-center text-muted py-4">No subscriptions found.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -155,7 +155,7 @@
     <div class="modal-backdrop" onclick="closeDeleteRequestModal()"></div>
     <div class="modal-content">
         <div class="modal-header">
-            <h4><i class="fas fa-hand-paper text-warning"></i> Request Deletion</h4>
+            <h4><i class="fas fa-hand-paper text-warning"></i> Request Cancellation</h4>
             <button class="modal-close" onclick="closeDeleteRequestModal()">×</button>
         </div>
         <form method="POST" action="{{ route('admin.deletion-requests.store') }}">
@@ -164,20 +164,20 @@
             <input type="hidden" name="target_id" id="dr-target-id">
             <div class="modal-body">
                 <p style="margin-bottom:1rem">
-                    You are requesting deletion of <strong id="dr-label"></strong>.
+                    You are requesting cancellation of subscription <strong id="dr-label"></strong>.
                     A super administrator will review your request.
                 </p>
                 <div class="form-group">
                     <label>Reason for deletion <span class="text-danger">*</span></label>
                     <textarea name="reason" class="form-control" rows="3"
-                              placeholder="Explain why this booking should be deleted…"
+                              placeholder="Explain why this subscription should be cancelled…"
                               required maxlength="500"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" onclick="closeDeleteRequestModal()">Cancel</button>
                 <button type="submit" class="btn btn-warning">
-                    <i class="fas fa-paper-plane"></i> Submit Request
+                    <i class="fas fa-paper-plane"></i> Submit Cancellation Request
                 </button>
             </div>
         </form>
@@ -254,8 +254,8 @@ function closeDeleteRequestModal() {
         const ids = getChecked().map(cb => cb.value);
         if (ids.length === 0) { alert('No bookings selected.'); return; }
 
-        const labels = { confirm: 'confirm', cancel: 'cancel', email: 'send confirmation emails to' };
-        if (!confirm(`${labels[action] ?? action} ${ids.length} booking(s)?`)) return;
+        const labels = { confirm: 'confirm', cancel: 'cancel', email: 'send confirmation emails to subscriptions' };
+        if (!confirm(`${labels[action] ?? action} ${ids.length} subscription(s)?`)) return;
 
         const form = document.createElement('form');
         form.method = 'POST';

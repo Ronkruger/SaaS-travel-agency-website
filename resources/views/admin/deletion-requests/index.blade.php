@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Deletion Requests')
+@section('title', 'Cancellation Requests')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Deletion Requests
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Cancellation Requests
 @endsection
 
 @section('skeleton')
@@ -12,8 +12,8 @@
 @section('content')
 <div class="page-title-row">
     <div>
-        <h2>Deletion Requests</h2>
-        <p>{{ auth('admin')->user()->isSuperAdmin() ? 'Review and manage deletion requests from staff' : 'Your submitted deletion requests' }}</p>
+        <h2>Cancellation Requests</h2>
+        <p>{{ auth('admin')->user()->isSuperAdmin() ? 'Review and manage cancellation requests from staff' : 'Your submitted cancellation requests' }}</p>
     </div>
     @if($pendingCount > 0)
         <span class="status-badge status-pending" style="font-size:.9rem;padding:.4rem 1rem">

@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
-@section('title', 'DIY Tour Requests')
+@section('title', 'Custom Quotes')
 
 @section('breadcrumb')
-    DIY Tours
+    DIY Custom Quotes
 @endsection
 
 @section('skeleton')
@@ -14,7 +14,7 @@
 <div class="admin-content">
 
     <div class="page-title-row">
-        <h1 class="page-title"><i class="fas fa-magic" style="color:var(--primary);margin-right:.5rem"></i> DIY Tour Requests</h1>
+        <h1 class="page-title"><i class="fas fa-magic" style="color:var(--primary);margin-right:.5rem"></i> Custom Quotes</h1>
     </div>
 
     {{-- Filters --}}

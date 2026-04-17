@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Categories')
+@section('title', 'Plan Categories')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Categories
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Plan Categories
 @endsection
 
 @section('skeleton')
@@ -11,7 +11,7 @@
 
 @section('content')
 <div class="page-title-row">
-    <h2>Tour Categories</h2>
+    <h2>Plan Categories</h2>
     <button class="btn btn-primary" onclick="document.getElementById('addCatModal').classList.add('open')">
         <i class="fas fa-plus"></i> Add Category
     </button>

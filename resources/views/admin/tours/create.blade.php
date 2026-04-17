@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Add New Tour')
+@section('title', 'Add New Plan')
 
 @section('skeleton')
     @include('admin.partials.skeleton-form')
@@ -7,7 +7,7 @@
 
 @section('breadcrumb')
     <a href="{{ route('admin.dashboard') }}">Dashboard</a> /
-    <a href="{{ route('admin.tours.index') }}">Tours</a> / Add New
+    <a href="{{ route('admin.tours.index') }}">Plans</a> / Add New
 @endsection
 
 @push('styles')
@@ -116,7 +116,7 @@
         <div class="card mb-3">
             <div class="card-body tour-form-header">
                 <div class="page-title-row" style="margin-bottom:.75rem">
-                    <h2 class="page-title">Add New Tour</h2>
+                    <h2 class="page-title">Add New Plan</h2>
                     <a href="{{ route('admin.tours.index') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
                 </div>
                 <div class="tour-tabs-nav" role="tablist">
@@ -138,7 +138,7 @@
             <div class="card-body">
 
                 <div class="form-group">
-                    <label>Tour Title *</label>
+                    <label>Plan Title *</label>
                     <input type="text" name="title" id="title" value="{{ old('title') }}"
                         class="form-control @error('title') is-invalid @enderror" required>
                     @error('title')<span class="invalid-feedback">{{ $message }}</span>@enderror
@@ -159,7 +159,7 @@
 
                 <div class="form-row-2">
                     <div class="form-group">
-                        <label>Tour Line / Brand</label>
+                        <label>Plan Line / Brand</label>
                         <input type="text" name="line" class="form-control" value="{{ old('line') }}"
                             placeholder="e.g. Island Luxury, Adventure Series">
                     </div>
@@ -511,7 +511,7 @@
                     </label>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block mt-3">
-                    <i class="fas fa-save"></i> Create Tour
+                    <i class="fas fa-save"></i> Create Plan
                 </button>
                 <a href="{{ route('admin.tours.index') }}" class="btn btn-outline btn-block mt-2">Cancel</a>
             </div>
@@ -535,7 +535,7 @@
     <div style="display:flex;gap:.75rem;align-items:center">
         <a href="{{ route('admin.tours.index') }}" class="btn btn-outline">Cancel</a>
         <button type="submit" class="btn btn-primary" style="padding:.625rem 1.75rem;font-size:1rem">
-            <i class="fas fa-save"></i> Create Tour
+            <i class="fas fa-save"></i> Create Plan
         </button>
     </div>
 </div>

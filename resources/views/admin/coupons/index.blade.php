@@ -1,18 +1,18 @@
 @extends('layouts.admin')
-@section('title', 'Coupons')
+@section('title', 'Discount Codes')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Coupons
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Discount Codes
 @endsection
 
 @section('content')
 <div class="page-title-row">
     <div>
-        <h2>Coupon / Promo Codes</h2>
-        <p>Create and manage discount codes for bookings</p>
+        <h2>Discount Codes</h2>
+        <p>Create and manage discount codes for subscriptions</p>
     </div>
     <button class="btn btn-primary" onclick="document.getElementById('createModal').classList.add('open')">
-        <i class="fas fa-plus"></i> New Coupon
+        <i class="fas fa-plus"></i> New Discount Code
     </button>
 </div>
 

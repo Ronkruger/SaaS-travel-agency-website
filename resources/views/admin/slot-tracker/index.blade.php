@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Slot Tracker')
+@section('title', 'Usage Monitor')
 
 @section('breadcrumb')
-    Slot Tracker
+    Usage Monitor
 @endsection
 
 @section('skeleton')
@@ -37,10 +37,10 @@
 
 @section('content')
 <div class="page-title-row">
-    <h2><i class="fas fa-layer-group" style="color:#3b82f6"></i> Slot Tracker</h2>
+    <h2><i class="fas fa-layer-group" style="color:#3b82f6"></i> Usage Monitor</h2>
     <div style="display:flex;gap:.75rem">
         <a href="{{ route('admin.tours.index') }}" class="btn btn-outline">
-            <i class="fas fa-map-marked-alt"></i> Manage Tours
+            <i class="fas fa-map-marked-alt"></i> Manage Plans
         </a>
     </div>
 </div>
@@ -49,15 +49,15 @@
 <div class="slot-stat-grid">
     <div class="slot-stat">
         <div class="slot-stat__num" style="color:#3b82f6">{{ $stats['total_schedules'] }}</div>
-        <div class="slot-stat__lbl">Schedules</div>
+        <div class="slot-stat__lbl">Active Plans</div>
     </div>
     <div class="slot-stat">
         <div class="slot-stat__num" style="color:#0f172a">{{ number_format($stats['total_seats']) }}</div>
-        <div class="slot-stat__lbl">Total Seats</div>
+        <div class="slot-stat__lbl">Total Licenses</div>
     </div>
     <div class="slot-stat">
         <div class="slot-stat__num" style="color:#f59e0b">{{ number_format($stats['total_booked']) }}</div>
-        <div class="slot-stat__lbl">Occupied</div>
+        <div class="slot-stat__lbl">In Use</div>
     </div>
     <div class="slot-stat">
         <div class="slot-stat__num" style="color:#16a34a">{{ number_format($stats['total_available']) }}</div>
@@ -65,7 +65,7 @@
     </div>
     <div class="slot-stat">
         <div class="slot-stat__num" style="color:#dc2626">{{ $stats['overbooked_count'] }}</div>
-        <div class="slot-stat__lbl">Overbooked</div>
+        <div class="slot-stat__lbl">Over Limit</div>
     </div>
 </div>
 
@@ -87,7 +87,7 @@
         @if($schedules->isEmpty())
             <div style="text-align:center;padding:3rem;color:#94a3b8">
                 <i class="fas fa-calendar-times" style="font-size:2.5rem;margin-bottom:.75rem;display:block"></i>
-                No schedules found for this filter.
+                No usage data found for this filter.
             </div>
         @else
         <div style="overflow-x:auto">
@@ -95,10 +95,10 @@
             <thead>
                 <tr>
                     <th style="width:2rem"></th>
-                    <th>Tour</th>
-                    <th>Travel Dates</th>
-                    <th style="text-align:center">Total Seats</th>
-                    <th style="text-align:center">Occupied</th>
+                    <th>Plan</th>
+                    <th>Period</th>
+                    <th style="text-align:center">Total Licenses</th>
+                    <th style="text-align:center">In Use</th>
                     <th style="text-align:center">Available</th>
                     <th>Capacity</th>
                     <th style="text-align:center">Pending</th>

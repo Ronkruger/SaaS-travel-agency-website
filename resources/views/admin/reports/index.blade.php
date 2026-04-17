@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Monthly Performance Report')
+@section('title', 'Revenue Report')
 
 @section('skeleton')
     @include('admin.partials.skeleton-report')
@@ -8,8 +8,8 @@
 @section('content')
 <div class="admin-page-header">
     <div>
-        <h1><i class="fas fa-chart-bar"></i> Monthly Performance Report</h1>
-        <p class="text-muted">Sales, bookings, and revenue analytics</p>
+        <h1><i class="fas fa-chart-bar"></i> Revenue Report</h1>
+        <p class="text-muted">Subscriptions, revenue, and analytics</p>
     </div>
     <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
         <a href="{{ route('admin.reports.export-csv', ['year' => $year, 'month' => $month]) }}"

@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Booking ' . $booking->booking_number)
+@section('title', 'Subscription ' . $booking->booking_number)
 
 @section('breadcrumb')
-    <a href="{{ route('admin.bookings.index') }}">Bookings</a> / {{ $booking->booking_number }}
+    <a href="{{ route('admin.bookings.index') }}">Subscriptions</a> / {{ $booking->booking_number }}
 @endsection
 
 @section('skeleton')
@@ -42,7 +42,7 @@
 
 @section('content')
 <div class="page-title-row">
-    <h2>Booking #{{ $booking->booking_number }}</h2>
+    <h2>Subscription #{{ $booking->booking_number }}</h2>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
         {{-- PDF Actions --}}
         <a href="{{ route('admin.bookings.pdf.preview', $booking) }}" target="_blank"

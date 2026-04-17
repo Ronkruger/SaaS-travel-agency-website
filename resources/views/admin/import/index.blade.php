@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Import Bookings')
+@section('title', 'Import Subscriptions')
 
 @section('skeleton')
     @include('admin.partials.skeleton-import')
@@ -149,7 +149,7 @@
 @section('content')
 <div class="page-title-row">
     <div>
-        <h2>Import Bookings</h2>
+        <h2>Import Subscriptions</h2>
         <p>Upload a spreadsheet to bulk-import bookings into the system.</p>
     </div>
 </div>
@@ -171,7 +171,7 @@
 <div class="import-hero">
     <div class="import-hero-icon"><i class="fas fa-table"></i></div>
     <div>
-        <h2>Spreadsheet → Bookings</h2>
+        <h2>Spreadsheet → Subscriptions</h2>
         <p>Map your existing spreadsheet columns (Route Name, Travel Date, Client Names, PAX, Status, Payment Terms, Rate, Payments) directly to bookings. Missing tour schedules are auto-created.</p>
     </div>
 </div>
@@ -380,7 +380,7 @@
                     @csrf
                     <button type="submit" class="btn btn-primary" id="confirm-btn" style="background:#059669;border-color:#059669;">
                         <i class="fas fa-database"></i>
-                        Confirm &amp; Import {{ $importable }} Booking{{ $importable !== 1 ? 's' : '' }}
+                        Confirm &amp; Import {{ $importable }} Subscription{{ $importable !== 1 ? 's' : '' }}
                     </button>
                 </form>
                 <a href="{{ route('admin.import.index') }}" class="btn btn-outline">
@@ -393,7 +393,7 @@
                     <div class="upload-progress-fill processing" id="confirm-progress-fill" style="width:100%"></div>
                 </div>
                 <div class="upload-progress-text">
-                    <span id="confirm-progress-label">Importing bookings into database…</span>
+                    <span id="confirm-progress-label">Importing subscriptions into database…</span>
                     <span class="pct">Please wait</span>
                 </div>
             </div>
@@ -493,7 +493,7 @@ document.getElementById('upload-form').addEventListener('submit', function (e) {
 const confirmForm = document.getElementById('confirm-form');
 if (confirmForm) {
     confirmForm.addEventListener('submit', function (e) {
-        if (!confirm('Import bookings into the database?')) {
+        if (!confirm('Import subscriptions into the database?')) {
             e.preventDefault();
             return;
         }

@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Users')
+@section('title', 'Clients')
 
 @section('breadcrumb')
-    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Users
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Clients
 @endsection
 
 @section('skeleton')
@@ -11,7 +11,7 @@
 
 @section('content')
 <div class="page-title-row">
-    <h2>Users</h2>
+    <h2>Clients</h2>
 </div>
 
 <div class="card mb-4">
