@@ -41,7 +41,9 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
-            // Tenant routes are handled by TenancyServiceProvider via routes/tenant.php
+            // Tenant routes — path-based: /t/{tenant}/...
+            Route::middleware('web')
+                ->group(base_path('routes/tenant.php'));
         });
     }
 

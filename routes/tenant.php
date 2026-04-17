@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
 |--------------------------------------------------------------------------
-| These routes are loaded for tenant subdomains.
+| These routes are accessible via /t/{tenant}/...
 | All existing application functionality runs in the tenant context.
 */
 
-Route::middleware([
-    'web',
-    PreventAccessFromCentralDomains::class,
-    InitializeTenancyBySubdomain::class,
-    \App\Http\Middleware\CheckTenantActive::class,
-])->group(base_path('routes/web.php'));
+Route::prefix('/t/{tenant}')
+    ->middleware([
+        'web',
+        InitializeTenancyByPath::class,
+        \App\Http\Middleware\CheckTenantActive::class,
+    ])
+    ->group(base_path('routes/web.php'));
