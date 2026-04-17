@@ -53,8 +53,8 @@
         <p class="greeting">Hi <strong>{{ $clientName }}</strong>,</p>
 
         <div class="alert alert-success">
-            <strong>Your payment has been confirmed!</strong> Your custom tour
-            <strong>{{ $tourName }}</strong> is now booked. We'll be in touch with next steps.
+            <strong>Your payment has been confirmed!</strong> Your custom plan
+            <strong>{{ $tourName }}</strong> is now confirmed. We'll be in touch with next steps.
         </div>
 
         <p class="highlight-amount">₱{{ number_format($payment->amount, 2) }}</p>
@@ -82,10 +82,10 @@
 
         {{-- Tour Summary --}}
         @if($itinerary)
-        <div class="section-title">Tour Summary</div>
+        <div class="section-title">Plan Summary</div>
         <div class="detail-box">
             <div class="detail-row">
-                <span class="label">Tour Name</span>
+                <span class="label">Plan Name</span>
                 <span class="value">{{ $tourName }}</span>
             </div>
             @php $pricing = $itinerary->pricing_data ?? []; @endphp
@@ -111,7 +111,7 @@
         <hr class="divider">
 
         <p style="font-size:14px;color:#475569;text-align:center;margin:0">
-            Our team will follow up with your detailed itinerary and travel preparation guide.
+            Our team will follow up with your detailed plan and preparation guide.
             If you have any questions, feel free to reach out.
         </p>
 

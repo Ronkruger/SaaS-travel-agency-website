@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title', 'All Tours')
+@section('title', 'All Plans')
 
 @section('content')
 <!-- Page Header -->
 <div class="page-header">
     <div class="container">
-        <h1>Explore Our Tours</h1>
-        <p>{{ $tours->total() }} tours available for your next adventure</p>
+        <h1>Explore Our Plans</h1>
+        <p>{{ $tours->total() }} plans available</p>
     </div>
 </div>
 
@@ -28,15 +28,15 @@
                         <div class="search-input-wrap">
                             <i class="fas fa-search"></i>
                             <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Tour name or destination...">
+                                placeholder="Plan name or category...">
                         </div>
                     </div>
 
-                    <!-- Continent -->
+                    <!-- Region -->
                     <div class="filter-section">
-                        <label>Continent</label>
+                        <label>Region</label>
                         <select name="continent" class="form-control">
-                            <option value="">All Continents</option>
+                            <option value="">All Regions</option>
                             @foreach($continents as $c)
                                 <option value="{{ $c }}" {{ request('continent') == $c ? 'selected' : '' }}>
                                     {{ $c }}
@@ -80,7 +80,7 @@
                 <!-- Toolbar -->
                 <div class="tours-toolbar">
                     <span class="results-count">
-                        Showing {{ $tours->firstItem() }}–{{ $tours->lastItem() }} of {{ $tours->total() }} tours
+                        Showing {{ $tours->firstItem() }}–{{ $tours->lastItem() }} of {{ $tours->total() }} plans
                     </span>
                     <div class="sort-row">
                         <label>Sort by:</label>
@@ -115,7 +115,7 @@
                 @else
                     <div class="empty-state large">
                         <i class="fas fa-search fa-3x"></i>
-                        <h3>No tours found</h3>
+                        <h3>No plans found</h3>
                         <p>Try adjusting your filters or search terms.</p>
                         <a href="{{ route('tours.index') }}" class="btn btn-primary">
                             <i class="fas fa-undo"></i> Reset Filters

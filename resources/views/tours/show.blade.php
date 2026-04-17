@@ -200,7 +200,7 @@
                         </div>
 
                         @if($tour->highlights && count($tour->highlights) > 0)
-                            <h4 class="mt-4"><i class="fas fa-check-circle text-green"></i> Tour Highlights</h4>
+                            <h4 class="mt-4"><i class="fas fa-check-circle text-green"></i> Plan Highlights</h4>
                             <ul class="highlights-list">
                                 @foreach($tour->highlights as $highlight)
                                     <li><i class="fas fa-star text-yellow"></i> {{ $highlight }}</li>
@@ -254,7 +254,7 @@
                             @if($tour->travel_window)
                                 <div class="info-item">
                                     <i class="fas fa-calendar-alt"></i>
-                                    <strong>Travel Window</strong>
+                                    <strong>Service Window</strong>
                                     <span>
                                         {{ \Carbon\Carbon::parse($tour->travel_window['start'])->format('M Y') }}
                                         &ndash;
@@ -694,7 +694,7 @@
                     @elseif(auth()->check())
                         <a href="{{ route('booking.create', ['tour_id' => $tour->id]) }}"
                            class="btn btn-primary btn-block btn-lg mt-3">
-                            <i class="fas fa-calendar-check"></i> Book Now
+                            <i class="fas fa-calendar-check"></i> Subscribe Now
                         </a>
                     @else
                         <a href="{{ route('login') }}" class="btn btn-primary btn-block btn-lg mt-3">

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Update — {{ $booking->booking_number }}</title>
+    <title>Subscription Update — {{ $booking->booking_number }}</title>
     <style>
         body { margin:0; padding:0; background:#f4f6f8; font-family:'Segoe UI',Arial,sans-serif; color:#1a202c; }
         .wrapper { max-width:600px; margin:0 auto; padding:32px 16px; }
@@ -47,16 +47,16 @@
         @else
             <h1>Discover Group</h1>
         @endif
-        <p>❌ Booking Cancelled / Rejected</p>
+        <p>❌ Subscription Cancelled / Rejected</p>
     </div>
 
     <div class="body">
         <p class="greeting">Hi <strong>{{ $booking->contact_name }}</strong>,</p>
 
         <div class="alert alert-error">
-            <strong>Your booking has been cancelled.</strong>
-            We regret to inform you that booking <strong>{{ $booking->booking_number }}</strong>
-            for <strong>{{ $booking->tour?->title ?? 'your tour' }}</strong>
+            <strong>Your subscription has been cancelled.</strong>
+            We regret to inform you that subscription <strong>{{ $booking->booking_number }}</strong>
+            for <strong>{{ $booking->tour?->title ?? 'your plan' }}</strong>
             ({{ $booking->tour_date?->format('F d, Y') ?? '—' }}) could not be processed.
             @if($reason)
                 <br><br><strong>Reason:</strong> {{ $reason }}
@@ -64,14 +64,14 @@
         </div>
 
         {{-- Booking Details --}}
-        <div class="section-title">Booking Details</div>
+        <div class="section-title">Subscription Details</div>
         <div class="detail-box">
             <div class="detail-row">
-                <span class="label">Booking Number</span>
+                <span class="label">Subscription Number</span>
                 <span class="value">{{ $booking->booking_number }}</span>
             </div>
             <div class="detail-row">
-                <span class="label">Tour</span>
+                <span class="label">Plan</span>
                 <span class="value">{{ $booking->tour?->title ?? '—' }}</span>
             </div>
             <div class="detail-row">

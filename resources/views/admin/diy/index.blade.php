@@ -44,7 +44,7 @@
                     <tr>
                         <th>#</th>
                         <th>User</th>
-                        <th>Tour Name</th>
+                        <th>Service Name</th>
                         <th>Status</th>
                         <th>Approval</th>
                         <th>Days</th>

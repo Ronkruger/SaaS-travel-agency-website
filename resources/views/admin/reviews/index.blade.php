@@ -33,7 +33,7 @@
             <thead>
                 <tr>
                     <th>User</th>
-                    <th>Tour</th>
+                    <th>Plan</th>
                     <th>Rating</th>
                     <th>Title</th>
                     <th>Date</th>

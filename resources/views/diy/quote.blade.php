@@ -119,7 +119,7 @@
             @php $validation = $itinerary?->validation_results ?? []; @endphp
             @if(!empty($validation))
             <div class="validation-card">
-                <h3>🔍 Tour Quality Check</h3>
+                <h3>🔍 Plan Quality Check</h3>
                 <div class="score-row">
                     <div class="score-circle {{ ($validation['overall_score'] ?? 0) >= 80 ? 'score-good' : (($validation['overall_score'] ?? 0) >= 60 ? 'score-warn' : 'score-bad') }}">
                         {{ $validation['overall_score'] ?? '--' }}<small>/100</small>
@@ -134,7 +134,7 @@
 
                 @if(!empty($validation['issues']))
                 <div class="validation-group issues">
-                    <strong>❌ Must Fix Before Booking:</strong>
+                    <strong>❌ Must Fix Before Subscribing:</strong>
                     @foreach($validation['issues'] as $issue)
                     <div class="validation-item">
                         <span>{{ $issue['message'] }}</span>
@@ -188,7 +188,7 @@
                 @endif
 
                 <button class="btn btn-outline btn-full mt-2" onclick="shareTour()">
-                    <i class="fas fa-share-alt"></i> Share This Tour
+                    <i class="fas fa-share-alt"></i> Share This Plan
                 </button>
 
                 <button class="btn btn-outline btn-full mt-2" onclick="copyShareLink()">
@@ -243,7 +243,7 @@
             {{-- Invite collaborators --}}
             @auth
             <div class="invite-card" id="invitePanel">
-                <h3>👥 Invite Travel Companions</h3>
+                <h3>👥 Invite Collaborators</h3>
                 <div class="form-group">
                     <input type="email" id="inviteEmail" class="form-control form-control-sm" placeholder="friend@example.com">
                 </div>
@@ -283,7 +283,7 @@ function shareTour() {
     if (navigator.share) {
         navigator.share({
             title: '{{ addslashes($itinerary->tour_name ?? "My Custom Tour") }}',
-            text: 'Check out my custom tour itinerary!',
+            text: 'Check out my custom plan!',
             url: window.location.href
         });
     } else {

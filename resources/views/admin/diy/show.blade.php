@@ -356,12 +356,12 @@
                         $prefRows = [
                             ['Duration',     $prefs['duration_days'] ? $prefs['duration_days'].' days' : '—'],
                             ['Countries',    implode(', ', (array)($prefs['countries'] ?? [])) ?: '—'],
-                            ['Travel Style', implode(', ', (array)($prefs['travel_style'] ?? [])) ?: '—'],
+                            ['Service Style', implode(', ', (array)($prefs['travel_style'] ?? [])) ?: '—'],
                             ['Budget',       '₱'.str_replace('-', ' – ₱', $prefs['budget_range'] ?? '—')],
                             ['Must-Visit',   implode(', ', (array)($prefs['must_visit'] ?? [])) ?: '—'],
                             ['Pace',         ucfirst($prefs['pace'] ?? '—')],
                             ['Group Size',   $prefs['group_size'] ?? '—'],
-                            ['Travel Month', $prefs['travel_month'] ?? '—'],
+                            ['Start Month', $prefs['travel_month'] ?? '—'],
                         ];
                     @endphp
                     @foreach($prefRows as [$label, $value])

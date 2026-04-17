@@ -477,7 +477,7 @@
                 <p class="text-muted" style="font-size:.85rem">Add optional paid excursions guests can add to their trip.</p>
                 <div id="optionalToursContainer"></div>
                 <button type="button" class="btn btn-outline btn-sm" onclick="addOptionalTour()">
-                    <i class="fas fa-plus"></i> Add Optional Tour
+                    <i class="fas fa-plus"></i> Add Optional Add-on
                 </button>
 
                 <hr class="mt-4">

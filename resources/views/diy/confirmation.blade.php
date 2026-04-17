@@ -31,11 +31,11 @@
                 <i class="fas fa-check"></i>
             </div>
             <h1>Payment Confirmed!</h1>
-            <p class="subtitle">Your DIY tour has been booked successfully</p>
+            <p class="subtitle">Your custom plan has been submitted successfully</p>
 
             <div class="confirmation-details">
                 <div class="detail-row">
-                    <span class="label">Tour</span>
+                    <span class="label">Plan</span>
                     <span class="value">{{ $itinerary->tour_name ?? 'Custom Tour' }}</span>
                 </div>
                 @php
@@ -70,12 +70,12 @@
                     <i class="fas fa-file-alt"></i> View Full Itinerary
                 </a>
                 <a href="{{ route('diy.my-tours') }}" class="btn btn-primary">
-                    <i class="fas fa-suitcase"></i> My Tours
+                    <i class="fas fa-suitcase"></i> My Plans
                 </a>
             </div>
 
             <p class="confirmation-note">
-                Our team will reach out to you within 24 hours to finalize your tour details.<br>
+                Our team will reach out to you within 24 hours to finalize your plan details.<br>
                 A confirmation email has been sent to <strong>{{ auth()->user()->email }}</strong>.
             </p>
         @else
@@ -93,7 +93,7 @@
 
             <p class="confirmation-note">
                 If your payment was successful, this page will update automatically.<br>
-                You can also check <a href="{{ route('diy.my-tours') }}">My Tours</a> for the latest status.
+                You can also check <a href="{{ route('diy.my-tours') }}">My Plans</a> for the latest status.
             </p>
 
             <script>

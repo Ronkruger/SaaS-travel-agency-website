@@ -13,7 +13,7 @@
     <div class="container">
         <!-- Progress Steps -->
         <div class="checkout-steps">
-            <div class="checkout-step completed"><i class="fas fa-check"></i> Booking Details</div>
+            <div class="checkout-step completed"><i class="fas fa-check"></i> Subscription Details</div>
             <div class="checkout-step-divider"><i class="fas fa-chevron-right"></i></div>
             <div class="checkout-step active"><i class="fas fa-credit-card"></i> Payment</div>
             <div class="checkout-step-divider"><i class="fas fa-chevron-right"></i></div>
@@ -85,7 +85,7 @@
                                     <div class="celebration-stat">
                                         <div class="stat-icon"><i class="fas fa-plane-departure"></i></div>
                                         <div class="stat-value">{{ $booking->tour_date->format('M d') }}</div>
-                                        <div class="stat-label">Tour Date</div>
+                                        <div class="stat-label">Start Date</div>
                                     </div>
                                 </div>
 
@@ -137,10 +137,10 @@
                                 {{-- Actions --}}
                                 <div class="celebration-actions">
                                     <a href="{{ route('booking.show', $booking) }}" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-clipboard-list"></i> View Booking Details
+                                        <i class="fas fa-clipboard-list"></i> View Subscription Details
                                     </a>
                                     <a href="{{ route('tours.index') }}" class="btn btn-outline btn-lg">
-                                        <i class="fas fa-compass"></i> Explore More Tours
+                                        <i class="fas fa-compass"></i> Explore More Plans
                                     </a>
                                 </div>
 

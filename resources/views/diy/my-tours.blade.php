@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My DIY Tours')
+@section('title', 'My Custom Plans')
 
 @push('styles')
 <style>

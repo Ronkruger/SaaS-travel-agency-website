@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Build Your Custom Tour')
+@section('title', 'Build Your Custom Plan')
 
 @push('styles')
 <link rel="stylesheet" href="{{ global_asset('css/diy.css') }}">
@@ -11,8 +11,8 @@
     <div class="container">
         <div class="diy-hero-content">
             <div class="diy-hero-badge">✨ AI-Powered</div>
-            <h1>Design Your <span class="text-accent">Perfect</span> Custom Tour</h1>
-            <p class="diy-hero-sub">Answer a few quick questions and our AI will craft a personalised itinerary&nbsp;— then customise every detail.</p>
+            <h1>Design Your <span class="text-accent">Perfect</span> Custom Plan</h1>
+            <p class="diy-hero-sub">Answer a few quick questions and our AI will craft a personalised plan — then customise every detail.</p>
         </div>
     </div>
 </div>
@@ -137,7 +137,7 @@
             {{-- Step 3: Travel style --}}
             <div class="wizard-step" id="step3">
                 <div class="wizard-step-icon">🎭</div>
-                <h2>What's your travel style?</h2>
+                <h2>What's your service style?</h2>
                 <p class="wizard-step-hint">Pick as many as you like.</p>
                 <div class="style-grid">
                     @foreach([
@@ -198,7 +198,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <label class="form-label fw-semibold">Travel month (optional)</label>
+                    <label class="form-label fw-semibold">Start month (optional)</label>
                     <select name="travel_month" class="form-control">
                         <option value="">Not sure yet</option>
                         @foreach(['January','February','March','April','May','June','July','August','September','October','November','December'] as $m)
@@ -211,10 +211,10 @@
             {{-- Step 6: Pace + group size --}}
             <div class="wizard-step" id="step6">
                 <div class="wizard-step-icon">⚡</div>
-                <h2>Travel pace &amp; group size</h2>
+                <h2>Pace &amp; group size</h2>
 
                 <div class="form-group">
-                    <label class="form-label fw-semibold">Travel pace:</label>
+                    <label class="form-label fw-semibold">Pace:</label>
                     <div class="pace-options">
                         @foreach([
                             ['relaxed','🐢','Relaxed','2–3 cities, more time per place'],
@@ -234,7 +234,7 @@
                 </div>
 
                 <div class="form-group mt-4">
-                    <label class="form-label fw-semibold">Group size (number of travelers):</label>
+                    <label class="form-label fw-semibold">Group size (number of subscribers):</label>
                     <div class="group-counter">
                         <button type="button" class="counter-btn" onclick="changeGroup(-1)">−</button>
                         <span id="groupDisplay">2</span>
@@ -247,10 +247,10 @@
                 {{-- Submit --}}
                 <div class="wizard-submit-area">
                     <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generateBtn">
-                        <i class="fas fa-magic"></i>&nbsp; Generate My Itinerary
+                        <i class="fas fa-magic"></i>&nbsp; Generate My Plan
                         <span class="btn-ai-badge">AI</span>
                     </button>
-                    <p class="wizard-submit-note">Takes about 15–30 seconds. Our AI will design your itinerary.</p>
+                    <p class="wizard-submit-note">Takes about 15–30 seconds. Our AI will design your plan.</p>
                 </div>
             </div>
 

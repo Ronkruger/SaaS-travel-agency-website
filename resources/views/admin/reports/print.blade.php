@@ -97,7 +97,7 @@
         <div class="sub">{{ $monthSummary['new_bookings'] }} active bookings</div>
     </div>
     <div class="kpi-card">
-        <div class="label">Avg. per Booking</div>
+        <div class="label">Avg. per Subscription</div>
         @php $avg = $monthSummary['new_bookings'] > 0 ? $monthSummary['total_revenue'] / $monthSummary['new_bookings'] : 0; @endphp
         <div class="value" style="color:#7c3aed">₱{{ number_format($avg, 0) }}</div>
         <div class="sub">average booking value</div>
@@ -134,12 +134,12 @@
 {{-- Two column: Top Tours + Payment Breakdown --}}
 <div class="two-col" style="margin-top:16px">
     <div>
-        <div class="section-title">Top Tours This Month</div>
+        <div class="section-title">Top Plans This Month</div>
         <table>
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Tour</th>
+                    <th>Plan</th>
                     <th class="text-right">Bookings</th>
                     <th class="text-right">Revenue</th>
                 </tr>

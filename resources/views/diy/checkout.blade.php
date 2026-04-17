@@ -40,8 +40,8 @@
 <div class="checkout-container">
     <div class="checkout-card">
         <div class="checkout-header">
-            <h1>{{ $itinerary->tour_name ?? 'Your Custom Tour' }}</h1>
-            <p>Complete your payment to confirm your booking</p>
+            <h1>{{ $itinerary->tour_name ?? 'Your Custom Plan' }}</h1>
+            <p>Complete your payment to confirm your subscription</p>
         </div>
 
         <div class="checkout-body">
@@ -75,7 +75,7 @@
             {{-- Quote summary --}}
             <div class="checkout-summary">
                 <div class="checkout-line">
-                    <span class="label">Tour</span>
+                    <span class="label">Plan</span>
                     <span>{{ $itinerary->tour_name ?? 'Custom Tour' }}</span>
                 </div>
                 <div class="checkout-line">
@@ -109,7 +109,7 @@
                 <input type="hidden" name="payment_type" id="paymentType" value="per_person">
 
                 <div class="pax-input" id="paxSection">
-                    <label for="paxCount"><i class="fas fa-users"></i> Number of travelers:</label>
+                    <label for="paxCount"><i class="fas fa-users"></i> Number of subscribers:</label>
                     <input type="number" name="pax_count" id="paxCount" value="{{ $groupSize }}" min="1" max="50" onchange="updateTotal()">
                 </div>
 

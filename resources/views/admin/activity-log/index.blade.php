@@ -43,7 +43,7 @@
             <label style="font-size:.78rem;font-weight:600;color:#6b7280;display:block;margin-bottom:.2rem">Subject</label>
             <select name="subject" class="form-control" style="min-width:130px">
                 <option value="">All</option>
-                @foreach(['Booking','User','Tour','TravelFund'] as $s)
+                @foreach(['Subscription','User','Plan','Credits'] as $s)
                     <option value="{{ $s }}" {{ request('subject') === $s ? 'selected' : '' }}>{{ $s }}</option>
                 @endforeach
             </select>

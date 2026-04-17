@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'DiscoverGroup') - Tour Reservations</title>
+    <title>@yield('title', config('app.name')) - Service Platform</title>
 
     <!-- Favicon -->
     @if($brandFaviconUrl)
@@ -66,9 +66,9 @@
                 <i class="fas fa-times" aria-hidden="true"></i>
             </button>
             <li><a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a></li>
-            <li><a href="{{ route('tours.index') }}" class="{{ request()->routeIs('tours.*') ? 'active' : '' }}">Tours</a></li>
+            <li><a href="{{ route('tours.index') }}" class="{{ request()->routeIs('tours.*') ? 'active' : '' }}">Plans</a></li>
             <li class="dropdown" id="destinationsDropdown">
-                <a href="#" onclick="if(window.innerWidth<992){event.preventDefault();this.closest('.dropdown').classList.toggle('open');}">Destinations <i class="fas fa-chevron-down" aria-hidden="true"></i></a>
+                <a href="#" onclick="if(window.innerWidth<992){event.preventDefault();this.closest('.dropdown').classList.toggle('open');}">Categories <i class="fas fa-chevron-down" aria-hidden="true"></i></a>
                 <ul class="dropdown-menu">
                     @foreach(['Africa','Asia','Europe','North America','Oceania','South America'] as $continent)
                         <li><a href="{{ route('tours.index', ['continent' => $continent]) }}">{{ $continent }}</a></li>
@@ -78,7 +78,7 @@
             <li><a href="{{ route('tours.index', ['sort' => 'popular']) }}">Popular</a></li>
             <li><a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About Us</a></li>
             <li><a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a></li>
-            <li><a href="{{ route('diy.index') }}" class="{{ request()->routeIs('diy.*') ? 'active' : '' }}" style="color:#28A2DC;font-weight:600;">✨ Build My Tour <sup style="font-size:.6em;background:#28A2DC;color:#fff;padding:1px 5px;border-radius:4px;vertical-align:super;">BETA</sup></a></li>
+            <li><a href="{{ route('diy.index') }}" class="{{ request()->routeIs('diy.*') ? 'active' : '' }}" style="color:#28A2DC;font-weight:600;">✨ Build My Plan <sup style="font-size:.6em;background:#28A2DC;color:#fff;padding:1px 5px;border-radius:4px;vertical-align:super;">BETA</sup></a></li>
         </ul>
 
         <div class="navbar-actions">
@@ -91,9 +91,9 @@
                     </button>
                     <div class="user-menu">
                         <a href="{{ route('profile') }}"><i class="fas fa-user"></i> My Profile</a>
-                        <a href="{{ route('booking.index') }}"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                        <a href="{{ route('booking.index') }}"><i class="fas fa-calendar-check"></i> My Subscriptions</a>
                         <a href="{{ route('wishlist') }}"><i class="fas fa-heart"></i> Wishlist</a>
-                        <a href="{{ route('diy.my-tours') }}"><i class="fas fa-magic"></i> My DIY Tours</a>
+                        <a href="{{ route('diy.my-tours') }}"><i class="fas fa-magic"></i> My Custom Plans</a>
                         @if(auth()->user()->isAdmin())
                             <div class="divider"></div>
                             <a href="{{ route('admin.dashboard') }}" class="admin-link"><i class="fas fa-cog"></i> Admin Panel</a>

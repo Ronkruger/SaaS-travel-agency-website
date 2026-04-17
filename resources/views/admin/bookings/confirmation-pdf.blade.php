@@ -237,7 +237,7 @@
             </div>
             {{-- Document title --}}
             <div class="header-doc-title">
-                <span>Booking confirmation</span>
+                <span>Subscription confirmation</span>
             </div>
         </div>
     </div>
@@ -266,9 +266,9 @@
 
         {{-- Status banner --}}
         <div class="status-bar status-{{ $booking->status }}">
-            @if($booking->status === 'confirmed') ✓ BOOKING CONFIRMED
-            @elseif($booking->status === 'completed') ✓ TOUR COMPLETED
-            @elseif($booking->status === 'cancelled') ✗ BOOKING CANCELLED
+            @if($booking->status === 'confirmed') ✓ SUBSCRIPTION CONFIRMED
+            @elseif($booking->status === 'completed') ✓ PLAN COMPLETED
+            @elseif($booking->status === 'cancelled') ✗ SUBSCRIPTION CANCELLED
             @elseif($booking->status === 'refunded') ↩ REFUNDED
             @else ⏳ PENDING CONFIRMATION
             @endif
@@ -285,7 +285,7 @@
                         @endif
                     </td>
                     <td style="vertical-align:middle;text-align:right">
-                        <div style="font-size:8pt;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:.06em">Travel Date</div>
+                        <div style="font-size:8pt;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:.06em">Start Date</div>
                         <div style="font-size:13pt;font-weight:bold">{{ $booking->tour_date->format('M d, Y') }}</div>
                         @if($booking->schedule && $booking->schedule->return_date)
                             <div style="font-size:9pt;color:rgba(255,255,255,0.8)">
@@ -362,7 +362,7 @@
                             </tr>
                             @if($booking->tax_amount > 0)
                             <tr style="border-top:1px solid #f1f5f9">
-                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Travel Tax</td>
+                                <td style="padding:9px 12px;background:#f8fafc;color:#64748b;font-size:9pt">Service Tax</td>
                                 <td style="padding:9px 12px;text-align:right">₱{{ number_format($booking->tax_amount, 2) }}</td>
                             </tr>
                             @endif
@@ -480,7 +480,7 @@
                     <li>Full payment must be settled at least <strong>{{ $booking->tour->balance_due_days_before_travel ?? 30 }} days</strong> before the departure date.</li>
                     <li>Cancellations made less than 30 days before departure may incur penalties.</li>
                     <li>The company reserves the right to reschedule or cancel trips due to force majeure events.</li>
-                    <li>Travel insurance is the responsibility of the traveler.</li>
+                    <li>Service coverage is the responsibility of the subscriber.</li>
                     <li>Valid identification documents must be presented at check-in.</li>
                 </ul>
             </div>

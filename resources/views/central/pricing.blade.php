@@ -84,11 +84,11 @@
                 <ul class="plan-features">
                     <li>
                         <i class="fas fa-check check"></i>
-                        {{ $plan->max_tours < 0 ? 'Unlimited tours' : $plan->max_tours . ' tours' }}
+                        {{ $plan->max_tours < 0 ? 'Unlimited plans' : $plan->max_tours . ' plans' }}
                     </li>
                     <li>
                         <i class="fas fa-check check"></i>
-                        {{ $plan->max_bookings_per_month < 0 ? 'Unlimited bookings/mo' : number_format($plan->max_bookings_per_month) . ' bookings/month' }}
+                        {{ $plan->max_bookings_per_month < 0 ? 'Unlimited subscriptions/mo' : number_format($plan->max_bookings_per_month) . ' subscriptions/month' }}
                     </li>
                     <li>
                         <i class="fas fa-check check"></i>
@@ -96,7 +96,7 @@
                     </li>
                     <li>
                         <i class="fas {{ $plan->has_diy_builder ? 'fa-check check' : 'fa-times times' }}"></i>
-                        <span class="{{ !$plan->has_diy_builder ? 'dimmed' : '' }}">AI Tour Builder</span>
+                        <span class="{{ !$plan->has_diy_builder ? 'dimmed' : '' }}">AI Plan Builder</span>
                     </li>
                     <li>
                         <i class="fas {{ $plan->has_custom_domain ? 'fa-check check' : 'fa-times times' }}"></i>
@@ -137,15 +137,15 @@
                 </tr>
             </thead>
             <tbody>
-                <tr class="section-row"><td colspan="{{ $plans->count() + 1 }}">Tour Management</td></tr>
+                <tr class="section-row"><td colspan="{{ $plans->count() + 1 }}">Plan Management</td></tr>
                 <tr>
-                    <td>Tours</td>
+                    <td>Plans</td>
                     @foreach($plans as $plan)
                     <td>{{ $plan->max_tours < 0 ? 'Unlimited' : $plan->max_tours }}</td>
                     @endforeach
                 </tr>
                 <tr>
-                    <td>Tour Schedules</td>
+                    <td>Plan Periods</td>
                     @foreach($plans as $plan)<td><i class="fas fa-check"></i></td>@endforeach
                 </tr>
                 <tr>
@@ -157,9 +157,9 @@
                     @foreach($plans as $plan)<td><i class="fas fa-check"></i></td>@endforeach
                 </tr>
 
-                <tr class="section-row"><td colspan="{{ $plans->count() + 1 }}">Bookings & Payments</td></tr>
+                <tr class="section-row"><td colspan="{{ $plans->count() + 1 }}">Subscriptions &amp; Payments</td></tr>
                 <tr>
-                    <td>Bookings per month</td>
+                    <td>Subscriptions per month</td>
                     @foreach($plans as $plan)
                     <td>{{ $plan->max_bookings_per_month < 0 ? 'Unlimited' : number_format($plan->max_bookings_per_month) }}</td>
                     @endforeach
@@ -177,11 +177,11 @@
                     @foreach($plans as $plan)<td><i class="fas fa-check"></i></td>@endforeach
                 </tr>
                 <tr>
-                    <td>Travel Fund Credits</td>
+                    <td>Credit Balance</td>
                     @foreach($plans as $plan)<td><i class="fas fa-check"></i></td>@endforeach
                 </tr>
                 <tr>
-                    <td>PDF Booking Confirmations</td>
+                    <td>PDF Subscription Confirmations</td>
                     @foreach($plans as $plan)<td><i class="fas fa-check"></i></td>@endforeach
                 </tr>
                 <tr>
@@ -191,7 +191,7 @@
 
                 <tr class="section-row"><td colspan="{{ $plans->count() + 1 }}">AI & Advanced Features</td></tr>
                 <tr>
-                    <td>AI Tour Builder (DIY)</td>
+                    <td>AI Plan Builder (DIY)</td>
                     @foreach($plans as $plan)
                     <td><i class="fas {{ $plan->has_diy_builder ? 'fa-check' : 'fa-times' }}" style="color:{{ $plan->has_diy_builder ? '#10b981' : '#d1d5db' }}"></i></td>
                     @endforeach

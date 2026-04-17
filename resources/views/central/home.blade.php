@@ -1,5 +1,5 @@
 @extends('central.layouts.app')
-@section('title', 'Launch Your Travel Agency Online')
+@section('title', 'Launch Your Business Online')
 
 @push('styles')
 <style>
@@ -68,16 +68,16 @@
 {{-- Hero --}}
 <section class="hero">
     <div class="container" style="position:relative;z-index:1">
-        <div class="hero-badge">✈️ &nbsp; The #1 Travel Agency SaaS Platform</div>
-        <h1>Launch Your <span>Travel Agency</span><br>Online in Minutes</h1>
-        <p>Everything you need to manage tours, bookings, payments, and customers — powered by AI and delivered on your own subdomain.</p>
+        <div class="hero-badge">🚀 &nbsp; The #1 Business SaaS Platform</div>
+        <h1>Launch Your <span>Business</span><br>Online in Minutes</h1>
+        <p>Everything you need to manage plans, subscriptions, payments, and customers — powered by AI and delivered on your own subdomain.</p>
         <div class="hero-cta">
             <a href="{{ route('central.register') }}" class="btn btn-accent btn-lg">Start Free 14-Day Trial</a>
             <a href="{{ route('central.pricing') }}" class="btn btn-lg" style="background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3)">View Pricing</a>
         </div>
         <div class="hero-stats">
-            <div class="hero-stat"><div class="num">500+</div><div class="label">Travel Agencies</div></div>
-            <div class="hero-stat"><div class="num">50K+</div><div class="label">Bookings Processed</div></div>
+            <div class="hero-stat"><div class="num">500+</div><div class="label">Businesses</div></div>
+            <div class="hero-stat"><div class="num">50K+</div><div class="label">Subscriptions Processed</div></div>
             <div class="hero-stat"><div class="num">99.9%</div><div class="label">Uptime SLA</div></div>
             <div class="hero-stat"><div class="num">24/7</div><div class="label">Support</div></div>
         </div>
@@ -103,39 +103,39 @@
     <div class="container">
         <div class="text-center">
             <div class="section-label">Everything you need</div>
-            <h2 class="section-title">A complete platform for<br>modern travel agencies</h2>
-            <p class="section-sub" style="margin:0 auto">From tour management to AI-powered itinerary building, we have everything your agency needs to grow.</p>
+            <h2 class="section-title">A complete platform for<br>modern businesses</h2>
+            <p class="section-sub" style="margin:0 auto">From plan management to AI-powered custom builders, we have everything your business needs to grow.</p>
         </div>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
-                <h3>Tour Management</h3>
-                <p>Create and manage unlimited tour packages with rich descriptions, galleries, schedules, and real-time availability.</p>
+                <h3>Plan Management</h3>
+                <p>Create and manage unlimited plans with rich descriptions, galleries, schedules, and real-time availability.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
-                <h3>Booking System</h3>
-                <p>Full-featured booking engine with installment payments, cancellations, PDFs, email confirmations, and more.</p>
+                <h3>Subscription System</h3>
+                <p>Full-featured subscription engine with installment payments, cancellations, PDFs, email confirmations, and more.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-robot"></i></div>
-                <h3>AI Tour Builder</h3>
-                <p>Let customers build custom itineraries with AI assistance. Collaborative editing, smart routing, and instant pricing.</p>
+                <h3>AI Plan Builder</h3>
+                <p>Let customers build custom plans with AI assistance. Collaborative editing, smart routing, and instant pricing.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-credit-card"></i></div>
                 <h3>Payment Processing</h3>
-                <p>Accept payments via Xendit with installment plans, travel fund credits, coupon discounts, and payment reminders.</p>
+                <p>Accept payments via Xendit with installment plans, credit balance, coupon discounts, and payment reminders.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
                 <h3>Analytics & Reports</h3>
-                <p>Detailed revenue reports, booking trends, customer analytics, and exportable CSV reports for your accountant.</p>
+                <p>Detailed revenue reports, subscription trends, customer analytics, and exportable CSV reports for your accountant.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
                 <h3>Staff Management</h3>
-                <p>Granular role-based permissions for your admin staff. Manage tours, bookings, or finances independently.</p>
+                <p>Granular role-based permissions for your admin staff. Manage plans, subscriptions, or finances independently.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-palette"></i></div>
@@ -145,7 +145,7 @@
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-envelope-open-text"></i></div>
                 <h3>Email Automation</h3>
-                <p>Automated booking confirmations, payment reminders, itinerary PDFs, and custom email tracking.</p>
+                <p>Automated subscription confirmations, payment reminders, plan PDFs, and custom email tracking.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-globe"></i></div>
@@ -176,13 +176,13 @@
             </div>
             <div class="step">
                 <div class="step-num">3</div>
-                <h3>Add Your Tours</h3>
-                <p>Create tour packages with pricing, schedules, images, and itineraries. Takes just minutes per tour.</p>
+                <h3>Add Your Plans</h3>
+                <p>Create plan packages with pricing, schedules, images, and details. Takes just minutes per plan.</p>
             </div>
             <div class="step">
                 <div class="step-num">4</div>
                 <h3>Go Live &amp; Grow</h3>
-                <p>Share your branded URL with customers and start accepting bookings and payments immediately.</p>
+                <p>Share your branded URL with customers and start accepting subscriptions and payments immediately.</p>
             </div>
         </div>
     </div>
@@ -207,9 +207,9 @@
                 </div>
                 <div class="plan-desc">{{ $plan->description }}</div>
                 <ul class="plan-features">
-                    <li><i class="fas fa-check"></i> {{ $plan->max_tours < 0 ? 'Unlimited tours' : $plan->max_tours . ' tours' }}</li>
+                    <li><i class="fas fa-check"></i> {{ $plan->max_tours < 0 ? 'Unlimited plans' : $plan->max_tours . ' plans' }}</li>
                     <li><i class="fas fa-check"></i> {{ $plan->max_admin_users < 0 ? 'Unlimited staff' : $plan->max_admin_users . ' staff accounts' }}</li>
-                    @if($plan->has_diy_builder)<li><i class="fas fa-check"></i> AI Tour Builder</li>@endif
+                    @if($plan->has_diy_builder)<li><i class="fas fa-check"></i> AI Plan Builder</li>@endif
                     @if($plan->has_advanced_reports)<li><i class="fas fa-check"></i> Advanced analytics</li>@endif
                     @if($plan->has_custom_domain)<li><i class="fas fa-check"></i> Custom domain</li>@endif
                     @if($plan->has_priority_support)<li><i class="fas fa-check"></i> Priority support</li>@endif
@@ -229,8 +229,8 @@
 {{-- CTA Banner --}}
 <section class="cta-banner">
     <div class="container">
-        <h2>Ready to grow your travel agency?</h2>
-        <p>Join hundreds of agencies already using TourSaaS to manage their business.</p>
+        <h2>Ready to grow your business?</h2>
+        <p>Join hundreds of businesses already using TourSaaS to manage their operations.</p>
         <a href="{{ route('central.register') }}" class="btn btn-accent btn-lg">Start Your Free Trial Today</a>
     </div>
 </section>

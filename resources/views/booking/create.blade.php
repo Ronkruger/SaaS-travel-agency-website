@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Book Tour — ' . $tour->title)
+@section('title', 'Subscribe — ' . $tour->title)
 
 @section('content')
 <div class="page-header">
     <div class="container">
-        <h1>Book Your Tour</h1>
+        <h1>Subscribe to Plan</h1>
         <p>{{ $tour->title }}</p>
     </div>
 </div>
@@ -30,7 +30,7 @@
                     <div class="booking-step">
                         <div class="step-header">
                             <span class="step-num">1</span>
-                            <h3>Tour Details</h3>
+                            <h3>Plan Details</h3>
                         </div>
 
                         @php
@@ -319,7 +319,7 @@
                                 <span id="sumSubtotal">₱{{ number_format($tour->effective_price ?? 0, 2) }}</span>
                             </div>
                             <div class="summary-row">
-                                <span id="sumTaxLabel">Travel Tax</span>
+                                <span id="sumTaxLabel">Service Tax</span>
                                 <span id="sumTax">₱1,620.00</span>
                             </div>
                             <div class="summary-row summary-row--total">
@@ -374,7 +374,7 @@ function updateBookingSummary() {
     document.getElementById('sumChildLabel').textContent  = `${children} Child${children>1?'ren':''}`;
     document.getElementById('sumChildTotal').textContent  = `₱${fmt(childTotal)}`;
     document.getElementById('sumSubtotal').textContent    = `₱${fmt(subtotal)}`;
-    document.getElementById('sumTaxLabel').textContent    = `Travel Tax (${taxableCount} pax × ₱${fmt(TRAVEL_TAX)})`;
+    document.getElementById('sumTaxLabel').textContent    = `Service Tax (${taxableCount} pax × ₱${fmt(TRAVEL_TAX)})`;
     document.getElementById('sumTax').textContent         = `₱${fmt(tax)}`;
     document.getElementById('sumTotal').textContent       = `₱${fmt(grand)}`;
     document.getElementById('sumChildRow').style.display  = children > 0 ? 'flex' : 'none';

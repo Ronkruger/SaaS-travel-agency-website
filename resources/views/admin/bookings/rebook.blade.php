@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Rebook ' . $booking->booking_number)
+@section('title', 'Reassign ' . $booking->booking_number)
 
 @section('skeleton')
     @include('admin.partials.skeleton-form')
@@ -38,9 +38,9 @@
 
 @section('content')
 <div class="page-title-row">
-    <h2 class="page-title"><i class="fas fa-redo" style="color:#7c3aed"></i> Rebook Client</h2>
+    <h2 class="page-title"><i class="fas fa-redo" style="color:#7c3aed"></i> Reassign Client</h2>
     <a href="{{ route('admin.bookings.show', $booking) }}" class="btn btn-outline">
-        <i class="fas fa-arrow-left"></i> Back to Booking
+        <i class="fas fa-arrow-left"></i> Back to Subscription
     </a>
 </div>
 
@@ -48,15 +48,15 @@
     <i class="fas fa-info-circle"></i>
     <div>
         <strong>What does Rebook do?</strong>
-        A <em>new</em> booking will be created for the same client with the same passenger details on the new tour / departure date.
-        The original booking (<strong>{{ $booking->booking_number }}</strong>) can optionally be cancelled at the same time.
+        A <em>new</em> subscription will be created for the same client with the same details on the new plan / start period.
+        The original subscription (<strong>{{ $booking->booking_number }}</strong>) can optionally be cancelled at the same time.
     </div>
 </div>
 
 {{-- Summary --}}
 <div class="rebook-summary">
     <div class="rebook-box">
-        <h5>Original Booking</h5>
+        <h5>Original Subscription</h5>
         <div class="value">{{ $booking->tour?->title ?? '—' }}</div>
         <div class="sub">
             {{ $booking->tour_date?->format('M d, Y') ?? '—' }}
@@ -66,7 +66,7 @@
     </div>
     <div class="rebook-arrow"><i class="fas fa-arrow-right"></i></div>
     <div class="rebook-box" style="border-color:#7c3aed;">
-        <h5>New Booking</h5>
+        <h5>New Subscription</h5>
         <div class="value" id="newTourLabel">Select below…</div>
         <div class="sub" id="newScheduleLabel">&nbsp;</div>
     </div>
@@ -78,7 +78,7 @@
     <div class="card-body">
         <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem">
             <div>
-                <label style="font-size:.8rem;color:#64748b">Booking #</label>
+                <label style="font-size:.8rem;color:#64748b">Sub #</label>
                 <div style="font-weight:600">{{ $booking->booking_number }}</div>
             </div>
             <div>
@@ -115,9 +115,9 @@
         <div class="card-body">
 
             <div class="form-group">
-                <label>Tour *</label>
+                <label>Plan *</label>
                 <select name="tour_id" id="tourSelect" class="form-control @error('tour_id') is-invalid @enderror" required>
-                    <option value="">— Select Tour —</option>
+                    <option value="">— Select Plan —</option>
                     @foreach($tours as $tour)
                         <option value="{{ $tour->id }}"
                             {{ (old('tour_id', $booking->tour_id) == $tour->id) ? 'selected' : '' }}>
@@ -129,7 +129,7 @@
             </div>
 
             <div class="form-group">
-                <label>Departure Schedule *</label>
+                <label>Start Period *</label>
                 <select name="schedule_id" id="scheduleSelect"
                         class="form-control @error('schedule_id') is-invalid @enderror"
                         required disabled>
@@ -141,7 +141,7 @@
             {{-- Seat availability preview --}}
             <div class="schedule-info" id="scheduleInfo">
                 <div class="info-row">
-                    <span class="label">Available Seats</span>
+                    <span class="label">Available Licenses</span>
                     <span class="val" id="infoAvailable">—</span>
                 </div>
                 <div class="info-row">
@@ -159,7 +159,7 @@
             </div>
 
             <div class="form-group" style="margin-top:1rem">
-                <label>New Booking Status *</label>
+                <label>New Subscription Status *</label>
                 <select name="new_status" class="form-control" style="max-width:220px">
                     <option value="pending" {{ old('new_status', 'pending') === 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="confirmed" {{ old('new_status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
@@ -176,7 +176,7 @@
 
     {{-- Cancel original option --}}
     <div class="card mb-4">
-        <div class="card-header"><h4>Original Booking</h4></div>
+        <div class="card-header"><h4>Original Subscription</h4></div>
         <div class="card-body">
             <p style="margin:0 0 .75rem;font-size:.9rem;color:#6b7280">
                 The original booking will have a note added linking it to the new booking.
@@ -188,10 +188,10 @@
                 <div>
                     <div class="toggle-label" style="color:#dc2626">
                         <i class="fas fa-times-circle"></i>
-                        Cancel original booking ({{ $booking->booking_number }})
+                        Cancel original subscription ({{ $booking->booking_number }})
                     </div>
                     <div class="toggle-sub">
-                        This will set the original booking status to "Cancelled" and free its seats.
+                        This will set the original subscription status to "Cancelled" and free its licenses.
                         Leave unchecked to keep the original booking as-is.
                     </div>
                 </div>
@@ -202,7 +202,7 @@
     <div style="display:flex;gap:.75rem;margin-bottom:2rem">
         <button type="submit" class="btn btn-primary" id="submitBtn"
                 style="background:#7c3aed;border-color:#7c3aed" disabled>
-            <i class="fas fa-redo"></i> Create New Booking
+            <i class="fas fa-redo"></i> Create New Subscription
         </button>
         <a href="{{ route('admin.bookings.show', $booking) }}" class="btn btn-outline">Cancel</a>
     </div>

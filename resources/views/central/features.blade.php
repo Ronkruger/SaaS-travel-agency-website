@@ -26,25 +26,25 @@ section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
 
 @section('content')
 <div class="hero">
-    <h1>Everything You Need to Run<br>Your Travel Agency Online</h1>
-    <p>TourSaaS gives you a complete, ready-made booking platform — branded for your agency, live in minutes.</p>
+    <h1>Everything You Need to Run<br>Your Business Online</h1>
+    <p>TourSaaS gives you a complete, ready-made subscription platform — branded for your business, live in minutes.</p>
 </div>
 
 <section>
     <div class="section-label">Core Platform</div>
-    <div class="section-title">Built for travel agencies, by design</div>
-    <p class="section-sub">All the tools you need — tours, bookings, payments, staff, and more — in one SaaS platform.</p>
+    <div class="section-title">Built for businesses, by design</div>
+    <p class="section-sub">All the tools you need — plans, subscriptions, payments, staff, and more — in one SaaS platform.</p>
     <div class="features-grid">
         @php
         $features = [
-            ['fas fa-map-marked-alt', 'Tour Management', 'Create and manage tour listings with rich descriptions, itineraries, pricing tiers, and availability calendars.'],
-            ['fas fa-calendar-check', 'Online Booking System', 'Customers can browse, select seats, fill passenger details, and checkout — all without leaving your site.'],
-            ['fas fa-users', 'Staff Management', 'Add admin accounts for your agents. Control who can manage tours, handle bookings, or view reports.'],
+            ['fas fa-map-marked-alt', 'Plan Management', 'Create and manage plan listings with rich descriptions, pricing tiers, and availability calendars.'],
+            ['fas fa-calendar-check', 'Online Subscription System', 'Customers can browse, select options, fill in details, and checkout — all without leaving your site.'],
+            ['fas fa-users', 'Staff Management', 'Add admin accounts for your agents. Control who can manage plans, handle subscriptions, or view reports.'],
             ['fas fa-credit-card', 'Payment Processing', 'Integrated with Xendit for local payments. Accept credit cards, e-wallets, and bank transfers.'],
-            ['fas fa-chart-line', 'Reports & Analytics', 'Track revenue, booking trends, tour popularity, and customer behaviour from a clean dashboard.'],
-            ['fas fa-robot', 'AI Tour Builder', 'Let customers design their own multi-destination tour itinerary using the AI-powered DIY builder (Professional+).'],
-            ['fas fa-envelope', 'Automated Emails', 'Booking confirmations, reminders, and receipts sent automatically to customers and your team.'],
-            ['fas fa-globe', 'Your Own Subdomain', 'Each agency gets a dedicated subdomain (youragency.toursaas.com) — fully isolated from other tenants.'],
+            ['fas fa-chart-line', 'Reports & Analytics', 'Track revenue, subscription trends, plan popularity, and customer behaviour from a clean dashboard.'],
+            ['fas fa-robot', 'AI Plan Builder', 'Let customers design their own custom plan using the AI-powered DIY builder (Professional+).'],
+            ['fas fa-envelope', 'Automated Emails', 'Subscription confirmations, reminders, and receipts sent automatically to customers and your team.'],
+            ['fas fa-globe', 'Your Own Subdomain', 'Each business gets a dedicated subdomain (yourbusiness.toursaas.com) — fully isolated from other tenants.'],
             ['fas fa-lock', 'Secure & Isolated', 'Every tenant runs in a separate database. Your customer data never mixes with other agencies.'],
             ['fas fa-paint-brush', 'White-label Branding', 'Upload your logo, set your colors, and make the platform feel like your own product.'],
             ['fas fa-mobile-alt', 'Mobile Responsive', 'Your booking site works beautifully on phones, tablets, and desktops out of the box.'],
@@ -62,7 +62,7 @@ section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
 </section>
 
 <div class="cta-section">
-    <h2>Ready to launch your agency?</h2>
+    <h2>Ready to launch your business?</h2>
     <p>Start your free 14-day trial today. No credit card required.</p>
     <a href="{{ route('central.register') }}" class="btn-cta">Start Free Trial →</a>
 </div>

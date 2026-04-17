@@ -264,7 +264,7 @@
                                     <td style="padding:.5rem .75rem">
                                         <a href="{{ route('admin.bookings.show', $bk) }}"
                                            style="color:#3b82f6;font-size:.75rem;text-decoration:none;white-space:nowrap"
-                                           title="View Booking">
+                                           title="View Subscription">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                     </td>

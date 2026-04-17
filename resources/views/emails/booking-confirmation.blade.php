@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $isInstallment ? 'Payment Received' : 'Booking Confirmed' }}</title>
+    <title>{{ $isInstallment ? 'Payment Received' : 'Subscription Confirmed' }}</title>
     <style>
         body { margin:0; padding:0; background:#f4f6f8; font-family:'Segoe UI',Arial,sans-serif; color:#1a202c; }
         .wrapper { max-width:600px; margin:0 auto; padding:32px 16px; }
@@ -48,7 +48,7 @@
         @else
             <h1>Discover Group</h1>
         @endif
-        <p>{{ $isInstallment ? '✅ Payment Received' : '🎉 Booking Confirmed!' }}</p>
+        <p>{{ $isInstallment ? '✅ Payment Received' : '🎉 Subscription Confirmed!' }}</p>
     </div>
 
     <div class="body">
@@ -58,29 +58,29 @@
         <div class="alert alert-success">
             <strong>Payment received!</strong> Your installment payment of
             <strong>₱{{ number_format($amountPaid ?? 0, 2) }}</strong>
-            for <strong>{{ $termLabel }}</strong> on booking
+            for <strong>{{ $termLabel }}</strong> on subscription
             <strong>{{ $booking->booking_number }}</strong> has been successfully processed.
         </div>
         @else
         <div class="alert alert-success">
-            <strong>Your booking is confirmed!</strong> Full payment has been received for booking
+            <strong>Your subscription is confirmed!</strong> Full payment has been received for subscription
             <strong>{{ $booking->booking_number }}</strong>. We look forward to hosting you!
         </div>
         @endif
 
         {{-- Booking Details --}}
-        <div class="section-title">Booking Details</div>
+        <div class="section-title">Subscription Details</div>
         <div class="detail-box">
             <div class="detail-row">
-                <span class="label">Booking Number</span>
+                <span class="label">Subscription Number</span>
                 <span class="value">{{ $booking->booking_number }}</span>
             </div>
             <div class="detail-row">
-                <span class="label">Tour</span>
+                <span class="label">Plan</span>
                 <span class="value">{{ $booking->tour->title }}</span>
             </div>
             <div class="detail-row">
-                <span class="label">Departure Date</span>
+                <span class="label">Start Date</span>
                 <span class="value">{{ $booking->tour_date->format('F d, Y') }}</span>
             </div>
             <div class="detail-row">
@@ -166,12 +166,12 @@
         <hr class="divider">
 
         <p style="font-size:14px;color:#4b5563;margin:0 0 8px">
-            You can view your booking details and pay upcoming installment terms anytime from your account.
+            You can view your subscription details and pay upcoming installment terms anytime from your account.
         </p>
 
         {{-- CTA button --}}
         <a href="{{ config('app.url') }}/bookings/{{ $booking->id }}" class="btn">
-            View My Booking
+            View My Subscription
         </a>
 
         <hr class="divider">

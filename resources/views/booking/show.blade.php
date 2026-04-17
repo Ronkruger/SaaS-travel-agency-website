@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Booking #' . $booking->booking_number)
+@section('title', 'Subscription #' . $booking->booking_number)
 
 @section('content')
 <div class="page-header">
     <div class="container">
-        <h1>Booking Details</h1>
+        <h1>Subscription Details</h1>
         <p>{{ $booking->booking_number }}</p>
     </div>
 </div>
@@ -35,7 +35,7 @@
 
                 <!-- Tour Info -->
                 <div class="card mb-4">
-                    <div class="card-header"><h4><i class="fas fa-map-marked-alt"></i> Tour Information</h4></div>
+                    <div class="card-header"><h4><i class="fas fa-map-marked-alt"></i> Plan Information</h4></div>
                     <div class="card-body">
                         <div class="tour-detail-row">
                             <img src="{{ cdn_url($booking->tour->main_image) }}"
@@ -53,15 +53,15 @@
 
                 <!-- Booking Details -->
                 <div class="card mb-4">
-                    <div class="card-header"><h4><i class="fas fa-clipboard-list"></i> Booking Details</h4></div>
+                    <div class="card-header"><h4><i class="fas fa-clipboard-list"></i> Subscription Details</h4></div>
                     <div class="card-body">
                         <div class="detail-grid">
                             <div class="detail-item">
-                                <span>Booking Number</span>
+                                <span>Subscription Number</span>
                                 <strong>{{ $booking->booking_number }}</strong>
                             </div>
                             <div class="detail-item">
-                                <span>Tour Date</span>
+                                <span>Start Date</span>
                                 <strong>{{ $booking->tour_date->format('M d, Y') }}</strong>
                             </div>
                             <div class="detail-item">

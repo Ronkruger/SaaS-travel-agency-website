@@ -262,8 +262,8 @@
 
     <div class="card mb-4" style="margin-top:2rem">
         <div class="card-header" style="background:#1e293b;color:#fff">
-            <h3 style="color:#fff"><i class="fas fa-file-pdf"></i> PDF Booking Confirmation Settings</h3>
-            <p style="margin:.25rem 0 0;font-size:.85rem;color:#94a3b8">Customize how generated booking confirmation PDFs look.</p>
+            <h3 style="color:#fff"><i class="fas fa-file-pdf"></i> PDF Subscription Confirmation Settings</h3>
+            <p style="margin:.25rem 0 0;font-size:.85rem;color:#94a3b8">Customize how generated subscription confirmation PDFs look.</p>
         </div>
         <div class="card-body">
 

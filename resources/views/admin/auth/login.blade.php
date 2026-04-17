@@ -190,16 +190,16 @@
             </div>
             <div class="brand-headline">
                 <h1>Manage Your<br>Agency.</h1>
-                <p>Sign in to manage tours, bookings, clients, team members, and your agency's operations from one place.</p>
+                <p>Sign in to manage plans, subscriptions, clients, team members, and your platform operations from one place.</p>
             </div>
             <div class="brand-features">
                 <div class="brand-feature">
                     <div class="feat-icon"><i class="fas fa-map-marked-alt"></i></div>
-                    <span>Tours &amp; Itinerary Management</span>
+                    <span>Plans &amp; Schedule Management</span>
                 </div>
                 <div class="brand-feature">
                     <div class="feat-icon"><i class="fas fa-calendar-check"></i></div>
-                    <span>Bookings &amp; Reservations</span>
+                    <span>Subscriptions &amp; Reservations</span>
                 </div>
                 <div class="brand-feature">
                     <div class="feat-icon"><i class="fas fa-users-cog"></i></div>

@@ -207,10 +207,10 @@
     </table>
 
     {{-- Booking Info --}}
-    <div class="section-title">Booking Information</div>
+    <div class="section-title">Subscription Information</div>
     <table class="details-table">
         <tr>
-            <td class="label">Booking Number</td>
+            <td class="label">Subscription Number</td>
             <td class="value">{{ $booking->booking_number }}</td>
         </tr>
         <tr>
@@ -223,16 +223,16 @@
         </tr>
         @if($booking->tour)
         <tr>
-            <td class="label">Tour</td>
+            <td class="label">Plan</td>
             <td class="value">{{ $booking->tour->title }}</td>
         </tr>
         <tr>
-            <td class="label">Travel Date</td>
+            <td class="label">Start Date</td>
             <td class="value">{{ $booking->tour_date ? \Carbon\Carbon::parse($booking->tour_date)->format('F d, Y') : '—' }}</td>
         </tr>
         @endif
         <tr>
-            <td class="label">Total Booking Amount</td>
+            <td class="label">Total Amount</td>
             <td class="value">₱{{ number_format($booking->total_amount, 2) }}</td>
         </tr>
         <tr>

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'The Complete Platform for Travel Agencies')
+@section('title', 'The Complete Platform for Businesses')
 
 @section('content')
 
@@ -9,7 +9,7 @@
     <div class="hero-overlay"></div>
     <div class="container">
         <div class="hero-content">
-            <span class="hero-label">Built for Travel Agencies</span>
+            <span class="hero-label">Built for Growing Businesses</span>
             <h1 class="hero-title">
                 <span class="hero-title-block">Run Your Agency</span>
                 <span class="hero-title-script">Smarter</span>
@@ -48,15 +48,15 @@
         <div class="icon-strip-grid">
             <div class="icon-strip-item">
                 <div class="icon-strip-circle icon-tours"><i class="fas fa-box-open"></i></div>
-                <span>Tour Builder</span>
+                <span>Plan Builder</span>
             </div>
             <div class="icon-strip-item">
                 <div class="icon-strip-circle icon-destinations"><i class="fas fa-handshake"></i></div>
-                <span>Bookings</span>
+                <span>Subscriptions</span>
             </div>
             <div class="icon-strip-item">
                 <div class="icon-strip-circle icon-popular"><i class="fas fa-magic"></i></div>
-                <span>AI Itineraries</span>
+                <span>AI Plan Builder</span>
             </div>
             <div class="icon-strip-item">
                 <div class="icon-strip-circle icon-buildtour"><i class="fas fa-chart-line"></i></div>
@@ -85,18 +85,18 @@
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
-                <h4>Tour Management</h4>
-                <p>Create, schedule and publish tours with availability calendars, pricing tiers, and slot tracking.</p>
+                <h4>Plan Management</h4>
+                <p>Create, schedule and publish plans with availability calendars, pricing tiers, and slot tracking.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
-                <h4>Booking Engine</h4>
-                <p>Accept bookings online, process payments, send confirmations, and track every reservation in real time.</p>
+                <h4>Subscription Engine</h4>
+                <p>Accept subscriptions online, process payments, send confirmations, and track every enrollment in real time.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-magic"></i></div>
-                <h4>AI Itinerary Builder</h4>
-                <p>Let clients design their own tours with your AI-powered DIY planner. Increase sales with zero extra effort.</p>
+                <h4>AI Plan Builder</h4>
+                <p>Let clients design their own plans with your AI-powered DIY planner. Increase sales with zero extra effort.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
@@ -280,7 +280,7 @@
     <div class="cta-overlay"></div>
     <div class="container">
         <div class="cta-content text-center">
-            <h2>Ready to Grow Your Travel Agency?</h2>
+            <h2>Ready to Grow Your Business?</h2>
             <p>Join agencies already using {{ $currentTenant->company_name ?? $currentTenant->name ?? 'TourSaaS' }} to streamline operations and boost revenue.</p>
             <div class="cta-btns">
                 <a href="{{ route('admin.auth.login') }}" class="btn btn-primary btn-lg">
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <form action="{{ route('tours.index') }}" method="GET" class="hero-search">
                 <div class="search-field">
                     <i class="fas fa-map-marker-alt"></i>
-                    <input type="text" name="search" placeholder="Where do you want to go?"
+                    <input type="text" name="search" placeholder="Search plans..."
                         value="{{ request('search') }}">
                 </div>
                 <div class="search-field">
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-search"></i> Search Tours
+                    <i class="fas fa-search"></i> Search Plans
                 </button>
             </form>
 
@@ -398,15 +398,15 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="hero-stats">
                 <div class="hero-stat">
                     <span class="stat-num">{{ number_format($stats['total_tours']) }}+</span>
-                    <span class="stat-label">Tours</span>
+                    <span class="stat-label">Plans</span>
                 </div>
                 <div class="hero-stat">
                     <span class="stat-num">{{ number_format($stats['destinations']) }}+</span>
-                    <span class="stat-label">Destinations</span>
+                    <span class="stat-label">Categories</span>
                 </div>
                 <div class="hero-stat">
                     <span class="stat-num">{{ number_format($stats['total_reviews']) }}+</span>
-                    <span class="stat-label">Happy Travelers</span>
+                    <span class="stat-label">Happy Subscribers</span>
                 </div>
             </div>
         </div>
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="icon-strip-circle icon-tours">
                     <i class="fas fa-map-marked-alt"></i>
                 </div>
-                <span>Tours</span>
+                <span>Plans</span>
             </a>
             <a href="{{ route('destinations.index') }}" class="icon-strip-item" aria-label="Destinations">
                 <div class="icon-strip-circle icon-destinations">
@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="icon-strip-circle icon-buildtour">
                     <i class="fas fa-magic"></i>
                 </div>
-                <span>Build My Tour</span>
+                <span>Build My Plan</span>
             </a>
             <a href="{{ route('about') }}" class="icon-strip-item" aria-label="About Us">
                 <div class="icon-strip-circle icon-about">
@@ -570,9 +570,9 @@ function carouselShift(id, dir) {
 <section class="section section-diy-choice">
     <div class="container">
         <div class="section-header text-center">
-            <span class="section-label">How Would You Like to Travel?</span>
-            <h2>Choose Your Perfect Adventure</h2>
-            <p class="section-subtitle">Whether you prefer a ready-made experience or a fully custom journey, we've got you covered.</p>
+            <span class="section-label">How Would You Like to Start?</span>
+            <h2>Choose Your Perfect Option</h2>
+            <p class="section-subtitle">Whether you prefer a ready-made plan or a fully custom solution, we've got you covered.</p>
         </div>
         <div class="diy-choice-grid">
             {{-- Package Tours Card --}}
@@ -583,15 +583,15 @@ function carouselShift(id, dir) {
                     </div>
                     <span class="diy-card-badge package-badge">Popular</span>
                 </div>
-                <h3>Package Tours</h3>
-                <p class="diy-card-desc">Pre-designed, expertly curated itineraries. Everything planned — just show up and enjoy.</p>
+                <h3>Package Plans</h3>
+                <p class="diy-card-desc">Pre-designed, expertly curated plans. Everything planned — just sign up and start.</p>
                 <ul class="diy-choice-features">
                     <li><i class="fas fa-check-circle"></i> From ₱150,000 per person</li>
                     <li><i class="fas fa-check-circle"></i> Guaranteed departures</li>
                     <li><i class="fas fa-check-circle"></i> Group &amp; private options</li>
                 </ul>
                 <a href="{{ route('tours.index') }}" class="diy-card-btn package-btn">
-                    Browse Tours <i class="fas fa-arrow-right"></i>
+                    Browse Plans <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
 
@@ -603,8 +603,8 @@ function carouselShift(id, dir) {
                     </div>
                     <span class="diy-card-badge ai-badge"><i class="fas fa-bolt"></i> AI-Powered</span>
                 </div>
-                <h3>Create Your Own Tour</h3>
-                <p class="diy-card-desc">Tell our AI your dream trip. It designs a personalised itinerary you can fully customise.</p>
+                <h3>Create Your Own Plan</h3>
+                <p class="diy-card-desc">Tell our AI your requirements. It designs a personalised plan you can fully customise.</p>
                 <ul class="diy-choice-features">
                     <li><i class="fas fa-check-circle"></i> 100% customisable</li>
                     <li><i class="fas fa-check-circle"></i> AI route optimisation</li>
@@ -631,8 +631,8 @@ function carouselShift(id, dir) {
     <div class="container">
         <div class="section-header text-center">
             <span class="section-label">Browse By</span>
-            <h2>Tour Categories</h2>
-            <p>Find tours that match your travel style</p>
+            <h2>Plan Categories</h2>
+            <p>Find plans that match your needs</p>
         </div>
         <div class="categories-grid">
             @foreach($categories as $cat)
@@ -653,7 +653,7 @@ function carouselShift(id, dir) {
         <div class="section-header">
             <div>
                 <span class="section-label">Handpicked</span>
-                <h2>Featured Tours</h2>
+                <h2>Featured Plans</h2>
             </div>
             <a href="{{ route('tours.index', ['sort' => 'popular']) }}" class="btn btn-outline">
                 View All <i class="fas fa-arrow-right"></i>
@@ -672,7 +672,7 @@ function carouselShift(id, dir) {
     <div class="container">
         <div class="section-header text-center">
             <span class="section-label">Why Us</span>
-            <h2>Travel With Confidence</h2>
+            <h2>Start With Confidence</h2>
         </div>
         <div class="features-grid">
             <div class="feature-card">
@@ -703,7 +703,7 @@ function carouselShift(id, dir) {
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-star"></i></div>
                 <h4>Verified Reviews</h4>
-                <p>All reviews come from verified travelers who completed their booking with us.</p>
+                <p>All reviews come from verified subscribers who completed their subscription with us.</p>
             </div>
         </div>
     </div>
@@ -715,7 +715,7 @@ function carouselShift(id, dir) {
         <div class="section-header">
             <div>
                 <span class="section-label">Highly Rated</span>
-                <h2>Top Rated Tours</h2>
+                <h2>Top Rated Plans</h2>
             </div>
             <a href="{{ route('tours.index', ['sort' => 'rating']) }}" class="btn btn-outline">
                 View All <i class="fas fa-arrow-right"></i>
@@ -734,7 +734,7 @@ function carouselShift(id, dir) {
 <section class="section section-gray">
     <div class="container">
         <div class="section-header text-center">
-            <span class="section-label">Travelers Say</span>
+            <span class="section-label">Clients Say</span>
             <h2>Real Reviews, Real Experiences</h2>
         </div>
         <div class="reviews-grid">
@@ -765,11 +765,11 @@ function carouselShift(id, dir) {
     <div class="cta-overlay"></div>
     <div class="container">
         <div class="cta-content text-center">
-            <h2>Ready for Your Next Adventure?</h2>
-            <p>Join thousands of happy travelers and book your dream tour today</p>
+            <h2>Ready for Your Next Step?</h2>
+            <p>Join thousands of happy subscribers and start your plan today</p>
             <div class="cta-btns">
                 <a href="{{ route('tours.index') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-search"></i> Explore Tours
+                    <i class="fas fa-search"></i> Explore Plans
                 </a>
                 @guest
                     <a href="{{ route('register') }}" class="btn btn-outline btn-lg btn-white">

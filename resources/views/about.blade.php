@@ -12,7 +12,7 @@
             </svg>
         </div>
         <h1 style="font-size:2.8rem;font-weight:800;color:#0A2D74;margin:0 0 12px">Discover Group</h1>
-        <p style="font-size:1.1rem;color:#374151;margin:0 0 12px">Creating Unforgettable Travel Experiences Since 2008</p>
+        <p style="font-size:1.1rem;color:#374151;margin:0 0 12px">Delivering Exceptional Business Solutions Since 2008</p>
         <p style="color:#F5A623;font-weight:600;font-size:.95rem"><i class="fas fa-map-marker-alt" style="margin-right:6px"></i>Quezon City, Philippines</p>
 
         <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:32px">
@@ -47,7 +47,7 @@
                     <i class="fas fa-users" style="color:#F5A623;font-size:1.4rem"></i>
                 </div>
                 <div style="font-size:2.2rem;font-weight:800;color:#0A2D74">32K+</div>
-                <div style="color:#6b7280;font-size:.9rem;margin-top:4px">Happy Travelers</div>
+                <div style="color:#6b7280;font-size:.9rem;margin-top:4px">Happy Subscribers</div>
             </div>
             <div>
                 <div style="width:64px;height:64px;background:#FEF3C7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
@@ -65,7 +65,7 @@
     <div class="container">
         <div style="text-align:center;margin-bottom:36px">
             <h2 style="font-size:2rem;font-weight:800;color:#0A2D74;margin:0 0 10px">Our Story</h2>
-            <p style="color:#6b7280;margin:0">Discover what makes us the trusted travel partner for thousands of adventurers</p>
+            <p style="color:#6b7280;margin:0">Discover what makes us the trusted service partner for thousands of satisfied clients</p>
         </div>
 
         {{-- Tab buttons --}}
@@ -124,7 +124,7 @@
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px">
                 @php
                     $services = [
-                        ['icon'=>'fa-plane','title'=>'International & Local Tours','desc'=>'From European adventures to Philippine wonders'],
+                        ['icon'=>'fa-plane','title'=>'International & Local Plans','desc'=>'From global adventures to local experiences'],
                         ['icon'=>'fa-file-alt','title'=>'Visa Assistance','desc'=>'Specializing in Japan visa processing'],
                         ['icon'=>'fa-globe','title'=>'Airline Ticketing','desc'=>'Best rates and flexible booking options'],
                         ['icon'=>'fa-briefcase','title'=>'Corporate Travel','desc'=>'Meetings, events, and team building'],
@@ -190,7 +190,7 @@
         <p style="color:#93c5fd;line-height:1.8;margin:0 0 32px;font-size:1.05rem">To provide every Filipino traveler with seamless, personalized, and value-packed travel experiences — from visa processing to door-to-door trip management.</p>
         <a href="{{ route('tours.index') }}"
            style="display:inline-flex;align-items:center;gap:8px;background:#F5A623;color:#fff;padding:13px 32px;border-radius:10px;font-weight:700;text-decoration:none;font-size:.95rem">
-            <i class="fas fa-compass"></i> Explore Our Tours
+            <i class="fas fa-compass"></i> Explore Our Plans
         </a>
     </div>
 </section>

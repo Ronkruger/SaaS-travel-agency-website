@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Find My Booking')
+@section('title', 'Find My Subscription')
 
 @section('content')
 <div class="page-header">
     <div class="container">
-        <h1>Find My Booking</h1>
-        <p>Link an existing reservation to your account</p>
+        <h1>Find My Subscription</h1>
+        <p>Link an existing subscription to your account</p>
     </div>
 </div>
 
@@ -22,19 +22,19 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4><i class="fas fa-search"></i> Find Your Reservation</h4>
+                        <h4><i class="fas fa-search"></i> Find Your Subscription</h4>
                     </div>
                     <div class="card-body">
                         <p class="text-muted mb-4">
-                            Already booked a tour with us before creating an account? Enter the name
-                            used on your reservation and the tour date below to link it to your account.
+                            Already subscribed to a plan with us before creating an account? Enter the name
+                            used on your subscription and the start date below to link it to your account.
                         </p>
 
                         <form action="{{ route('booking.claim') }}" method="POST">
                             @csrf
 
                             <div class="form-group mb-3">
-                                <label for="contact_name" class="form-label">Full Name on Booking <span class="text-danger">*</span></label>
+                                <label for="contact_name" class="form-label">Full Name on Subscription <span class="text-danger">*</span></label>
                                 <input
                                     type="text"
                                     name="contact_name"
@@ -50,7 +50,7 @@
                             </div>
 
                             <div class="form-group mb-4">
-                                <label for="tour_date" class="form-label">Tour Date <span class="text-danger">*</span></label>
+                                <label for="tour_date" class="form-label">Start Date <span class="text-danger">*</span></label>
                                 <input
                                     type="date"
                                     name="tour_date"

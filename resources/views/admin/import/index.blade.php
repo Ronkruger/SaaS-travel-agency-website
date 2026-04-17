@@ -172,7 +172,7 @@
     <div class="import-hero-icon"><i class="fas fa-table"></i></div>
     <div>
         <h2>Spreadsheet → Subscriptions</h2>
-        <p>Map your existing spreadsheet columns (Route Name, Travel Date, Client Names, PAX, Status, Payment Terms, Rate, Payments) directly to bookings. Missing tour schedules are auto-created.</p>
+        <p>Map your existing spreadsheet columns (Route Name, Start Date, Client Names, PAX, Status, Payment Terms, Rate, Payments) directly to subscriptions. Missing plan periods are auto-created.</p>
     </div>
 </div>
 
@@ -240,12 +240,12 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td><strong>B</strong></td><td><code>Route Name</code></td><td>Tour title (BUS suffix auto-stripped for matching)</td><td>ROUTE K DELUXE</td><td><span class="text-danger">Yes</span></td></tr>
-                <tr><td><strong>C</strong></td><td><code>Travel Date</code></td><td>Date range — start date is used for the schedule</td><td>FEB 11 - 21, 2026</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td><strong>B</strong></td><td><code>Route Name</code></td><td>Plan title (BUS suffix auto-stripped for matching)</td><td>ROUTE K DELUXE</td><td><span class="text-danger">Yes</span></td></tr>
+                <tr><td><strong>C</strong></td><td><code>Start Date</code></td><td>Date range — start date is used for the period</td><td>FEB 11 - 21, 2026</td><td><span class="text-danger">Yes</span></td></tr>
                 <tr><td><strong>D</strong></td><td><code>Names of Clients</code></td><td>Primary contact / lead traveler name</td><td>JUAN DELA CRUZ</td><td><span class="text-danger">Yes</span></td></tr>
                 <tr><td><strong>E</strong></td><td><code>PAX</code></td><td>Number of guests (defaults to 1 if empty)</td><td>2</td><td>No</td></tr>
                 <tr><td><strong>F</strong></td><td><code>Status</code></td><td><strong>Paid</strong> → confirmed + paid/partial. Others → pending.</td><td>Paid</td><td>No</td></tr>
-                <tr><td><strong>G</strong></td><td><code>Payment Terms</code></td><td>Full Cash / Downpayment / Instalment / Travel Fund / FOC</td><td>Full Cash</td><td>No</td></tr>
+                <tr><td><strong>G</strong></td><td><code>Payment Terms</code></td><td>Full Cash / Downpayment / Instalment / Credit Balance / FOC</td><td>Full Cash</td><td>No</td></tr>
                 <tr><td><strong>H</strong></td><td><code>Rate Per Person</code></td><td>Price per pax (₱ sign and commas ignored)</td><td>₱180,000.00</td><td>No (uses tour price)</td></tr>
                 <tr><td><strong>I</strong></td><td><code>1st Payment Date</code></td><td>Date of first payment (stored as booking note)</td><td>Apr 1, 2026</td><td>No</td></tr>
                 <tr><td><strong>J</strong></td><td><code>2nd Payment / Notes</code></td><td>Free-text notes (CONFIRMED DEPARTURE, REFUND, etc.)</td><td>CONFIRMED DEPARTURE</td><td>No</td></tr>
@@ -303,11 +303,11 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Tour / Route</th>
-                        <th>Travel Date</th>
+                        <th>Plan / Route</th>
+                        <th>Start Date</th>
                         <th>Client Name</th>
                         <th>PAX</th>
-                        <th>Booking</th>
+                        <th>Subscription</th>
                         <th>Payment</th>
                         <th>Terms</th>
                         <th>Rate/Person</th>

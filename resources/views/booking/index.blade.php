@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'My Bookings')
+@section('title', 'My Subscriptions')
 
 @section('content')
 <div class="page-header">
     <div class="container">
-        <h1><i class="fas fa-calendar-check"></i> My Bookings</h1>
-        <p>Track and manage all your tour reservations</p>
+        <h1><i class="fas fa-calendar-check"></i> My Subscriptions</h1>
+        <p>Track and manage all your plan subscriptions</p>
     </div>
 </div>
 
@@ -83,10 +83,10 @@
         @else
             <div class="empty-state large card">
                 <i class="fas fa-suitcase-rolling fa-4x text-muted"></i>
-                <h3 class="mt-3">No Bookings Yet</h3>
-                <p class="text-muted">Start exploring tours and book your first adventure!</p>
+                <h3 class="mt-3">No Subscriptions Yet</h3>
+                <p class="text-muted">Start exploring plans and subscribe today!</p>
                 <a href="{{ route('tours.index') }}" class="btn btn-primary btn-lg mt-3">
-                    <i class="fas fa-search"></i> Browse Tours
+                    <i class="fas fa-search"></i> Browse Plans
                 </a>
             </div>
         @endif
@@ -94,8 +94,8 @@
         <div class="text-center mt-5 pt-3" style="border-top:1px solid #eee;">
             <p class="text-muted">
                 <i class="fas fa-link"></i>
-                Booked with us before but don't see your reservation?
-                <a href="{{ route('booking.claim.show') }}" class="fw-semibold">Link your existing booking &rarr;</a>
+                Subscribed before but don't see your subscription?
+                <a href="{{ route('booking.claim.show') }}" class="fw-semibold">Link your existing subscription &rarr;</a>
             </p>
         </div>
     </div>

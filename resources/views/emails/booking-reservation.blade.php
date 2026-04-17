@@ -142,15 +142,15 @@
         <div class="section-title">Reservation Summary</div>
         <div class="detail-box">
             <div class="detail-row">
-                <span class="label">Booking Number</span>
+                <span class="label">Subscription Number</span>
                 <span class="value" style="color:#1e3a5f">{{ $booking->booking_number }}</span>
             </div>
             <div class="detail-row">
-                <span class="label">Tour</span>
+                <span class="label">Plan</span>
                 <span class="value">{{ $booking->tour->title }}</span>
             </div>
             <div class="detail-row">
-                <span class="label">Departure Date</span>
+                <span class="label">Start Date</span>
                 <span class="value">{{ $booking->tour_date->format('l, F d, Y') }}</span>
             </div>
             <div class="detail-row">

@@ -53,12 +53,12 @@
             <div class="alert alert-warning">
                 <strong>📋 Payment Reminder from DiscoverGRP</strong><br>
                 Our team is reaching out to remind you about your upcoming installment payment.
-                Please settle this at your earliest convenience to keep your booking active.
+                Please settle this at your earliest convenience to keep your subscription active.
             </div>
         @elseif($daysUntilDue === 0)
             <div class="alert alert-urgent">
                 <strong>🔔 Your installment payment is due today!</strong><br>
-                Please settle this payment today to keep your booking active and avoid any issues.
+                Please settle this payment today to keep your subscription active and avoid any issues.
             </div>
         @elseif($daysUntilDue <= 5)
             <div class="alert alert-warning">
@@ -80,10 +80,10 @@
         </p>
 
         {{-- Booking Details --}}
-        <p class="section-title">Booking Details</p>
+        <p class="section-title">Subscription Details</p>
         <div class="detail-box">
             <div class="detail-row">
-                <span class="label">Booking #</span>
+                <span class="label">Subscription #</span>
                 <span class="value">{{ $booking->booking_number }}</span>
             </div>
             <div class="detail-row">

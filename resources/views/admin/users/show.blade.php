@@ -44,19 +44,19 @@
 
 <div class="booking-admin-layout" style="grid-template-columns: 1fr 300px;">
 
-    {{-- Left: Bookings, Travel Fund History & Reviews --}}
+    {{-- Left: Subscriptions, Credit History & Reviews --}}
     <div>
         <div class="card mb-4">
             <div class="card-header">
-                <h3>Booking History</h3>
-                <span class="badge badge-primary">{{ $user->bookings->count() }} bookings</span>
+                <h3>Subscription History</h3>
+                <span class="badge badge-primary">{{ $user->bookings->count() }} subscriptions</span>
             </div>
             <div class="table-wrap">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Booking #</th>
-                            <th>Tour</th>
+                            <th>Sub #</th>
+                            <th>Plan</th>
                             <th>Date</th>
                             <th>Total</th>
                             <th>Status</th>
@@ -80,7 +80,7 @@
                         @empty
                         <tr>
                             <td colspan="6" class="text-center text-muted" style="padding:2rem;">
-                                No bookings found for this user
+                                No subscriptions found for this user
                             </td>
                         </tr>
                         @endforelse
@@ -92,7 +92,7 @@
         {{-- Travel Fund History --}}
         <div class="card mb-4">
             <div class="card-header">
-                <h3><i class="fas fa-wallet" style="color:#7c3aed"></i> Travel Fund History</h3>
+                <h3><i class="fas fa-wallet" style="color:#7c3aed"></i> Credit History</h3>
                 <span style="font-weight:700;color:{{ $travelFundBalance >= 0 ? '#16a34a' : '#dc2626' }}">
                     Balance: ₱{{ number_format($travelFundBalance, 2) }}
                 </span>
@@ -105,7 +105,7 @@
                             <tr>
                                 <th>Date</th>
                                 <th>Description</th>
-                                <th>Booking</th>
+                                <th>Subscription</th>
                                 <th>Type</th>
                                 <th>Amount</th>
                                 <th>By</th>
@@ -157,7 +157,7 @@
                 @else
                 <div class="text-center text-muted" style="padding:2rem">
                     <i class="fas fa-wallet" style="font-size:2rem;opacity:.3;display:block;margin-bottom:.5rem"></i>
-                    No travel fund entries yet
+                    No credit entries yet
                 </div>
                 @endif
             </div>
@@ -205,7 +205,7 @@
         </div>
     </div>
 
-    {{-- Right: User Info + Travel Fund Management --}}
+    {{-- Right: User Info + Credit Balance Management --}}
     <div>
         <div class="card" style="margin-bottom:1rem;">
             <div class="card-body" style="text-align:center;">
@@ -233,7 +233,7 @@
 
         {{-- Travel Fund Balance Card --}}
         <div class="tf-balance-card">
-            <div class="tf-label"><i class="fas fa-wallet"></i> Travel Fund Balance</div>
+            <div class="tf-label"><i class="fas fa-wallet"></i> Credit Balance</div>
             <div class="tf-amount">₱{{ number_format($travelFundBalance, 2) }}</div>
             <div style="font-size:.8rem;opacity:.7;margin-top:.5rem">
                 {{ $user->travelFunds->count() }} transaction{{ $user->travelFunds->count() != 1 ? 's' : '' }}
@@ -242,7 +242,7 @@
 
         {{-- Add Travel Fund --}}
         <div class="card mb-4">
-            <div class="card-header"><h4><i class="fas fa-plus-circle" style="color:#7c3aed"></i> Add / Deduct Fund</h4></div>
+            <div class="card-header"><h4><i class="fas fa-plus-circle" style="color:#7c3aed"></i> Add / Deduct Credits</h4></div>
             <div class="card-body">
                 <form action="{{ route('admin.travel-fund.store', $user) }}" method="POST">
                     @csrf
@@ -261,7 +261,7 @@
                     <div class="form-group" style="margin-bottom:.75rem">
                         <label style="font-size:.8rem;color:#6b7280;font-weight:600">Description *</label>
                         <input type="text" name="description" class="form-control"
-                               placeholder="e.g. Travel fund from booking DG-2026-001234"
+                               placeholder="e.g. Credits from subscription DG-2026-001234"
                                maxlength="255" style="margin-top:.25rem" required>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width:100%;background:#7c3aed;border-color:#7c3aed">

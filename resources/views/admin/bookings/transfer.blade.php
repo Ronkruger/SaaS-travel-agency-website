@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Transfer Booking ' . $booking->booking_number)
+@section('title', 'Transfer Subscription ' . $booking->booking_number)
 
 @section('skeleton')
     @include('admin.partials.skeleton-form')
@@ -31,16 +31,16 @@
 
 @section('content')
 <div class="page-title-row">
-    <h2 class="page-title"><i class="fas fa-exchange-alt"></i> Transfer Booking</h2>
+    <h2 class="page-title"><i class="fas fa-exchange-alt"></i> Transfer Subscription</h2>
     <a href="{{ route('admin.bookings.show', $booking) }}" class="btn btn-outline">
-        <i class="fas fa-arrow-left"></i> Back to Booking
+        <i class="fas fa-arrow-left"></i> Back to Subscription
     </a>
 </div>
 
 {{-- Current booking summary --}}
 <div class="transfer-summary">
     <div class="transfer-box">
-        <h5>Current Tour</h5>
+        <h5>Current Plan</h5>
         <div class="value">{{ $booking->tour?->title ?? '—' }}</div>
         <div class="sub">
             {{ $booking->tour_date?->format('M d, Y') ?? '—' }}
@@ -51,7 +51,7 @@
     </div>
     <div class="transfer-arrow"><i class="fas fa-arrow-right"></i></div>
     <div class="transfer-box" style="border-color:var(--primary,#0e7490)">
-        <h5>New Tour</h5>
+        <h5>New Plan</h5>
         <div class="value" id="newTourLabel">Select below…</div>
         <div class="sub" id="newScheduleLabel">&nbsp;</div>
     </div>
@@ -59,11 +59,11 @@
 
 {{-- Booking details --}}
 <div class="card mb-4">
-    <div class="card-header"><h4>Booking Details</h4></div>
+    <div class="card-header"><h4>Subscription Details</h4></div>
     <div class="card-body">
         <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem">
             <div>
-                <label style="font-size:.8rem;color:#64748b">Booking #</label>
+                <label style="font-size:.8rem;color:#64748b">Sub #</label>
                 <div style="font-weight:600">{{ $booking->booking_number }}</div>
             </div>
             <div>
@@ -88,17 +88,17 @@
 
 {{-- Transfer form --}}
 <form action="{{ route('admin.bookings.transfer.execute', $booking) }}" method="POST"
-      onsubmit="return confirm('Are you sure you want to transfer this booking?')">
+      onsubmit="return confirm('Are you sure you want to transfer this subscription?')">
     @csrf
 
     <div class="card mb-4">
-        <div class="card-header"><h4>Transfer To</h4></div>
+        <div class="card-header"><h4>Transfer To New Plan</h4></div>
         <div class="card-body">
 
             <div class="form-group">
-                <label>Destination Tour *</label>
+                <label>Destination Plan *</label>
                 <select name="tour_id" id="tourSelect" class="form-control @error('tour_id') is-invalid @enderror" required>
-                    <option value="">— Select Tour —</option>
+                    <option value="">— Select Plan —</option>
                     @foreach($tours as $tour)
                         <option value="{{ $tour->id }}"
                             {{ old('tour_id') == $tour->id ? 'selected' : '' }}>
@@ -112,7 +112,7 @@
             </div>
 
             <div class="form-group">
-                <label>Departure Schedule *</label>
+                <label>Target Period *</label>
                 <select name="schedule_id" id="scheduleSelect" class="form-control @error('schedule_id') is-invalid @enderror" required disabled>
                     <option value="">— Select tour first —</option>
                 </select>
@@ -123,7 +123,7 @@
 
             <div class="schedule-info" id="scheduleInfo">
                 <div class="info-row">
-                    <span class="label">Available Seats</span>
+                    <span class="label">Available Licenses</span>
                     <span class="val" id="infoAvailable">—</span>
                 </div>
                 <div class="info-row">

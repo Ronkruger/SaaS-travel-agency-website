@@ -79,7 +79,7 @@
         <div style="font-size:.8rem;color:#6b7280">paid cash bookings</div>
     </div>
     <div class="card" style="padding:1.25rem;border-left:4px solid #7c3aed">
-        <div style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em">Avg. per Booking</div>
+        <div style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em">Avg. per Subscription</div>
         @php $avg = $monthSummary['new_bookings'] > 0 ? $monthSummary['total_revenue'] / $monthSummary['new_bookings'] : 0; @endphp
         <div style="font-size:1.65rem;font-weight:800;color:#7c3aed;line-height:1.2;margin:.25rem 0">₱{{ number_format($avg, 0) }}</div>
         <div style="font-size:.8rem;color:#6b7280">average booking value</div>
@@ -188,7 +188,7 @@
     <div class="card" style="overflow:hidden">
         <div style="padding:1rem 1.25rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-weight:700;font-size:.9rem">
             <i class="fas fa-trophy" style="color:#f59e0b"></i>
-            Top Tours This Month
+            Top Plans This Month
         </div>
         @if($topTours->isEmpty())
             <div style="padding:2rem;text-align:center;color:#94a3b8">No bookings this month</div>
@@ -197,7 +197,7 @@
             <thead style="background:#f1f5f9">
                 <tr>
                     <th style="padding:.5rem .875rem;text-align:left;border-bottom:2px solid #e2e8f0;color:#475569">#</th>
-                    <th style="padding:.5rem .875rem;text-align:left;border-bottom:2px solid #e2e8f0;color:#475569">Tour</th>
+                    <th style="padding:.5rem .875rem;text-align:left;border-bottom:2px solid #e2e8f0;color:#475569">Plan</th>
                     <th style="padding:.5rem .875rem;text-align:right;border-bottom:2px solid #e2e8f0;color:#475569">Bookings</th>
                     <th style="padding:.5rem .875rem;text-align:right;border-bottom:2px solid #e2e8f0;color:#475569">Revenue</th>
                 </tr>

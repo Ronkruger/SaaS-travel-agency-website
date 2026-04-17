@@ -123,7 +123,7 @@
     <div>
         <!-- Status -->
         <div class="card mb-4">
-            <div class="card-header"><h4>Update Booking Status</h4></div>
+            <div class="card-header"><h4>Update Subscription Status</h4></div>
             <div class="card-body">
                 <form action="{{ route('admin.bookings.status', $booking) }}" method="POST" class="inline-form">
                     @csrf @method('PATCH')
@@ -370,7 +370,7 @@
                     @php
                         $presetOptions = [
                             ''                    => '— Select Status —',
-                            'Confirmed Departure' => 'Confirmed Departure',
+                            'Confirmed Start' => 'Confirmed Start',
                             'Travel Fund'         => 'Travel Fund',
                             'Float'               => 'Float',
                             'Floating'            => 'Floating',
@@ -412,7 +412,7 @@
 
                     @if($currentVal)
                     <div style="margin-top:.75rem;padding:.5rem .75rem;border-radius:.5rem;font-size:.9rem;
-                        {{ in_array($currentVal, ['Confirmed Departure']) ? 'background:#dcfce7;color:#166534;border:1px solid #86efac' :
+                        {{ in_array($currentVal, ['Confirmed Start']) ? 'background:#dcfce7;color:#166534;border:1px solid #86efac' :
                            (in_array($currentVal, ['Pending', 'Floating', 'Float', 'Pending Refund']) ? 'background:#fef9c3;color:#854d0e;border:1px solid #fde047' :
                            (str_contains(strtolower($currentVal), 'refund') ? 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5' :
                            'background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe')) }}">
@@ -445,13 +445,13 @@
         </script>
         @endif
 
-        <!-- Booking Info -->
+        <!-- Subscription Info -->
         <div class="card mb-4">
-            <div class="card-header"><h4>Booking Information</h4></div>
+            <div class="card-header"><h4>Subscription Information</h4></div>
             <div class="card-body">
                 <div class="detail-grid">
-                    <div class="detail-item"><span>Booking #</span><strong>{{ $booking->booking_number }}</strong></div>
-                    <div class="detail-item"><span>Tour Date</span><strong>{{ $booking->tour_date->format('M d, Y') }}</strong></div>
+                    <div class="detail-item"><span>Sub #</span><strong>{{ $booking->booking_number }}</strong></div>
+                    <div class="detail-item"><span>Start Date</span><strong>{{ $booking->tour_date->format('M d, Y') }}</strong></div>
                     <div class="detail-item"><span>Adults</span><strong>{{ $booking->adults }}</strong></div>
                     <div class="detail-item"><span>Children</span><strong>{{ $booking->children }}</strong></div>
                     <div class="detail-item"><span>Total Guests</span><strong>{{ $booking->total_guests }}</strong></div>
@@ -504,7 +504,7 @@
         @if(in_array($booking->status, ['cancelled', 'refunded']) && $booking->user_id)
         <div class="card mb-4" style="border:2px solid #c4b5fd">
             <div class="card-header" style="background:#faf5ff">
-                <h4 style="color:#7c3aed"><i class="fas fa-wallet"></i> Travel Fund</h4>
+                <h4 style="color:#7c3aed"><i class="fas fa-wallet"></i> Credit Balance</h4>
                 @php
                     $existingFund = \App\Models\TravelFund::where('booking_id', $booking->id)->where('type', 'credit')->exists();
                 @endphp
@@ -517,12 +517,12 @@
             <div class="card-body">
                 @if($existingFund)
                     <p style="font-size:.9rem;color:#6b7280;margin:0">
-                        A travel fund credit from this booking has already been issued to the client.
+                        A credit balance credit from this booking has already been issued to the client.
                         <a href="{{ route('admin.users.show', $booking->user_id) }}" style="color:#7c3aed">View client funds &rarr;</a>
                     </p>
                 @else
                     <p style="font-size:.875rem;color:#6b7280;margin:0 0 1rem">
-                        Move the client's paid amount to their Travel Fund.
+                        Move the client's paid amount to their Credit Balance.
                         A notification email will be sent to <strong>{{ $booking->contact_email }}</strong>.
                     </p>
                     <form action="{{ route('admin.bookings.travel-fund', $booking) }}" method="POST"
@@ -539,12 +539,12 @@
                             <div style="flex:2;min-width:200px">
                                 <label style="font-size:.8rem;color:#6b7280;font-weight:600">Note</label>
                                 <input type="text" name="description" class="form-control" style="margin-top:.25rem"
-                                       value="Travel Fund from cancelled booking {{ $booking->booking_number }}"
+                                       value="Credits from cancelled subscription {{ $booking->booking_number }}"
                                        maxlength="255">
                             </div>
                             <button type="submit" class="btn btn-primary"
                                     style="background:#7c3aed;border-color:#7c3aed;white-space:nowrap">
-                                <i class="fas fa-wallet"></i> Move to Travel Fund
+                                <i class="fas fa-wallet"></i> Move to Credit Balance
                             </button>
                         </div>
                     </form>
@@ -575,7 +575,7 @@
             </div>
             <div class="slot-avail-body">
                 <div class="slot-row">
-                    <span style="color:#64748b">Total Seats</span>
+                    <span style="color:#64748b">Total Licenses</span>
                     <strong>{{ $schedule->available_seats }}</strong>
                 </div>
                 <div class="slot-row">
@@ -603,17 +603,17 @@
                 </div>
                 @elseif($slotAvail === 0)
                 <div style="background:#fef9c3;border:1px solid #fde047;border-radius:.5rem;padding:.5rem .75rem;margin-top:.75rem;font-size:.8rem;color:#854d0e">
-                    <i class="fas fa-exclamation-circle"></i> No seats remaining
+                    <i class="fas fa-exclamation-circle"></i> No licenses remaining
                 </div>
                 @endif
             </div>
         </div>
         @endif
 
-        <!-- Tour Info -->
+        <!-- Plan Info -->
         @if($booking->tour)
         <div class="card mb-4">
-            <div class="card-header"><h4>Tour</h4></div>
+            <div class="card-header"><h4>Plan</h4></div>
             <div class="card-body">
                 @if($booking->tour->main_image)
                 <img src="{{ cdn_url($booking->tour->main_image) }}"
@@ -628,7 +628,7 @@
                 <p><i class="fas fa-clock"></i> {{ $booking->tour->duration_days }}D / {{ $booking->tour->duration_nights }}N</p>
                 @endif
                 <a href="{{ route('admin.tours.edit', $booking->tour) }}" class="btn btn-sm btn-outline">
-                    Edit Tour
+                    Edit Plan
                 </a>
             </div>
         </div>

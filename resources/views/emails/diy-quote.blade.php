@@ -54,10 +54,10 @@
             $quoteUrl  = url('/diy/' . $session->session_token . '/quote');
         @endphp
 
-        <p class="greeting">Hi <strong>{{ $user?->name ?? 'Traveler' }}</strong>,</p>
+        <p class="greeting">Hi <strong>{{ $user?->name ?? 'there' }}</strong>,</p>
 
         <div class="alert-info">
-            We've reviewed your custom itinerary and prepared an official quote for
+            We've reviewed your custom plan and prepared an official quote for
             <strong>{{ $tourName }}</strong>. Please review the details below and
             accept via the link at the bottom of this email.
         </div>
@@ -70,7 +70,7 @@
         <div class="section-title">Quote Details</div>
         <div class="detail-box">
             <div class="detail-row">
-                <span class="label">Tour Name</span>
+                <span class="label">Plan Name</span>
                 <span class="value">{{ $tourName }}</span>
             </div>
             <div class="detail-row">
@@ -82,7 +82,7 @@
                 <span class="value">{{ $prefs['group_size'] ?? '—' }} {{ ($prefs['group_size'] ?? 1) == 1 ? 'person' : 'people' }}</span>
             </div>
             <div class="detail-row">
-                <span class="label">Travel Month</span>
+                <span class="label">Start Month</span>
                 <span class="value">{{ ucfirst($prefs['travel_month'] ?? '—') }}</span>
             </div>
             <div class="detail-row">
@@ -118,7 +118,7 @@
         <hr class="divider">
 
         <p style="font-size:14px;color:#374151;text-align:center;margin:0 0 4px">
-            To review your full itinerary and accept this quote, click the button below.
+            To review your full plan and accept this quote, click the button below.
         </p>
         <p style="font-size:12px;color:#9ca3af;text-align:center;margin:0 0 0">
             This quote expires on <strong>{{ $quote->valid_until->format('F d, Y') }}</strong>.
