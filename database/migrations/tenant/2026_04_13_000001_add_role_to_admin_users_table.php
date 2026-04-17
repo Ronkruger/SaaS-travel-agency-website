@@ -13,11 +13,19 @@ return new class extends Migration
             $table->string('role', 30)->default('staff')->after('position');
         });
 
-        // Set existing IT Web Developer as super_admin
-        DB::table('admin_users')
-            ->where('department', 'it')
-            ->where('position', 'Web Developer')
+        // Promote the tenant owner (executives / Owner) to super_admin.
+        // Falls back to promoting any existing IT/Web Developer to preserve legacy behaviour.
+        $promoted = DB::table('admin_users')
+            ->where('department', 'executives')
+            ->where('position', 'Owner')
             ->update(['role' => 'super_admin']);
+
+        if ($promoted === 0) {
+            DB::table('admin_users')
+                ->where('department', 'it')
+                ->where('position', 'Web Developer')
+                ->update(['role' => 'super_admin']);
+        }
     }
 
     public function down(): void

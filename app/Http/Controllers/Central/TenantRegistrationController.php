@@ -57,6 +57,7 @@ class TenantRegistrationController extends Controller
             'password'     => Hash::make($validated['password']),
             'department'   => 'executives',
             'position'     => 'Owner',
+            'role'         => 'super_admin',
             'is_onboarded' => false,
         ]);
 

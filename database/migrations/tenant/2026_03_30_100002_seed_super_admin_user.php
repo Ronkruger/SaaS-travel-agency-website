@@ -8,16 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::table('admin_users')->insertOrIgnore([
-            'name'         => 'DiscoverGRP Admin',
-            'email'        => 'admin@discovergrp.com',
-            'password'     => Hash::make(env('ADMIN_PASSWORD', 'Admin@1234!')),
-            'department'   => 'it',
-            'position'     => 'Web Developer',
-            'is_onboarded' => true,
-            'created_at'   => now(),
-            'updated_at'   => now(),
-        ]);
+        // No-op: each tenant's super admin is created via the registration flow.
+        // Previously seeded a hardcoded developer account — removed for SaaS multi-tenancy.
     }
 
     public function down(): void
