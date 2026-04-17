@@ -9,7 +9,7 @@
         <img src="{{ cdn_url($tour->main_image, asset('images/tour-placeholder.jpg')) }}"
              alt="{{ $tour->title }}"
              loading="lazy"
-             onerror="this.src='{{ asset('images/tour-placeholder.jpg') }}'">
+             onerror="this.src='{{ global_asset('images/tour-placeholder.jpg') }}'">
 
         @if($tour->discount_percent > 0)
             <span class="tour-badge tour-badge--discount">-{{ $tour->discount_percent }}%</span>

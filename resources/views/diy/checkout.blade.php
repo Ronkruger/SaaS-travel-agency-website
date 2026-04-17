@@ -3,7 +3,7 @@
 @section('title', 'Checkout — ' . ($itinerary->tour_name ?? 'Custom Tour'))
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/diy.css') }}">
+<link rel="stylesheet" href="{{ global_asset('css/diy.css') }}">
 <style>
 .checkout-container { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
 .checkout-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,.08); overflow: hidden; }

@@ -3,7 +3,7 @@
 @section('title', 'Quote Request — ' . ($itinerary->tour_name ?? 'Your Custom Tour'))
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/diy.css') }}">
+<link rel="stylesheet" href="{{ global_asset('css/diy.css') }}">
 @endpush
 
 @section('content')

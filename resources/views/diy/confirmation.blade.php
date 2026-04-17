@@ -3,7 +3,7 @@
 @section('title', 'Payment Confirmed — ' . ($itinerary->tour_name ?? 'Custom Tour'))
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/diy.css') }}">
+<link rel="stylesheet" href="{{ global_asset('css/diy.css') }}">
 <style>
 .confirmation-container { max-width: 640px; margin: 3rem auto; padding: 0 1rem; text-align: center; }
 .confirmation-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,.08); padding: 3rem 2rem; }

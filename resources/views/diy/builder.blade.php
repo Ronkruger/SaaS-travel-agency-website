@@ -3,7 +3,7 @@
 @section('title', $itinerary->tour_name ?? 'Build Your Tour')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/diy.css') }}">
+<link rel="stylesheet" href="{{ global_asset('css/diy.css') }}">
 <link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
 @endpush
 
@@ -307,7 +307,7 @@
 
 @push('scripts')
 <script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
-<script src="{{ asset('js/diy-builder.js') }}"></script>
+<script src="{{ global_asset('js/diy-builder.js') }}"></script>
 <script>
 window.useChip = function (btn, text) {
     document.getElementById('aiInput').value = text;

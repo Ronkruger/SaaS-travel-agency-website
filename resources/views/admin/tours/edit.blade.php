@@ -548,7 +548,7 @@
 @push('scripts')
 <script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js'></script>
-<script src="{{ asset('js/admin-tour-form.js') }}"></script>
+<script src="{{ global_asset('js/admin-tour-form.js') }}"></script>
 <script>
 // Tab switching
 document.querySelectorAll('.tour-tab-btn').forEach(btn => {

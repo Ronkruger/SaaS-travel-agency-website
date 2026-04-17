@@ -10,8 +10,8 @@
     @if($brandFaviconUrl)
         <link rel="icon" href="{{ $brandFaviconUrl }}">
     @else
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-        <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ global_asset('favicon.svg') }}">
+        <link rel="alternate icon" href="{{ global_asset('favicon.ico') }}">
     @endif
     <meta name="theme-color" content="#0A2D74">
 
@@ -28,7 +28,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <link rel="stylesheet" href="{{ global_asset('css/styles.css') }}">
 
     @stack('styles')
 </head>
@@ -219,7 +219,7 @@
 </footer>
 
 <!-- Main JS -->
-<script src="{{ asset('js/main.js') }}"></script>
+<script src="{{ global_asset('js/main.js') }}"></script>
 @stack('scripts')
 </body>
 </html>
