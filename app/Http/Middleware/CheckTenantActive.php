@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class CheckTenantActive
 {
@@ -14,6 +15,9 @@ class CheckTenantActive
         if (!$tenant) {
             return $next($request);
         }
+
+        // Set URL default so all route() calls include the {tenant} parameter automatically
+        URL::defaults(['tenant' => $tenant->id]);
 
         if (!$tenant->is_active) {
             return response()->view('errors.tenant-inactive', [

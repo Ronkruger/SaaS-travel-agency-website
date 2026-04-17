@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\AdminUser;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -66,7 +67,7 @@ class AdminAuth0Controller extends Controller
                 'name'     => $this->sanitizeName(
                     $socialUser->getName() ?? $socialUser->getNickname() ?? 'Employee'
                 ),
-                'password' => bcrypt(Str::random(32)),
+                'password' => Hash::make(Str::random(32)),
                 'auth0_id' => $socialUser->getId(),
                 'avatar'   => $avatar,
             ]

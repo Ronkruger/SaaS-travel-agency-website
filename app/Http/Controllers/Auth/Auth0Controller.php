@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -74,7 +75,7 @@ class Auth0Controller extends Controller
             ['email' => $socialUser->getEmail()],
             [
                 'name'              => $this->sanitizeName($socialUser->getName() ?? $socialUser->getNickname() ?? 'User'),
-                'password'          => bcrypt(Str::random(32)), // unusable password — Auth0 handles auth
+                'password'          => Hash::make(Str::random(32)), // unusable password — Auth0 handles auth
                 'auth0_id'          => $socialUser->getId(),
                 'avatar'            => $avatar,
             ]
