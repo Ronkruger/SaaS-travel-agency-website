@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Sign In — DiscoverGRP</title>
+    <title>Admin Sign In — {{ $currentTenant->company_name ?? $currentTenant->name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -182,32 +182,32 @@
     <div class="auth-brand">
         <div class="brand-inner">
             <div class="brand-logo">
-                <div class="brand-logo-icon"><i class="fas fa-globe-asia"></i></div>
+                <div class="brand-logo-icon"><i class="fas fa-building"></i></div>
                 <div>
-                    <h2>DiscoverGRP</h2>
-                    <span>Employee Portal</span>
+                    <h2>{{ $currentTenant->company_name ?? $currentTenant->name }}</h2>
+                    <span>Admin Portal</span>
                 </div>
             </div>
             <div class="brand-headline">
-                <h1>Welcome Back,<br>Team.</h1>
-                <p>Sign in to the DiscoverGRP admin panel to manage tours, bookings, and customer experiences.</p>
+                <h1>Manage Your<br>Agency.</h1>
+                <p>Sign in to manage tours, bookings, clients, team members, and your agency's operations from one place.</p>
             </div>
             <div class="brand-features">
                 <div class="brand-feature">
-                    <div class="feat-icon"><i class="fas fa-shield-alt"></i></div>
-                    <span>Secure Employee-Only Access</span>
+                    <div class="feat-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <span>Tours &amp; Itinerary Management</span>
                 </div>
                 <div class="brand-feature">
-                    <div class="feat-icon"><i class="fas fa-chart-line"></i></div>
-                    <span>Real-time Reports &amp; Analytics</span>
+                    <div class="feat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <span>Bookings &amp; Reservations</span>
                 </div>
                 <div class="brand-feature">
                     <div class="feat-icon"><i class="fas fa-users-cog"></i></div>
-                    <span>Department-based Workflows</span>
+                    <span>Team &amp; Department Workflows</span>
                 </div>
                 <div class="brand-feature">
-                    <div class="feat-icon"><i class="fas fa-lock"></i></div>
-                    <span>Auth0 Single Sign-On</span>
+                    <div class="feat-icon"><i class="fas fa-chart-line"></i></div>
+                    <span>Analytics &amp; Reports</span>
                 </div>
             </div>
         </div>
@@ -218,7 +218,7 @@
         <div class="auth-card">
             <div class="auth-card-head">
                 <h3>Admin Sign In</h3>
-                <p>Access the DiscoverGRP Employee Portal</p>
+                <p>Access the {{ $currentTenant->company_name ?? $currentTenant->name }} Admin Portal</p>
             </div>
 
             @if(session('auth0_error'))
@@ -265,7 +265,7 @@
                     <input
                         id="email" type="email" name="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}"
                         value="{{ old('email') }}" required autofocus autocomplete="email"
-                        placeholder="you@discovergrp.com"
+                        placeholder="you@example.com"
                     >
                     @error('email')
                         <span class="invalid-feedback">{{ $message }}</span>
