@@ -235,6 +235,13 @@
                 </div>
             @endif
 
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    {{ session('success') }}
+                </div>
+            @endif
+
             @if($errors->has('email') && $errors->first('email') === 'The provided credentials do not match our records.')
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-circle"></i>

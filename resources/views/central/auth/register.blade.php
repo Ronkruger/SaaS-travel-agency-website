@@ -39,11 +39,11 @@
 @section('content')
 <div class="auth-page">
     <div class="auth-left">
-        <h1>Start your free<br>14-day trial</h1>
+        <h1>Start your free<br>30-day trial</h1>
         <p>Launch your full-featured travel agency platform in minutes. No credit card required.</p>
         <ul class="auth-benefits">
-            <li><i class="fas fa-check-circle"></i> Full access to all features for 14 days</li>
-            <li><i class="fas fa-check-circle"></i> Your own branded subdomain instantly</li>
+            <li><i class="fas fa-check-circle"></i> Full access to all features for 30 days</li>
+            <li><i class="fas fa-check-circle"></i> Your own agency portal instantly</li>
             <li><i class="fas fa-check-circle"></i> AI-powered tour builder included</li>
             <li><i class="fas fa-check-circle"></i> No credit card required to start</li>
             <li><i class="fas fa-check-circle"></i> Cancel or upgrade anytime</li>
@@ -75,20 +75,20 @@
             </div>
 
             <div class="form-group">
-                <label for="subdomain">Your Subdomain</label>
+                <label for="tenant_slug">Your Agency URL</label>
                 <div class="subdomain-wrap">
-                    <input type="text" id="subdomain" name="subdomain"
-                        value="{{ old('subdomain') }}"
+                    <span class="subdomain-suffix" style="border-left:none;border-right:1px solid var(--border);background:var(--bg-alt)">/t/</span>
+                    <input type="text" id="tenant_slug" name="tenant_slug"
+                        value="{{ old('tenant_slug') }}"
                         placeholder="sunshinetravel"
                         pattern="[a-z0-9][a-z0-9\-]*[a-z0-9]"
                         title="Lowercase letters, numbers and hyphens only"
-                        oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')"
-                        class="{{ $errors->has('subdomain') ? 'input-error' : '' }}"
+                        oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'');document.getElementById('slug-preview').textContent=this.value||'yourslug'"
+                        class="{{ $errors->has('tenant_slug') ? 'input-error' : '' }}"
                         required>
-                    <span class="subdomain-suffix">.{{ env('APP_DOMAIN', 'toursaas.com') }}</span>
                 </div>
-                <div class="hint">Lowercase letters, numbers and hyphens only.</div>
-                @error('subdomain')<div class="error-msg">{{ $message }}</div>@enderror
+                <div class="hint">Your admin panel will be at <strong>/t/<span id="slug-preview">{{ old('tenant_slug','yourslug') }}</span>/admin</strong>. Lowercase, numbers and hyphens only.</div>
+                @error('tenant_slug')<div class="error-msg">{{ $message }}</div>@enderror
             </div>
 
             <div class="form-row">
@@ -103,23 +103,8 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="plan">Plan (optional)</label>
-                <select id="plan" name="plan">
-                    <option value="">Free Trial (14 days, all features)</option>
-                    @foreach($plans as $plan)
-                        @if($plan->slug !== 'trial')
-                        <option value="{{ $plan->slug }}" {{ old('plan', request('plan')) === $plan->slug ? 'selected' : '' }}>
-                            {{ $plan->name }} — ${{ number_format($plan->monthly_price) }}/mo
-                        </option>
-                        @endif
-                    @endforeach
-                </select>
-                <div class="hint">You can change your plan anytime after signing up.</div>
-            </div>
-
             <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:.5rem">
-                <i class="fas fa-rocket"></i> Create My Agency
+                <i class="fas fa-rocket"></i> Start My Free Trial
             </button>
         </form>
 
