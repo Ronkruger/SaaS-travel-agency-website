@@ -218,7 +218,7 @@
         <div class="auth-card">
             <div class="auth-card-head">
                 <h3>Admin Sign In</h3>
-                <p>Access the {{ $currentTenant->company_name ?? $currentTenant->name }} Admin Portal</p>
+                <p>Access the {{ $currentTenant->company_name ?? $currentTenant->name }} Portal</p>
             </div>
 
             @if(session('auth0_error'))

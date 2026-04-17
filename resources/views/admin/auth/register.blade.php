@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Registration — DiscoverGRP</title>
+    <title>Employee Registration — {{ $currentTenant->company_name ?? $currentTenant->name ?? '' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -183,13 +183,13 @@
             <div class="brand-logo">
                 <div class="brand-logo-icon"><i class="fas fa-globe-asia"></i></div>
                 <div>
-                    <h2>DiscoverGRP</h2>
+                    <h2>{{ $currentTenant->company_name ?? $currentTenant->name ?? '' }}</h2>
                     <span>Employee Portal</span>
                 </div>
             </div>
             <div class="brand-headline">
                 <h1>Join the Team.</h1>
-                <p>Create your employee account and complete your profile to start using the DiscoverGRP admin panel.</p>
+                <p>Create your employee account and complete your profile to start using the admin panel.</p>
             </div>
             <div class="steps">
                 <div class="step">
@@ -222,7 +222,7 @@
         <div class="auth-card">
             <div class="auth-card-head">
                 <h3>Employee Registration</h3>
-                <p>All DiscoverGRP employee accounts are created through Auth0 SSO.</p>
+                <p>All employee accounts are created through Auth0 SSO.</p>
             </div>
 
             {{-- Auth0-only notice box --}}

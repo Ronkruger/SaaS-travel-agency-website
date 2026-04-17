@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Profile — DiscoverGRP</title>
+    <title>Complete Your Profile — {{ $currentTenant->company_name ?? $currentTenant->name ?? '' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -211,7 +211,7 @@
     <div class="onboard-logo">
         <div class="onboard-logo-icon"><i class="fas fa-globe-asia"></i></div>
         <div>
-            <h2>DiscoverGRP</h2>
+            <h2>{{ $currentTenant->company_name ?? $currentTenant->name ?? '' }}</h2>
             <span>Employee Portal</span>
         </div>
     </div>

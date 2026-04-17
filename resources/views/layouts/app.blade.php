@@ -170,7 +170,7 @@
                 </div>
                 <p>Your trusted partner in creating exceptional travel experiences. Discover the world with confidence and style.</p>
                 <div class="social-links">
-                    <a href="https://www.facebook.com/discovergrp" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://www.instagram.com/discover_grp/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
@@ -188,7 +188,7 @@
                 <ul class="contact-list">
                     <li><i class="fas fa-map-marker-alt"></i> 22nd Floor, The Upper Class Tower<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Quezon Ave, Diliman, QC 1103</li>
                     <li><i class="fas fa-phone"></i> 02 8554 6954</li>
-                    <li><i class="fas fa-envelope"></i> inquiry@discovergrp.com</li>
+                    <li><i class="fas fa-envelope"></i> {{ $currentTenant->email ?? '' }}</li>
                 </ul>
             </div>
             <div class="footer-col">
