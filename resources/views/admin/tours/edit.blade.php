@@ -80,11 +80,11 @@
                 <div class="tour-tabs-nav" role="tablist">
                     <button type="button" class="tour-tab-btn active" data-tab="basic"><i class="fas fa-info-circle"></i> Basic Info</button>
                     <button type="button" class="tour-tab-btn" data-tab="pricing"><i class="fas fa-tag"></i> Pricing</button>
-                    <button type="button" class="tour-tab-btn" data-tab="dates"><i class="fas fa-calendar"></i> Travel Dates</button>
+                    <button type="button" class="tour-tab-btn" data-tab="dates"><i class="fas fa-calendar"></i> Plan Dates</button>
                     <button type="button" class="tour-tab-btn" data-tab="content"><i class="fas fa-images"></i> Content</button>
-                    <button type="button" class="tour-tab-btn" data-tab="itinerary"><i class="fas fa-list-ol"></i> Itinerary</button>
-                    <button type="button" class="tour-tab-btn" data-tab="stops"><i class="fas fa-map-marker-alt"></i> Stops</button>
-                    <button type="button" class="tour-tab-btn" data-tab="booking"><i class="fas fa-bookmark"></i> Booking</button>
+                    <button type="button" class="tour-tab-btn" data-tab="itinerary"><i class="fas fa-list-ol"></i> Features</button>
+                    <button type="button" class="tour-tab-btn" data-tab="stops"><i class="fas fa-map-marker-alt"></i> Milestones</button>
+                    <button type="button" class="tour-tab-btn" data-tab="booking"><i class="fas fa-bookmark"></i> Enrollment</button>
                     <button type="button" class="tour-tab-btn" data-tab="extras"><i class="fas fa-gift"></i> Extras</button>
                 </div>
             </div>
@@ -236,7 +236,7 @@
 
         <!-- ── TAB 3: TRAVEL DATES ────────────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-dates">
-            <div class="card-header"><h4>Travel Dates</h4></div>
+            <div class="card-header"><h4>Plan Dates</h4></div>
             <div class="card-body">
 
                 <h5>Travel Window</h5>
@@ -326,7 +326,7 @@
 
         <!-- ── TAB 5: ITINERARY ───────────────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-itinerary">
-            <div class="card-header"><h4>Day-by-Day Itinerary</h4></div>
+            <div class="card-header"><h4>Features &amp; Deliverables</h4></div>
             <div class="card-body">
                 <div id="itineraryContainer"></div>
                 <button type="button" class="btn btn-outline btn-sm" onclick="addItineraryDay()">
@@ -337,7 +337,7 @@
 
         <!-- ── TAB 6: STOPS & GEOGRAPHY ──────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-stops">
-            <div class="card-header"><h4>Route Map &amp; Day-by-Day Itinerary</h4></div>
+            <div class="card-header"><h4>Milestones &amp; Deliverables Map</h4></div>
             <div class="card-body">
 
                 {{-- Mapbox Route Map --}}
@@ -346,7 +346,7 @@
                      style="height:420px;border-radius:10px;margin-bottom:1.5rem;background:#e8edf3;"
                      data-mapbox-token="{{ config('ai.mapbox_token') }}"></div>
 
-                <h5>Itinerary Days <small class="text-muted">(in travel order)</small></h5>
+                <h5>Milestones <small class="text-muted">(in order)</small></h5>
                 <div class="itinerary-days-scroll">
                     <div id="fullStopsContainer"></div>
                 </div>
@@ -398,7 +398,7 @@
 
         <!-- ── TAB 7: BOOKING ─────────────────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-booking">
-            <div class="card-header"><h4>Booking</h4></div>
+            <div class="card-header"><h4>Enrollment</h4></div>
             <div class="card-body">
 
                 <h5>Flipbook / Presentation Links</h5>
@@ -459,7 +459,7 @@
             <div class="card-header"><h4>Extras</h4></div>
             <div class="card-body">
 
-                <h5>Optional Tours / Excursions</h5>
+                <h5>Optional Add-ons</h5>
                 <div id="optionalToursContainer"></div>
                 <button type="button" class="btn btn-outline btn-sm" onclick="addOptionalTour()">
                     <i class="fas fa-plus"></i> Add Optional Tour

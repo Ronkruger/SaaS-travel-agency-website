@@ -83,8 +83,8 @@
              onkeydown="if(event.key==='Enter'||event.key===' ')toggleSmartPaste()">
             <div class="ai-paste-icon"><i class="fas fa-magic"></i></div>
             <div style="flex:1">
-                <div style="font-weight:700;color:#1e293b;font-size:.9375rem">AI Smart Paste &mdash; Auto-fill from Tour Text</div>
-                <div style="font-size:.8125rem;color:#64748b;margin-top:.15rem">Paste your tour brief text and let the form fill itself automatically</div>
+                <div style="font-weight:700;color:#1e293b;font-size:.9375rem">AI Smart Paste &mdash; Auto-fill from Plan Text</div>
+                <div style="font-size:.8125rem;color:#64748b;margin-top:.15rem">Paste your plan brief text and let the form fill itself automatically</div>
             </div>
             <span id="aiPasteChevron" style="color:#7c3aed;font-weight:600;font-size:.875rem;white-space:nowrap">
                 Open <i class="fas fa-chevron-down"></i>
@@ -92,7 +92,7 @@
         </div>
         <div id="aiSmartPasteBody" style="display:none;border-top:1px solid #e2e8f0;margin-top:1rem;padding-top:1rem">
             <p style="font-size:.875rem;color:#475569;margin-bottom:.75rem">
-                Paste your raw tour description below (dates, prices, optional tours, countries, freebies, downpayment rules &mdash; all supported).
+                Paste your raw plan description below (dates, prices, features, inclusions, downpayment rules &mdash; all supported).
             </p>
             <textarea id="aiPasteInput" class="form-control" rows="9"
                 style="font-family:monospace;font-size:.8125rem;background:#fafafa;line-height:1.6"
@@ -122,11 +122,11 @@
                 <div class="tour-tabs-nav" role="tablist">
                     <button type="button" class="tour-tab-btn active" data-tab="basic"><i class="fas fa-info-circle"></i> Basic Info</button>
                     <button type="button" class="tour-tab-btn" data-tab="pricing"><i class="fas fa-tag"></i> Pricing</button>
-                    <button type="button" class="tour-tab-btn" data-tab="dates"><i class="fas fa-calendar"></i> Travel Dates</button>
+                    <button type="button" class="tour-tab-btn" data-tab="dates"><i class="fas fa-calendar"></i> Plan Dates</button>
                     <button type="button" class="tour-tab-btn" data-tab="content"><i class="fas fa-images"></i> Content</button>
-                    <button type="button" class="tour-tab-btn" data-tab="itinerary"><i class="fas fa-list-ol"></i> Itinerary</button>
-                    <button type="button" class="tour-tab-btn" data-tab="stops"><i class="fas fa-map-marker-alt"></i> Stops</button>
-                    <button type="button" class="tour-tab-btn" data-tab="booking"><i class="fas fa-bookmark"></i> Booking</button>
+                    <button type="button" class="tour-tab-btn" data-tab="itinerary"><i class="fas fa-list-ol"></i> Features</button>
+                    <button type="button" class="tour-tab-btn" data-tab="stops"><i class="fas fa-map-marker-alt"></i> Milestones</button>
+                    <button type="button" class="tour-tab-btn" data-tab="booking"><i class="fas fa-bookmark"></i> Enrollment</button>
                     <button type="button" class="tour-tab-btn" data-tab="extras"><i class="fas fa-gift"></i> Extras</button>
                 </div>
             </div>
@@ -222,7 +222,7 @@
                 <div class="form-group">
                     <label>Summary</label>
                     <textarea name="summary" class="form-control" rows="4"
-                        placeholder="Full description shown on the tour detail page...">{{ old('summary') }}</textarea>
+                        placeholder="Full description shown on the plan detail page...">{{ old('summary') }}</textarea>
                 </div>
 
                 <div class="form-group">
@@ -275,7 +275,7 @@
 
         <!-- ── TAB 3: TRAVEL DATES ────────────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-dates">
-            <div class="card-header"><h4>Travel Dates</h4></div>
+            <div class="card-header"><h4>Plan Dates</h4></div>
             <div class="card-body">
 
                 <h5>Travel Window (overall availability window)</h5>
@@ -338,7 +338,7 @@
 
         <!-- ── TAB 5: ITINERARY ───────────────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-itinerary">
-            <div class="card-header"><h4>Day-by-Day Itinerary</h4></div>
+            <div class="card-header"><h4>Features &amp; Deliverables</h4></div>
             <div class="card-body">
                 <div id="itineraryContainer"></div>
                 <button type="button" class="btn btn-outline btn-sm" onclick="addItineraryDay()">
@@ -349,7 +349,7 @@
 
         <!-- ── TAB 6: STOPS & GEOGRAPHY ──────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-stops">
-            <div class="card-header"><h4>Route Map &amp; Day-by-Day Itinerary</h4></div>
+            <div class="card-header"><h4>Milestones &amp; Deliverables Map</h4></div>
             <div class="card-body">
 
                 {{-- Mapbox Route Map --}}
@@ -358,7 +358,7 @@
                      style="height:420px;border-radius:10px;margin-bottom:1.5rem;background:#e8edf3;"
                      data-mapbox-token="{{ config('ai.mapbox_token') }}"></div>
 
-                <h5>Itinerary Days <small class="text-muted">(in travel order)</small></h5>
+                <h5>Milestones <small class="text-muted">(in order)</small></h5>
                 <div class="itinerary-days-scroll">
                     <div id="fullStopsContainer"></div>
                 </div>
@@ -412,7 +412,7 @@
 
         <!-- ── TAB 7: BOOKING ─────────────────────────────────────────── -->
         <div class="tour-tab-panel card mb-4" id="tab-booking">
-            <div class="card-header"><h4>Booking</h4></div>
+            <div class="card-header"><h4>Enrollment</h4></div>
             <div class="card-body">
 
                 <h5>Flipbook / Presentation Links</h5>
@@ -473,7 +473,7 @@
             <div class="card-header"><h4>Extras</h4></div>
             <div class="card-body">
 
-                <h5>Optional Tours / Excursions</h5>
+                <h5>Optional Add-ons</h5>
                 <p class="text-muted" style="font-size:.85rem">Add optional paid excursions guests can add to their trip.</p>
                 <div id="optionalToursContainer"></div>
                 <button type="button" class="btn btn-outline btn-sm" onclick="addOptionalTour()">
