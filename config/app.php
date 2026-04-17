@@ -16,6 +16,7 @@ return [
     'maintenance' => ['driver' => 'file'],
 
     'providers' => Illuminate\Support\ServiceProvider::defaultProviders()->merge([
+        App\Providers\TenancyServiceProvider::class,
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
         App\Providers\EventServiceProvider::class,

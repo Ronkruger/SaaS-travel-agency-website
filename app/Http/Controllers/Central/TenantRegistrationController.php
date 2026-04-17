@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Http\Controllers\Central;
+
+use App\Http\Controllers\Controller;
+use App\Models\Tenant;
+use App\Models\Plan;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
+
+class TenantRegistrationController extends Controller
+{
+    public function showRegistrationForm()
+    {
+        $plans = Plan::active()->get();
+        return view('central.auth.register', compact('plans'));
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:tenants,email'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+            'company_name' => ['required', 'string', 'max:255'],
+            'subdomain' => [
+                'required',
+                'string',
+                'max:63',
+                'regex:/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/',
+                'unique:domains,domain',
+            ],
+            'plan' => ['nullable', 'string', 'exists:plans,slug'],
+        ]);
+
+        $tenantId = Str::slug($validated['subdomain']);
+
+        $tenant = Tenant::create([
+            'id' => $tenantId,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'company_name' => $validated['company_name'],
+            'plan' => $validated['plan'] ?? 'trial',
+            'trial_ends_at' => now()->addDays(14),
+            'is_active' => true,
+        ]);
+
+        $tenant->domains()->create([
+            'domain' => $validated['subdomain'] . '.' . $this->getBaseDomain(),
+        ]);
+
+        // Log in as tenant owner
+        session(['tenant_owner' => $tenant->id]);
+
+        $tenantUrl = $this->getTenantUrl($validated['subdomain']);
+
+        return redirect()->away($tenantUrl)
+            ->with('success', 'Your travel agency has been created! You can now set up your platform.');
+    }
+
+    public function showLoginForm()
+    {
+        return view('central.auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        $tenant = Tenant::where('email', $validated['email'])->first();
+
+        if (!$tenant || !Hash::check($validated['password'], $tenant->password)) {
+            return back()->withErrors(['email' => 'Invalid credentials.'])->withInput($request->only('email'));
+        }
+
+        session(['tenant_owner' => $tenant->id]);
+
+        return redirect()->route('central.billing.index');
+    }
+
+    public function logout(Request $request)
+    {
+        $request->session()->forget('tenant_owner');
+        return redirect()->route('central.home');
+    }
+
+    protected function getBaseDomain(): string
+    {
+        return env('APP_DOMAIN', 'localhost');
+    }
+
+    protected function getTenantUrl(string $subdomain): string
+    {
+        $scheme = request()->secure() ? 'https' : 'http';
+        $domain = $this->getBaseDomain();
+        $port = request()->getPort();
+
+        $url = "{$scheme}://{$subdomain}.{$domain}";
+        if ($port && !in_array($port, [80, 443])) {
+            $url .= ":{$port}";
+        }
+
+        return $url;
+    }
+}

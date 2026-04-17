@@ -28,6 +28,10 @@ return [
             'driver'   => 'session',
             'provider' => 'admin_users',
         ],
+        'platform' => [
+            'driver'   => 'session',
+            'provider' => 'platform_admins',
+        ],
     ],
 
     /*
@@ -44,6 +48,10 @@ return [
         'admin_users' => [
             'driver' => 'eloquent',
             'model'  => App\Models\AdminUser::class,
+        ],
+        'platform_admins' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\PlatformAdmin::class,
         ],
     ],
 

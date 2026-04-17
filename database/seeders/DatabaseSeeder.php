@@ -8,11 +8,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Central (platform-level) seeders
         $this->call([
-            AdminUserSeeder::class,
-            UserSeeder::class,
-            CategorySeeder::class,
-            TourSeeder::class,
+            PlansSeeder::class,
+            PlatformAdminSeeder::class,
         ]);
     }
 }

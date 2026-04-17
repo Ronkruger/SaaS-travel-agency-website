@@ -8,5 +8,6 @@ class VerifyCsrfToken extends Middleware
 {
     protected $except = [
         'xendit/webhook',
+        'stripe/webhook',
     ];
 }

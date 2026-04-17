@@ -49,5 +49,7 @@ class Kernel extends HttpKernel
         'guest.admin'     => \App\Http\Middleware\AdminGuest::class,
         'secure.resource' => \App\Http\Middleware\SecureResourceAccess::class,
         'admin.can'       => \App\Http\Middleware\CheckAdminPermission::class,
+        'auth.tenant_owner' => \App\Http\Middleware\AuthenticateTenantOwner::class,
+        'tenant.active'   => \App\Http\Middleware\CheckTenantActive::class,
     ];
 }

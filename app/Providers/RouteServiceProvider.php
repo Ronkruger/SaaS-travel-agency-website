@@ -13,6 +13,11 @@ class RouteServiceProvider extends ServiceProvider
 {
     public const HOME = '/';
 
+    protected function centralDomains(): array
+    {
+        return config('tenancy.central_domains', ['localhost']);
+    }
+
     public function boot(): void
     {
         $this->configureRateLimiting();
@@ -25,12 +30,18 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
+            // Central domain routes (SaaS platform, billing, platform admin)
+            foreach ($this->centralDomains() as $domain) {
+                Route::middleware('web')
+                    ->domain($domain)
+                    ->group(base_path('routes/central.php'));
+            }
+
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
+            // Tenant routes are handled by TenancyServiceProvider via routes/tenant.php
         });
     }
 
