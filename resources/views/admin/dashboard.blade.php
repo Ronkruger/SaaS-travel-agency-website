@@ -18,45 +18,45 @@
 <!-- Stats Cards -->
 <div class="stats-grid">
     <div class="stat-card stat-card--blue">
-        <div class="stat-icon"><i class="fas fa-map-marked-alt"></i></div>
+        <div class="stat-icon"><i class="fas fa-box-open"></i></div>
         <div class="stat-info">
             <span class="stat-value" id="stat-active-tours">{{ $stats['active_tours'] }}</span>
-            <span class="stat-label">Active Tours</span>
+            <span class="stat-label">Active Plans</span>
         </div>
     </div>
     <div class="stat-card stat-card--green">
-        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-icon"><i class="fas fa-handshake"></i></div>
         <div class="stat-info">
             <span class="stat-value" id="stat-total-bookings">{{ $stats['total_bookings'] }}</span>
-            <span class="stat-label">Total Bookings</span>
+            <span class="stat-label">Total Subscriptions</span>
         </div>
     </div>
     <div class="stat-card stat-card--orange">
-        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+        <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
         <div class="stat-info">
             <span class="stat-value" id="stat-pending-bookings">{{ $stats['pending_bookings'] }}</span>
-            <span class="stat-label">Pending Bookings</span>
+            <span class="stat-label">Trial Users</span>
         </div>
     </div>
     <div class="stat-card stat-card--purple">
-        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
         <div class="stat-info">
             <span class="stat-value" id="stat-total-revenue">₱{{ number_format($stats['total_revenue'], 0) }}</span>
-            <span class="stat-label">Total Revenue</span>
+            <span class="stat-label">MRR</span>
         </div>
     </div>
     <div class="stat-card stat-card--teal">
-        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-icon"><i class="fas fa-building"></i></div>
         <div class="stat-info">
             <span class="stat-value" id="stat-total-users">{{ $stats['total_users'] }}</span>
-            <span class="stat-label">Registered Users</span>
+            <span class="stat-label">Total Clients</span>
         </div>
     </div>
     <div class="stat-card stat-card--yellow">
-        <div class="stat-icon"><i class="fas fa-star"></i></div>
+        <div class="stat-icon"><i class="fas fa-comment-dots"></i></div>
         <div class="stat-info">
             <span class="stat-value" id="stat-pending-reviews">{{ $stats['pending_reviews'] }}</span>
-            <span class="stat-label">Pending Reviews</span>
+            <span class="stat-label">Pending Testimonials</span>
         </div>
     </div>
 </div>
@@ -84,7 +84,7 @@
     <!-- Recent Bookings -->
     <div class="card">
         <div class="card-header">
-            <h4><i class="fas fa-calendar-check"></i> Recent Bookings</h4>
+            <h4><i class="fas fa-handshake"></i> Recent Subscriptions</h4>
             <a href="{{ route('admin.bookings.index') }}" class="btn btn-sm btn-outline">View All</a>
         </div>
         <div class="table-scroll-outer" id="bookingsScrollOuter">
@@ -92,9 +92,9 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Booking #</th>
-                        <th>Customer</th>
-                        <th>Tour</th>
+                        <th>Ref #</th>
+                        <th>Client</th>
+                        <th>Plan</th>
                         <th>Date</th>
                         <th>Amount</th>
                         <th>Status</th>
@@ -127,7 +127,7 @@
     <div>
         <div class="card mb-4">
             <div class="card-header">
-                <h4><i class="fas fa-trophy"></i> Top Tours</h4>
+                <h4><i class="fas fa-trophy"></i> Top Plans</h4>
             </div>
             <div class="card-body p-0">
                 @foreach($topTours as $tour)
@@ -135,7 +135,7 @@
                         <img src="{{ cdn_url($tour->main_image) }}" alt="{{ $tour->title }}" class="top-item-img">
                         <div class="top-item-info">
                             <strong>{{ Str::limit($tour->title, 35) }}</strong>
-                            <span>{{ $tour->total_bookings }} bookings</span>
+                            <span>{{ $tour->total_bookings }} subscriptions</span>
                         </div>
                         <div class="top-item-rating">
                             <i class="fas fa-star text-yellow"></i>
@@ -149,8 +149,8 @@
         @if($stats['pending_reviews'] > 0)
             <div class="card alert-card">
                 <div class="card-body text-center">
-                    <i class="fas fa-star fa-2x text-yellow mb-2"></i>
-                    <h5>{{ $stats['pending_reviews'] }} Pending Reviews</h5>
+                    <i class="fas fa-comment-dots fa-2x text-yellow mb-2"></i>
+                    <h5>{{ $stats['pending_reviews'] }} Pending Testimonials</h5>
                     <a href="{{ route('admin.reviews.index', ['status' => 'pending']) }}" class="btn btn-sm btn-warning">
                         Review Them
                     </a>

@@ -1,5 +1,363 @@
 @extends('layouts.app')
-@section('title', 'Home')
+@section('title', 'The Complete Platform for Travel Agencies')
+
+@section('content')
+
+<!-- Hero Section -->
+<section class="hero saas-hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="container">
+        <div class="hero-content">
+            <span class="hero-label">Built for Travel Agencies</span>
+            <h1 class="hero-title">
+                <span class="hero-title-block">Run Your Agency</span>
+                <span class="hero-title-script">Smarter</span>
+            </h1>
+            <p class="hero-subtitle">{{ $currentTenant->company_name ?? $currentTenant->name ?? 'TourSaaS' }} gives your travel agency everything it needs — bookings, tours, staff, payments, and AI-powered itineraries — in one platform.</p>
+            <div class="saas-hero-actions">
+                <a href="{{ route('admin.auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> Start Free Trial
+                </a>
+                <a href="{{ route('contact') }}" class="btn btn-outline btn-lg btn-white">
+                    <i class="fas fa-phone"></i> Book a Demo
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="stat-num">30</span>
+                    <span class="stat-label">Day Free Trial</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-num">0</span>
+                    <span class="stat-label">Setup Fees</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="stat-num">24/7</span>
+                    <span class="stat-label">Support</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hero-scroll"><i class="fas fa-chevron-down"></i></div>
+</section>
+
+<!-- Feature Icons Strip -->
+<section class="section-icon-strip">
+    <div class="container">
+        <div class="icon-strip-grid">
+            <div class="icon-strip-item">
+                <div class="icon-strip-circle icon-tours"><i class="fas fa-box-open"></i></div>
+                <span>Tour Builder</span>
+            </div>
+            <div class="icon-strip-item">
+                <div class="icon-strip-circle icon-destinations"><i class="fas fa-handshake"></i></div>
+                <span>Bookings</span>
+            </div>
+            <div class="icon-strip-item">
+                <div class="icon-strip-circle icon-popular"><i class="fas fa-magic"></i></div>
+                <span>AI Itineraries</span>
+            </div>
+            <div class="icon-strip-item">
+                <div class="icon-strip-circle icon-buildtour"><i class="fas fa-chart-line"></i></div>
+                <span>Analytics</span>
+            </div>
+            <div class="icon-strip-item">
+                <div class="icon-strip-circle icon-about"><i class="fas fa-user-shield"></i></div>
+                <span>Multi-Staff</span>
+            </div>
+            <div class="icon-strip-item">
+                <div class="icon-strip-circle icon-contact"><i class="fas fa-credit-card"></i></div>
+                <span>Payments</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Features Section -->
+<section class="section section-gray">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-label">Everything You Need</span>
+            <h2>One Platform. Every Feature.</h2>
+            <p class="section-subtitle">Stop juggling spreadsheets, emails, and separate tools. Manage your entire agency in one place.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <h4>Tour Management</h4>
+                <p>Create, schedule and publish tours with availability calendars, pricing tiers, and slot tracking.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
+                <h4>Booking Engine</h4>
+                <p>Accept bookings online, process payments, send confirmations, and track every reservation in real time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-magic"></i></div>
+                <h4>AI Itinerary Builder</h4>
+                <p>Let clients design their own tours with your AI-powered DIY planner. Increase sales with zero extra effort.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                <h4>Revenue Analytics</h4>
+                <p>Track MRR, booking trends, top-performing tours, and client behaviour with live dashboards.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+                <h4>Staff & Permissions</h4>
+                <p>Add unlimited team members with role-based access. Keep operations, sales, and support in their lanes.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-palette"></i></div>
+                <h4>White-Label Branding</h4>
+                <p>Upload your logo, set brand colours, and present a fully branded experience to your clients.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-label">Get Started in Minutes</span>
+            <h2>How It Works</h2>
+        </div>
+        <div class="diy-choice-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem;">
+            <div class="diy-choice-card package-card" style="text-align:center">
+                <div class="diy-card-header" style="justify-content:center">
+                    <div class="diy-choice-icon-wrap package-icon-wrap">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+                <h3 style="font-size:1.1rem">1. Sign Up</h3>
+                <p class="diy-card-desc">Create your agency account in under 2 minutes. No credit card required for the 30-day trial.</p>
+            </div>
+            <div class="diy-choice-card package-card" style="text-align:center">
+                <div class="diy-card-header" style="justify-content:center">
+                    <div class="diy-choice-icon-wrap diy-icon-wrap">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                </div>
+                <h3 style="font-size:1.1rem">2. Configure</h3>
+                <p class="diy-card-desc">Add your branding, tours, team members, and payment gateway — all from a simple admin panel.</p>
+            </div>
+            <div class="diy-choice-card featured" style="text-align:center">
+                <div class="diy-card-header" style="justify-content:center">
+                    <div class="diy-choice-icon-wrap diy-icon-wrap">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <span class="diy-card-badge ai-badge"><i class="fas fa-bolt"></i> Live</span>
+                </div>
+                <h3 style="font-size:1.1rem">3. Go Live</h3>
+                <p class="diy-card-desc">Share your booking page, start accepting clients, and watch subscriptions grow in your dashboard.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-label">Why Agencies Choose Us</span>
+            <h2>Built for Growth</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                <h4>Secure Payments</h4>
+                <p>Integrated with Xendit and Stripe — collect payments safely with full PCI-DSS compliance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <h4>Instant Setup</h4>
+                <p>No developers needed. Your agency is live within minutes, not weeks.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+                <h4>Scales With You</h4>
+                <p>From solo operators to large agencies — our plans grow as your business grows.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-headset"></i></div>
+                <h4>24/7 Support</h4>
+                <p>Our dedicated team is always available via chat, email, or phone — no ticket queues.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-envelope-open-text"></i></div>
+                <h4>Automated Emails</h4>
+                <p>Booking confirmations, payment follow-ups, and OTP verification sent automatically.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-cloud"></i></div>
+                <h4>Cloud-Hosted</h4>
+                <p>Zero infrastructure to manage. Automatic backups, updates, and 99.9% uptime guaranteed.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="section section-gray">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-label">Simple Pricing</span>
+            <h2>Plans for Every Agency</h2>
+            <p class="section-subtitle">Start free. Upgrade when you're ready. Cancel anytime.</p>
+        </div>
+        <div class="diy-choice-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; align-items: start;">
+            {{-- Starter --}}
+            <div class="diy-choice-card package-card">
+                <div class="diy-card-header">
+                    <div class="diy-choice-icon-wrap package-icon-wrap">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                </div>
+                <h3>Starter</h3>
+                <p style="font-size:2rem;font-weight:800;margin:.5rem 0">₱2,999<span style="font-size:1rem;font-weight:400">/mo</span></p>
+                <ul class="diy-choice-features">
+                    <li><i class="fas fa-check-circle"></i> Up to 20 active tours</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited bookings</li>
+                    <li><i class="fas fa-check-circle"></i> 3 staff accounts</li>
+                    <li><i class="fas fa-check-circle"></i> Basic analytics</li>
+                    <li><i class="fas fa-check-circle"></i> Email support</li>
+                </ul>
+                <a href="{{ route('admin.auth.login') }}" class="diy-card-btn package-btn">
+                    Start Free Trial <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            {{-- Professional --}}
+            <div class="diy-choice-card diy-card featured">
+                <div class="diy-card-header">
+                    <div class="diy-choice-icon-wrap diy-icon-wrap">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <span class="diy-card-badge ai-badge"><i class="fas fa-bolt"></i> Most Popular</span>
+                </div>
+                <h3>Professional</h3>
+                <p style="font-size:2rem;font-weight:800;margin:.5rem 0">₱7,999<span style="font-size:1rem;font-weight:400">/mo</span></p>
+                <ul class="diy-choice-features">
+                    <li><i class="fas fa-check-circle"></i> Unlimited tours</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited bookings</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited staff</li>
+                    <li><i class="fas fa-check-circle"></i> AI itinerary builder</li>
+                    <li><i class="fas fa-check-circle"></i> Advanced analytics & MRR</li>
+                    <li><i class="fas fa-check-circle"></i> White-label branding</li>
+                    <li><i class="fas fa-check-circle"></i> Priority 24/7 support</li>
+                </ul>
+                <a href="{{ route('admin.auth.login') }}" class="diy-card-btn diy-btn">
+                    Start Free Trial <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            {{-- Enterprise --}}
+            <div class="diy-choice-card package-card">
+                <div class="diy-card-header">
+                    <div class="diy-choice-icon-wrap package-icon-wrap">
+                        <i class="fas fa-building"></i>
+                    </div>
+                </div>
+                <h3>Enterprise</h3>
+                <p style="font-size:2rem;font-weight:800;margin:.5rem 0">Custom</p>
+                <ul class="diy-choice-features">
+                    <li><i class="fas fa-check-circle"></i> Everything in Professional</li>
+                    <li><i class="fas fa-check-circle"></i> Custom integrations</li>
+                    <li><i class="fas fa-check-circle"></i> Dedicated account manager</li>
+                    <li><i class="fas fa-check-circle"></i> SLA guarantee</li>
+                    <li><i class="fas fa-check-circle"></i> On-boarding & training</li>
+                </ul>
+                <a href="{{ route('contact') }}" class="diy-card-btn package-btn">
+                    Contact Sales <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="cta-overlay"></div>
+    <div class="container">
+        <div class="cta-content text-center">
+            <h2>Ready to Grow Your Travel Agency?</h2>
+            <p>Join agencies already using {{ $currentTenant->company_name ?? $currentTenant->name ?? 'TourSaaS' }} to streamline operations and boost revenue.</p>
+            <div class="cta-btns">
+                <a href="{{ route('admin.auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> Start Free Trial
+                </a>
+                <a href="{{ route('contact') }}" class="btn btn-outline btn-lg btn-white">
+                    <i class="fas fa-phone"></i> Talk to Sales
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+@endsection
+
+@push('styles')
+<style>
+.saas-hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.gsap-hero-init .hero-label,
+.gsap-hero-init .hero-title-block,
+.gsap-hero-init .hero-title-script,
+.gsap-hero-init .hero-subtitle,
+.gsap-hero-init .saas-hero-actions,
+.gsap-hero-init .hero-stats .hero-stat,
+.gsap-hero-init .hero-scroll { opacity: 0; }
+.gsap-reveal { opacity: 0; transform: translateY(40px); }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof gsap === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    var hero = document.querySelector('.hero');
+    if (hero) {
+        hero.classList.add('gsap-hero-init');
+        var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.fromTo('.hero-label', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 })
+          .fromTo('.hero-title-block', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.7 }, '-=0.3')
+          .fromTo('.hero-title-script', { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.8 }, '-=0.4')
+          .fromTo('.hero-subtitle', { opacity: 0, y: 20 }, { opacity: 0.9, y: 0, duration: 0.6 }, '-=0.4')
+          .fromTo('.saas-hero-actions', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.3')
+          .fromTo('.hero-stats .hero-stat', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15 }, '-=0.2')
+          .fromTo('.hero-scroll', { opacity: 0 }, { opacity: 0.7, duration: 0.4 }, '-=0.1');
+    }
+
+    gsap.fromTo('.icon-strip-item',
+        { opacity: 0, y: 40, scale: 0.85 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(1.4)',
+          scrollTrigger: { trigger: '.section-icon-strip', start: 'top 85%', once: true } }
+    );
+
+    gsap.fromTo('.feature-card',
+        { opacity: 0, y: 35 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out',
+          scrollTrigger: { trigger: '.features-grid', start: 'top 80%', once: true } }
+    );
+
+    gsap.fromTo('.diy-choice-card',
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.15, ease: 'power2.out',
+          scrollTrigger: { trigger: '.diy-choice-grid', start: 'top 80%', once: true } }
+    );
+
+    var cta = document.querySelector('.cta-content');
+    if (cta) {
+        gsap.fromTo(cta, { opacity: 0, y: 40 },
+            { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+              scrollTrigger: { trigger: '.cta-section', start: 'top 80%', once: true } }
+        );
+    }
+});
+</script>
+@endpush
+
 
 @section('content')
 <!-- Hero Section -->

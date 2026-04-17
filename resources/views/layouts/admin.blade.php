@@ -43,64 +43,64 @@
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
-            <div class="nav-section">TOURS</div>
+            <div class="nav-section">PRODUCTS</div>
             <a href="{{ route('admin.tours.index') }}" class="{{ request()->routeIs('admin.tours.*') ? 'active' : '' }}">
-                <i class="fas fa-map-marked-alt"></i> All Tours
+                <i class="fas fa-box-open"></i> All Plans
             </a>
             <a href="{{ route('admin.tours.create') }}" class="{{ request()->routeIs('admin.tours.create') ? 'active' : '' }}">
-                <i class="fas fa-plus-circle"></i> Add Tour
+                <i class="fas fa-plus-circle"></i> Add Plan
             </a>
             <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                <i class="fas fa-tags"></i> Categories
+                <i class="fas fa-tags"></i> Plan Categories
             </a>
-            <div class="nav-section">BOOKINGS</div>
+            <div class="nav-section">SUBSCRIPTIONS</div>
             <a href="{{ route('admin.bookings.index') }}" class="{{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
-                <i class="fas fa-calendar-check"></i> All Bookings
+                <i class="fas fa-calendar-check"></i> All Subscriptions
                 @php $pendingBookings = \App\Models\Booking::where('status', 'pending')->count(); @endphp
                 @if($pendingBookings > 0)
                     <span class="badge">{{ $pendingBookings }}</span>
                 @endif
             </a>
             <a href="{{ route('admin.coupons.index') }}" class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
-                <i class="fas fa-tag"></i> Coupons
+                <i class="fas fa-ticket-alt"></i> Discount Codes
             </a>
             <a href="{{ route('admin.slot-tracker.index') }}" class="{{ request()->routeIs('admin.slot-tracker.*') || request()->routeIs('admin.tours.schedules.*') ? 'active' : '' }}">
-                <i class="fas fa-layer-group"></i> Slot Tracker
+                <i class="fas fa-layer-group"></i> Usage Monitor
             </a>
             <a href="{{ route('admin.calendar.index') }}" class="{{ request()->routeIs('admin.calendar.*') ? 'active' : '' }}">
-                <i class="fas fa-calendar-alt"></i> Availability Calendar
+                <i class="fas fa-calendar-alt"></i> Billing Calendar
             </a>
             <a href="{{ route('admin.import.index') }}" class="{{ request()->routeIs('admin.import.*') ? 'active' : '' }}">
-                <i class="fas fa-file-import"></i> Import
+                <i class="fas fa-file-import"></i> Import Data
             </a>
             <a href="{{ route('admin.deletion-requests.index') }}" class="{{ request()->routeIs('admin.deletion-requests.*') ? 'active' : '' }}">
-                <i class="fas fa-hand-paper"></i> Deletion Requests
+                <i class="fas fa-times-circle"></i> Cancellation Requests
                 @php $pendingDeletions = \App\Models\DeletionRequest::where('status','pending')->count(); @endphp
                 @if($pendingDeletions > 0)
                     <span class="badge">{{ $pendingDeletions }}</span>
                 @endif
             </a>
             <a href="{{ route('admin.diy.index') }}" class="{{ request()->routeIs('admin.diy.*') ? 'active' : '' }}">
-                <i class="fas fa-magic"></i> DIY Tours
+                <i class="fas fa-magic"></i> Custom Quotes
                 @php $pendingDiy = \App\Models\DIYTourSession::where('status','pending_review')->count(); @endphp
                 @if($pendingDiy > 0)
                     <span class="badge">{{ $pendingDiy }}</span>
                 @endif
             </a>
-            <div class="nav-section">CUSTOMERS</div>
+            <div class="nav-section">CLIENTS</div>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                <i class="fas fa-users"></i> Users
+                <i class="fas fa-users"></i> Clients
             </a>
             <a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
-                <i class="fas fa-star"></i> Reviews
+                <i class="fas fa-star"></i> Testimonials
                 @php $pendingReviews = \App\Models\Review::where('is_approved', false)->count(); @endphp
                 @if($pendingReviews > 0)
                     <span class="badge">{{ $pendingReviews }}</span>
                 @endif
             </a>
-            <div class="nav-section">REPORTS</div>
+            <div class="nav-section">ANALYTICS</div>
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-                <i class="fas fa-chart-bar"></i> Monthly Report
+                <i class="fas fa-chart-line"></i> Revenue Report
             </a>
             <a href="{{ route('admin.activity-log.index') }}" class="{{ request()->routeIs('admin.activity-log.*') ? 'active' : '' }}">
                 <i class="fas fa-history"></i> Activity Log
