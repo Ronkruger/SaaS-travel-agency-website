@@ -16,7 +16,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     'web',
-    InitializeTenancyBySubdomain::class,
     PreventAccessFromCentralDomains::class,
+    InitializeTenancyBySubdomain::class,
     \App\Http\Middleware\CheckTenantActive::class,
 ])->group(base_path('routes/web.php'));

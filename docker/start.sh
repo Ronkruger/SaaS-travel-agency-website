@@ -12,7 +12,7 @@ php artisan route:cache   || echo "[warn] route:cache failed, continuing..."
 php artisan view:clear    || echo "[warn] view:clear failed, continuing..."
 php artisan view:cache    || echo "[warn] view:cache failed, continuing..."
 php artisan migrate --force
-php artisan db:seed --class=AdminUserSeeder --force
+php artisan tenants:migrate --force || echo "[warn] tenants:migrate failed, skipping..."
 php artisan storage:link --force 2>/dev/null || true
 
 # Fix ownership: artisan commands above run as root, but php-fpm runs as www-data.
