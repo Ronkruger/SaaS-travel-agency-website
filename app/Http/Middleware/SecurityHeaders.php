@@ -21,6 +21,16 @@ class SecurityHeaders
         // Limit referrer leakage
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+        // SECURITY: Force HTTPS for 1 year on this domain and all subdomains.
+        // Mitigates SSL stripping attacks (CWE-319). Only emit on secure requests so
+        // local HTTP development isn't broken.
+        if ($request->isSecure()) {
+            $response->headers->set(
+                'Strict-Transport-Security',
+                'max-age=31536000; includeSubDomains; preload'
+            );
+        }
+
         // Disable browser features not used by this app.
         // webrtc=() prevents the WebRTC-based internal network scanning technique.
         $response->headers->set(

@@ -14,7 +14,9 @@ return [
     'cookie'      => env('SESSION_COOKIE', \Illuminate\Support\Str::slug(env('APP_NAME', 'laravel'), '_').'_session'),
     'path'        => '/',
     'domain'      => env('SESSION_DOMAIN'),
-    'secure'      => env('SESSION_SECURE_COOKIE'),
+    // SECURITY: default to true so cookies are HTTPS-only in production unless an
+    // operator explicitly opts out for local HTTP testing (CWE-614).
+    'secure'      => env('SESSION_SECURE_COOKIE', true),
     'http_only'   => true,
     'same_site'   => 'lax',
 

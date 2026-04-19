@@ -47,7 +47,13 @@ class SettingsController extends Controller
             'logo_dark'         => ['nullable', 'file', 'max:' . self::MAX_KB, 'mimes:png,jpg,jpeg,svg,webp'],
             'favicon'           => ['nullable', 'file', 'max:512', 'mimes:png,jpg,jpeg,svg,webp,ico'],
             'promo_banner'      => ['nullable', 'file', 'max:4096', 'mimes:png,jpg,jpeg,webp'],
-            'promo_banner_link' => ['nullable', 'string', 'max:500'],
+            // SECURITY: validate as URL with http(s) scheme only to prevent open
+            // redirects and javascript:/data: URI injection (CWE-601 / CWE-79).
+            'promo_banner_link' => ['nullable', 'url', 'max:500', function ($attr, $val, $fail) {
+                if ($val && !in_array(strtolower((string) parse_url($val, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+                    $fail('The promo banner link must be a valid http(s) URL.');
+                }
+            }],
             'fb_embed_code'     => ['nullable', 'array'],
             'fb_embed_code.*'   => ['nullable', 'string', 'max:5000', function ($attr, $val, $fail) {
                 if ($val && !preg_match('#^\s*<iframe[^>]+src=["\']https://www\.facebook\.com/#i', $val)) {

@@ -87,12 +87,18 @@ Route::middleware(['guest', 'throttle:auth'])->group(function () {
     Route::get('/auth/auth0/callback', [Auth0Controller::class, 'callback'])->name('auth0.callback');
 
     // Password reset via OTP
+    // SECURITY: stricter throttle on OTP verification (5 attempts/min per IP, plus
+    // the parent throttle:auth) to slow brute-force of the 6-digit code (CWE-307).
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showRequest'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp'])->name('password.email');
     Route::get('/verify-otp', [ForgotPasswordController::class, 'showVerify'])->name('password.verify');
-    Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])->name('password.verify.post');
+    Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])
+        ->middleware('throttle:5,1')
+        ->name('password.verify.post');
     Route::get('/reset-password', [ForgotPasswordController::class, 'showReset'])->name('password.reset');
-    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])
+        ->middleware('throttle:5,1')
+        ->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');

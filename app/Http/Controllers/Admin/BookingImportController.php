@@ -66,8 +66,10 @@ class BookingImportController extends Controller
      * --------------------------------------------------------------------- */
     public function preview(Request $request)
     {
+        // SECURITY: validate the actual MIME type alongside the extension to defeat
+        // attackers who rename arbitrary files to .csv/.xlsx (CWE-434).
         $request->validate([
-            'csv_file' => ['required', 'file', 'max:10240'],
+            'csv_file' => ['required', 'file', 'max:10240', 'mimes:csv,txt,xlsx,xls'],
         ]);
 
         $file = $request->file('csv_file');

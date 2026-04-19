@@ -143,15 +143,18 @@
 
             const markerEl = document.createElement('div');
             markerEl.className = 'diy-map-marker';
+            // SECURITY: escape user-supplied city.name before HTML insertion (XSS / CWE-79)
             markerEl.innerHTML =
                 '<span class="marker-num">' + (idx + 1) + '</span>' +
-                '<span class="marker-name">' + city.name + '</span>';
+                '<span class="marker-name">' + esc(city.name) + '</span>';
 
+            // SECURITY: build popup with escaped values; use data-city + delegated event
+            // listener instead of inline onclick to prevent JS injection via city name.
             const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
                 '<div class="map-popup">' +
-                '<h4>' + city.name + ', ' + city.country + '</h4>' +
-                '<p>Day ' + city.day + '</p>' +
-                '<button onclick="openEditCityFromMap(\'' + city.name + '\')" class="btn btn-sm btn-outline">Edit</button>' +
+                '<h4>' + esc(city.name) + ', ' + esc(city.country) + '</h4>' +
+                '<p>Day ' + esc(String(city.day)) + '</p>' +
+                '<button type="button" data-edit-city="' + esc(city.name) + '" class="btn btn-sm btn-outline">Edit</button>' +
                 '</div>'
             );
 
@@ -251,13 +254,27 @@
             .setLngLat(lngLat)
             .setHTML(
                 '<div class="map-popup">' +
-                '<strong>Add ' + cityName + '?</strong>' +
+                '<strong>Add ' + esc(cityName) + '?</strong>' +
                 '<div class="mt-2">' +
-                '<button onclick="quickAddCity(\'' + cityName + '\')" class="btn btn-sm btn-primary">+ Add to Tour</button>' +
+                '<button type="button" data-quick-add-city="' + esc(cityName) + '" class="btn btn-sm btn-primary">+ Add to Tour</button>' +
                 '</div></div>'
             )
             .addTo(map);
     }
+
+    // SECURITY: delegated click handler for map popup buttons. Avoids inline onclick
+    // handlers that interpolate user-supplied city names directly into JS context.
+    document.addEventListener('click', function (e) {
+        const editBtn = e.target.closest('[data-edit-city]');
+        if (editBtn) {
+            window.openEditCityFromMap(editBtn.getAttribute('data-edit-city'));
+            return;
+        }
+        const addBtn = e.target.closest('[data-quick-add-city]');
+        if (addBtn) {
+            window.quickAddCity(addBtn.getAttribute('data-quick-add-city'));
+        }
+    });
 
     window.openEditCityFromMap = function (cityName) {
         const days   = itinerary.day_by_day || [];
@@ -303,21 +320,23 @@
                 '</div>';
             return;
         }
+        // SECURITY: escape every user-supplied field (city, country, activity name/time)
+        // before HTML interpolation to prevent stored XSS (CWE-79).
         let html = '<div class="timeline">';
         let lastCity = '';
         days.forEach(function (day) {
             if (day.city !== lastCity) {
                 lastCity = day.city;
-                html += '<div class="timeline-city-header"><i class="fas fa-map-marker-alt"></i> <strong>' + day.city + '</strong>, ' + day.country + '</div>';
+                html += '<div class="timeline-city-header"><i class="fas fa-map-marker-alt"></i> <strong>' + esc(day.city) + '</strong>, ' + esc(day.country) + '</div>';
             }
-            html += '<div class="timeline-day"><span class="timeline-day-num">Day ' + day.day + '</span>';
+            html += '<div class="timeline-day"><span class="timeline-day-num">Day ' + esc(String(day.day)) + '</span>';
             const acts = day.activities || [];
             if (acts.length) {
                 acts.forEach(function (act) {
-                    html += '<span class="timeline-activity ' + (act.included ? 'included' : 'optional') + '">' + act.time + ' · ' + act.name + '</span>';
+                    html += '<span class="timeline-activity ' + (act.included ? 'included' : 'optional') + '">' + esc(String(act.time || '')) + ' · ' + esc(act.name) + '</span>';
                 });
             } else {
-                html += '<span class="timeline-activity" style="color:#aaa;font-style:italic;">Free day — explore ' + day.city + '</span>';
+                html += '<span class="timeline-activity" style="color:#aaa;font-style:italic;">Free day — explore ' + esc(day.city) + '</span>';
             }
             html += '</div>';
         });
@@ -336,15 +355,16 @@
                 '</div>';
             return;
         }
+        // SECURITY: escape user-supplied fields before HTML interpolation (CWE-79).
         let html = '<div class="calendar-grid">';
         days.forEach(function (day) {
             html += '<div class="calendar-day-cell">';
-            html += '<div class="cal-day-num">Day ' + day.day + '</div>';
-            html += '<div class="cal-city">' + (day.city || '') + '</div>';
+            html += '<div class="cal-day-num">Day ' + esc(String(day.day)) + '</div>';
+            html += '<div class="cal-city">' + esc(day.city || '') + '</div>';
             const acts = day.activities || [];
             if (acts.length) {
                 acts.slice(0, 2).forEach(function (act) {
-                    html += '<div class="cal-activity">' + act.name + '</div>';
+                    html += '<div class="cal-activity">' + esc(act.name) + '</div>';
                 });
             } else {
                 html += '<div class="cal-activity" style="color:#aaa;font-style:italic;">Free day</div>';
@@ -371,12 +391,12 @@
             return;
         }
 
-        // Populate "insert after" dropdown in add-city modal
+        // SECURITY: escape city names in dropdown options to prevent XSS (CWE-79).
         const insertSel = document.getElementById('insertAfterCity');
         if (insertSel) {
             insertSel.innerHTML = '<option value="end">At end of itinerary</option>';
             cities.forEach(function (c, i) {
-                insertSel.innerHTML += '<option value="' + i + '">After ' + c.name + '</option>';
+                insertSel.innerHTML += '<option value="' + i + '">After ' + esc(c.name) + '</option>';
             });
         }
 
@@ -385,7 +405,7 @@
             const stayDays = countCityDays(city.name);
             html += '<div class="city-item" id="cityItem-' + idx + '">';
             html += '<span class="city-num">' + (idx + 1) + '</span>';
-            html += '<div class="city-info"><strong>' + city.name + '</strong><small>' + city.country + ' · ' + stayDays + ' days</small></div>';
+            html += '<div class="city-info"><strong>' + esc(city.name) + '</strong><small>' + esc(city.country) + ' · ' + stayDays + ' days</small></div>';
             html += '<div class="city-actions">';
             html += '<button class="btn-icon" onclick="openEditCityModal(' + idx + ')" title="Edit"><i class="fas fa-pen"></i></button>';
             html += '<button class="btn-icon btn-danger-icon" onclick="removeCity(' + idx + ')" title="Remove"><i class="fas fa-times"></i></button>';
