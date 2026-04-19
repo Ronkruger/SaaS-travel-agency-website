@@ -184,6 +184,25 @@
         .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(14,116,144,.45); }
         .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
+        /* Skip button */
+        .btn-skip {
+            width: 100%;
+            padding: .875rem 1.5rem;
+            border-radius: 12px;
+            background: #fff;
+            color: var(--gray-700);
+            font-size: .9375rem; font-weight: 600;
+            border: 2px solid var(--gray-300);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+            display: flex; align-items: center; justify-content: center; gap: .625rem;
+        }
+        .btn-skip:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-400);
+        }
+
         .alert { display: flex; align-items: flex-start; gap: .625rem; padding: .875rem 1rem; border-radius: 10px; margin-bottom: 1.5rem; font-size: .875rem; }
         .alert-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
         .alert ul { margin-top: .4rem; padding-left: 1.25rem; }
@@ -239,8 +258,8 @@
                 <i class="fas fa-user-check"></i>
                 Account ready — one more step!
             </div>
-            <h3>Select Your Department &amp; Position</h3>
-            <p>Help us set up your account correctly by telling us where you work.</p>
+            <h3>Select Your Department &amp; Position <span style="font-size:.9rem;font-weight:400;color:#666;">(Optional)</span></h3>
+            <p>Help us set up your account correctly by telling us where you work. You can skip this and add it later.</p>
         </div>
 
         <div class="onboard-card-body">
@@ -264,12 +283,11 @@
                     <label for="department">
                         <i class="fas fa-building" style="color:var(--primary)"></i>
                         Department
-                        <span class="label-badge">Required</span>
+                        <span class="label-badge" style="background:#6b7280;">Optional</span>
                     </label>
                     <select
                         id="department" name="department"
                         class="form-select{{ $errors->has('department') ? ' is-invalid' : '' }}"
-                        required
                     >
                         <option value="">— Select your department —</option>
                         @foreach($departments as $key => $dept)
@@ -292,12 +310,12 @@
                     <label for="position">
                         <i class="fas fa-id-badge" style="color:var(--primary)"></i>
                         Position / Role
-                        <span class="label-badge">Required</span>
+                        <span class="label-badge" style="background:#6b7280;">Optional</span>
                     </label>
                     <select
                         id="position" name="position"
                         class="form-select{{ $errors->has('position') ? ' is-invalid' : '' }}"
-                        required disabled
+                        disabled
                     >
                         <option value="">— Select your department first —</option>
                     </select>
@@ -310,15 +328,20 @@
                     @enderror
                 </div>
 
-                <button type="submit" class="btn-submit" id="submitBtn" disabled>
+                <button type="submit" class="btn-submit" id="submitBtn">
                     <i class="fas fa-check-circle"></i>
-                    Complete Setup &amp; Enter Admin Panel
+                    Complete Setup &amp; Enter Dashboard
+                </button>
+                
+                <button type="submit" class="btn-skip" id="skipBtn" style="margin-top:0.75rem;">
+                    <i class="fas fa-forward"></i>
+                    Skip for now — Set up later
                 </button>
             </form>
 
             <div class="onboard-note">
-                <i class="fas fa-lock" style="margin-right:.3rem"></i>
-                Your department and position can only be changed by an administrator.
+                <i class="fas fa-info-circle" style="margin-right:.3rem"></i>
+                You can update your department and position anytime from your profile settings.
             </div>
         </div>
     </div>
@@ -346,7 +369,6 @@ function populatePositions(deptKey) {
         posSelect.disabled  = true;
         deptPreview.classList.remove('visible');
         posHint.style.display = 'none';
-        submitBtn.disabled = true;
         return;
     }
 
@@ -368,16 +390,9 @@ function populatePositions(deptKey) {
     deptPreviewT.textContent = dept.label;
     deptPreview.classList.add('visible');
     posHint.style.display = 'flex';
-
-    checkSubmit();
-}
-
-function checkSubmit() {
-    submitBtn.disabled = !(deptSelect.value && posSelect.value);
 }
 
 deptSelect.addEventListener('change', () => populatePositions(deptSelect.value));
-posSelect.addEventListener('change', checkSubmit);
 
 // Re-hydrate previous selection (validation fail)
 if (oldDept) {

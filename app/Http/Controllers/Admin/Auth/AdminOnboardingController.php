@@ -110,26 +110,41 @@ class AdminOnboardingController extends Controller
         $departmentKeys = array_keys($departments);
 
         $validated = $request->validate([
-            'department' => ['required', 'string', 'in:' . implode(',', $departmentKeys)],
-            'position'   => ['required', 'string', 'max:150'],
+            'department' => ['nullable', 'string', 'in:' . implode(',', $departmentKeys)],
+            'position'   => ['nullable', 'string', 'max:150'],
         ]);
 
-        // Ensure the submitted position belongs to the selected department
-        $validPositions = $departments[$validated['department']]['positions'];
-        if (!in_array($validated['position'], $validPositions, true)) {
-            return back()->withErrors([
-                'position' => 'The selected position is not valid for the chosen department.',
-            ]);
+        // If department is provided, ensure position is also provided and valid
+        if (!empty($validated['department'])) {
+            if (empty($validated['position'])) {
+                return back()->withErrors([
+                    'position' => 'Please select a position for the chosen department.',
+                ])->withInput();
+            }
+
+            $validPositions = $departments[$validated['department']]['positions'];
+            if (!in_array($validated['position'], $validPositions, true)) {
+                return back()->withErrors([
+                    'position' => 'The selected position is not valid for the chosen department.',
+                ])->withInput();
+            }
         }
 
         $admin = Auth::guard('admin')->user();
-        $admin->update([
-            'department'   => $validated['department'],
-            'position'     => $validated['position'],
-            'is_onboarded' => true,
-        ]);
+        
+        $updateData = ['is_onboarded' => true];
+        
+        // Only update department/position if provided
+        if (!empty($validated['department'])) {
+            $updateData['department'] = $validated['department'];
+        }
+        if (!empty($validated['position'])) {
+            $updateData['position'] = $validated['position'];
+        }
+        
+        $admin->update($updateData);
 
         return redirect()->route('admin.dashboard')
-            ->with('success', 'Welcome to the DiscoverGRP Admin Panel, ' . $admin->name . '!');
+            ->with('success', 'Welcome to your agency dashboard, ' . $admin->name . '!');
     }
 }
