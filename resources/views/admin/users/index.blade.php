@@ -79,7 +79,20 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">No users found.</td></tr>
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <div style="font-size:2rem;margin-bottom:.5rem;opacity:.4;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <strong>No clients yet.</strong>
+                            <div class="small mt-1">
+                                This page lists customers who sign up to book your tours.
+                                Share your booking page to start collecting clients.
+                                <br>
+                                Looking for staff accounts? See <em>Admin Staff</em> in the sidebar.
+                            </div>
+                        </td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>
