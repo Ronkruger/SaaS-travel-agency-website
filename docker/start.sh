@@ -26,5 +26,17 @@ envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 # Start php-fpm in background
 php-fpm -D
 
+# Wait until PHP-FPM is accepting connections on port 9000 before starting nginx.
+# Without this, the very first request (e.g. Railway health check) can hit a 502
+# because nginx is ready before PHP-FPM has finished initialising.
+echo "[start] Waiting for PHP-FPM on 127.0.0.1:9000..."
+for i in $(seq 1 30); do
+    if php -r "\$s = @fsockopen('127.0.0.1', 9000, \$e, \$m, 1); if (\$s) { fclose(\$s); exit(0); } exit(1);" 2>/dev/null; then
+        echo "[start] PHP-FPM is ready (attempt $i)"
+        break
+    fi
+    sleep 1
+done
+
 # Start nginx in foreground (keeps container alive)
 exec nginx -g "daemon off;"

@@ -23,8 +23,9 @@ http {
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
 
-            # Extend for SSE streams (our cycle is 20 s, but allow headroom).
-            fastcgi_read_timeout 90s;
+            # Extended timeout: tenant registration runs CreateDatabase+MigrateDatabase+SeedDatabase
+            # synchronously, which can take 60-120 s on Railway MySQL.
+            fastcgi_read_timeout 300s;
 
             # Disable nginx output buffering so SSE events reach the browser immediately.
             fastcgi_buffering off;
@@ -34,7 +35,7 @@ http {
             fastcgi_pass 127.0.0.1:9000;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
-            fastcgi_read_timeout 90s;
+            fastcgi_read_timeout 300s;
         }
 
         location ~ /\.ht {
