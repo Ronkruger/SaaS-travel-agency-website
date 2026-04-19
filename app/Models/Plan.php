@@ -42,11 +42,19 @@ class Plan extends Model
         'is_active' => 'boolean',
     ];
 
+    // Relationships
+    public function tenants()
+    {
+        return $this->hasMany(Tenant::class, 'plan', 'slug');
+    }
+
+    // Scopes
     public function scopeActive($query)
     {
         return $query->where('is_active', true)->orderBy('sort_order');
     }
 
+    // Helpers
     public function formattedMonthlyPrice(): string
     {
         return '$' . number_format($this->monthly_price, 2);
