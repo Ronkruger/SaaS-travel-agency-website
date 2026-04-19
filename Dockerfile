@@ -7,8 +7,12 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Raise PHP upload limits
-RUN echo "upload_max_filesize=20M\npost_max_size=20M" > /usr/local/etc/php/conf.d/uploads.ini
+# PHP runtime limits
+# - memory_limit: tenant registration runs 50+ migrations in one request; 128M default is not enough
+# - max_execution_time: default 30s is too short for CREATE DATABASE + MigrateDatabase + SeedDatabase
+# - upload/post sizes: allow reasonable file uploads
+RUN printf "upload_max_filesize=20M\npost_max_size=20M\nmemory_limit=512M\nmax_execution_time=300\n" \
+    > /usr/local/etc/php/conf.d/app.ini
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
