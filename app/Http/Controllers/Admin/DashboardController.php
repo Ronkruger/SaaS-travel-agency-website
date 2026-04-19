@@ -32,6 +32,15 @@ class DashboardController extends Controller
     {
         $stats = $this->buildStats();
 
+        // Check if this is a brand new tenant (no content created yet)
+        $isEmpty = $stats['total_tours'] === 0 
+                && $stats['total_bookings'] === 0 
+                && $stats['total_users'] === 0;
+
+        if ($isEmpty) {
+            return view('admin.dashboard-empty');
+        }
+
         $recentBookings = Booking::with(['user', 'tour'])->latest()->take(10)->get();
         $topTours       = Tour::orderByDesc('total_bookings')->take(5)->get();
 
