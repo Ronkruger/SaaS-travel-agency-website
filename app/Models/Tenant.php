@@ -15,6 +15,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'data' => 'array',
         'trial_ends_at' => 'datetime',
         'subscription_ends_at' => 'datetime',
+        'activated_at' => 'datetime',
+        'trial_activated' => 'boolean',
     ];
 
     public static function getCustomColumns(): array
@@ -24,6 +26,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'name',
             'email',
             'password',
+            'activation_token',
+            'activated_at',
+            'trial_activated',
             'plan',
             'trial_ends_at',
             'subscription_ends_at',

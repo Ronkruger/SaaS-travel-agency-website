@@ -18,5 +18,6 @@ Route::prefix('/t/{tenant}')
         'web',
         InitializeTenancyByPath::class,
         \App\Http\Middleware\CheckTenantActive::class,
+        \App\Http\Middleware\CheckTrialStatus::class,
     ])
     ->group(base_path('routes/web.php'));

@@ -51,5 +51,6 @@ class Kernel extends HttpKernel
         'admin.can'       => \App\Http\Middleware\CheckAdminPermission::class,
         'auth.tenant_owner' => \App\Http\Middleware\AuthenticateTenantOwner::class,
         'tenant.active'   => \App\Http\Middleware\CheckTenantActive::class,
+        'trial.check'     => \App\Http\Middleware\CheckTrialStatus::class,
     ];
 }

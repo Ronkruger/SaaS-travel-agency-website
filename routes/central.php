@@ -28,7 +28,11 @@ Route::get('/features', [HomeController::class, 'features'])->name('central.feat
 Route::middleware('guest')->group(function () {
     Route::get('/register', [TenantRegistrationController::class, 'showRegistrationForm'])->name('central.register');
     Route::post('/register', [TenantRegistrationController::class, 'register'])->middleware('throttle:5,1');
+    Route::get('/registration/pending', [TenantRegistrationController::class, 'showRegistrationPending'])->name('central.registration.pending');
 });
+
+// Trial Activation (no auth required)
+Route::get('/trial/activate/{tenant}', [TenantRegistrationController::class, 'activateTrial'])->name('central.trial.activate');
 
 // Tenant Owner Login (to manage billing/subscription)
 Route::middleware('guest')->group(function () {
