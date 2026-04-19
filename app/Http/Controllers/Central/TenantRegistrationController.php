@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Central;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\Plan;
+use App\Mail\PasswordResetMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
@@ -134,9 +136,14 @@ class TenantRegistrationController extends Controller
         // Send email with reset link
         $resetUrl = url("/password/reset/{$token}?email=" . urlencode($request->email));
         
-        // TODO: Send actual email (you can use Mail facade)
-        // For now, just flash the link (REMOVE IN PRODUCTION)
-        \Log::info("Password reset link: {$resetUrl}");
+        try {
+            Mail::to($request->email)->send(new PasswordResetMail($resetUrl, $tenant->company_name ?? $tenant->name));
+            \Log::info("Password reset email sent to {$request->email}");
+        } catch (\Exception $e) {
+            \Log::error("Failed to send password reset email: " . $e->getMessage());
+            \Log::info("Password reset link (email failed): {$resetUrl}");
+            // Still return success message for security (don't reveal if email failed)
+        }
 
         return back()->with('status', 'If that email is registered, you will receive a password reset link shortly.');
     }
