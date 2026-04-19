@@ -25,8 +25,10 @@ class AppServiceProvider extends ServiceProvider
         Booking::observe(BookingObserver::class);
 
         // Register Resend mailer transport
-        Mail::extend('resend', function () {
-            return new ResendTransport();
+        $this->app->resolving('mail.manager', function ($mailManager) {
+            $mailManager->extend('resend', function () {
+                return new ResendTransport();
+            });
         });
 
         if (config('app.env') === 'production') {
