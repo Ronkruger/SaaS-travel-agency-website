@@ -123,7 +123,7 @@
                             @if($logoUrl)
                                 <img src="{{ $logoUrl }}" style="max-height:44px;max-width:160px;object-fit:contain" alt="Logo">
                             @else
-                                <span style="font-size:1.1rem;font-weight:800;color:#0A2D74">DISCOVER GROUP</span>
+                                <span style="font-size:1.1rem;font-weight:800;color:#0A2D74">{{ strtoupper($companyName ?? 'YOUR COMPANY') }}</span>
                             @endif
                         </div>
                     </div>
@@ -137,7 +137,7 @@
                             @elseif($logoUrl)
                                 <img src="{{ $logoUrl }}" style="max-height:44px;max-width:160px;object-fit:contain" alt="Logo">
                             @else
-                                <span style="font-size:1.1rem;font-weight:800;color:#fff">DISCOVER GROUP</span>
+                                <span style="font-size:1.1rem;font-weight:800;color:#fff">{{ strtoupper($companyName ?? 'YOUR COMPANY') }}</span>
                             @endif
                         </div>
                     </div>

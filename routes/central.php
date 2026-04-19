@@ -34,6 +34,12 @@ Route::middleware('guest')->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [TenantRegistrationController::class, 'showLoginForm'])->name('central.login');
     Route::post('/login', [TenantRegistrationController::class, 'login'])->middleware('throttle:5,1');
+    
+    // Password Reset
+    Route::get('/password/reset', [TenantRegistrationController::class, 'showForgotPasswordForm'])->name('central.password.request');
+    Route::post('/password/email', [TenantRegistrationController::class, 'sendResetLinkEmail'])->name('central.password.email');
+    Route::get('/password/reset/{token}', [TenantRegistrationController::class, 'showResetPasswordForm'])->name('central.password.reset');
+    Route::post('/password/reset', [TenantRegistrationController::class, 'resetPassword'])->name('central.password.update');
 });
 Route::post('/logout', [TenantRegistrationController::class, 'logout'])->name('central.logout');
 

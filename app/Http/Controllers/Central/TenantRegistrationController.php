@@ -7,8 +7,9 @@ use App\Models\Tenant;
 use App\Models\Plan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class TenantRegistrationController extends Controller
 {
@@ -23,7 +24,7 @@ class TenantRegistrationController extends Controller
         $validated = $request->validate([
             'name'         => ['required', 'string', 'max:255'],
             'email'        => ['required', 'email', 'max:255', 'unique:tenants,email'],
-            'password'     => ['required', 'confirmed', Password::min(8)],
+            'password'     => ['required', 'confirmed', PasswordRule::min(8)],
             'company_name' => ['required', 'string', 'max:255'],
             'tenant_slug'  => [
                 'required',
@@ -99,5 +100,90 @@ class TenantRegistrationController extends Controller
     {
         $request->session()->forget('tenant_owner');
         return redirect()->route('central.home');
+    }
+
+    // Password Reset
+    public function showForgotPasswordForm()
+    {
+        return view('central.auth.forgot-password');
+    }
+
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $tenant = Tenant::where('email', $request->email)->first();
+
+        if (!$tenant) {
+            // Security: Don't reveal whether email exists
+            return back()->with('status', 'If that email is registered, you will receive a password reset link shortly.');
+        }
+
+        // Generate password reset token
+        $token = Str::random(64);
+        
+        // Store token in database (you'll need a password_resets table)
+        \DB::table('password_resets')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => Hash::make($token),
+                'created_at' => now()
+            ]
+        );
+
+        // Send email with reset link
+        $resetUrl = url("/password/reset/{$token}?email=" . urlencode($request->email));
+        
+        // TODO: Send actual email (you can use Mail facade)
+        // For now, just flash the link (REMOVE IN PRODUCTION)
+        \Log::info("Password reset link: {$resetUrl}");
+
+        return back()->with('status', 'If that email is registered, you will receive a password reset link shortly.');
+    }
+
+    public function showResetPasswordForm(Request $request, $token)
+    {
+        return view('central.auth.reset-password', [
+            'token' => $token,
+            'email' => $request->email
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+        ]);
+
+        // Verify token
+        $resetRecord = \DB::table('password_resets')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$resetRecord || !Hash::check($request->token, $resetRecord->token)) {
+            return back()->withErrors(['email' => 'Invalid or expired reset token.']);
+        }
+
+        // Check if token is expired (24 hours)
+        if (now()->diffInHours($resetRecord->created_at) > 24) {
+            \DB::table('password_resets')->where('email', $request->email)->delete();
+            return back()->withErrors(['email' => 'Reset link has expired.']);
+        }
+
+        // Update password
+        $tenant = Tenant::where('email', $request->email)->first();
+        
+        if (!$tenant) {
+            return back()->withErrors(['email' => 'User not found.']);
+        }
+
+        $tenant->update(['password' => Hash::make($request->password)]);
+
+        // Delete reset token
+        \DB::table('password_resets')->where('email', $request->email)->delete();
+
+        return redirect()->route('central.login')->with('success', 'Password reset successfully. You can now log in.');
     }
 }

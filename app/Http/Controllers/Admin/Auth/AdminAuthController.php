@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class AdminAuthController extends Controller
@@ -72,5 +73,43 @@ class AdminAuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.auth.login');
+    }
+
+    public function profile()
+    {
+        $admin = Auth::guard('admin')->user();
+        return view('admin.auth.profile', compact('admin'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $admin = Auth::guard('admin')->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:admin_users,email,' . $admin->id],
+        ]);
+
+        $admin->update($validated);
+
+        return back()->with('success', 'Profile updated successfully.');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => ['required'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+
+        $admin = Auth::guard('admin')->user();
+
+        if (!Hash::check($validated['current_password'], $admin->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $admin->update(['password' => Hash::make($validated['password'])]);
+
+        return back()->with('success', 'Password changed successfully.');
     }
 }

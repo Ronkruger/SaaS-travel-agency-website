@@ -178,6 +178,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth.admin', 'throttle:admin'])->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
+        // Admin Profile
+        Route::get('/profile', [AdminAuthController::class, 'profile'])->name('profile');
+        Route::put('/profile', [AdminAuthController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/profile/password', [AdminAuthController::class, 'changePassword'])->name('profile.password');
+
         // Onboarding (excluded from onboard-check inside middleware)
         Route::get('/onboarding',  [AdminOnboardingController::class, 'show'])->name('onboarding');
         Route::post('/onboarding', [AdminOnboardingController::class, 'save'])->name('onboarding.save');

@@ -30,10 +30,10 @@
         <div class="sidebar-header">
             <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
                 @if($brandLogoUrl ?? false)
-                    <img src="{{ $brandLogoUrl }}" alt="{{ $brandName ?? 'DiscoverGRP' }}" style="max-height:32px;width:auto;filter:brightness(0) invert(1)">
+                    <img src="{{ $brandLogoUrl }}" alt="{{ $brandName ?? 'Admin' }}" style="max-height:32px;width:auto;filter:brightness(0) invert(1)">
                 @else
                     <i class="fas fa-compass"></i>
-                    <span>{{ $brandName ?? 'DiscoverGRP' }}</span>
+                    <span>{{ $brandName ?? ($currentTenant->company_name ?? $currentTenant->name ?? 'Admin') }}</span>
                 @endif
             </a>
             <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>

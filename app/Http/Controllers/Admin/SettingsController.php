@@ -15,11 +15,14 @@ class SettingsController extends Controller
 
     public function index()
     {
+        $tenant = tenant();
+        $defaultName = $tenant ? ($tenant->company_name ?? $tenant->name) : 'Admin';
+        
         return view('admin.settings.index', [
             'logoUrl'         => Setting::logoUrl('logo_path'),
             'logoDarkUrl'     => Setting::logoUrl('logo_dark_path'),
             'faviconUrl'      => Setting::logoUrl('favicon_path'),
-            'companyName'     => Setting::get('company_name', 'Discover Group'),
+            'companyName'     => Setting::get('company_name', $defaultName),
             'tagline'         => Setting::get('company_tagline', ''),
             'promoBannerUrl'  => Setting::logoUrl('promo_banner_path'),
             'promoBannerLink' => Setting::get('promo_banner_link', ''),

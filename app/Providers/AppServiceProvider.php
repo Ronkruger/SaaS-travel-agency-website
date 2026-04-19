@@ -32,10 +32,12 @@ class AppServiceProvider extends ServiceProvider
         // Share branding globals with every view (guard against table not yet migrated)
         try {
             if (Schema::hasTable('settings')) {
+                $tenant = tenant();
+                $defaultName = $tenant ? ($tenant->company_name ?? $tenant->name) : 'Admin';
                 View::share('brandLogoUrl',     Setting::logoUrl('logo_path'));
                 View::share('brandLogoDarkUrl', Setting::logoUrl('logo_dark_path'));
                 View::share('brandFaviconUrl',  Setting::logoUrl('favicon_path'));
-                View::share('brandName',        Setting::get('company_name', 'Discover Group'));
+                View::share('brandName',        Setting::get('company_name', $defaultName));
                 View::share('brandTagline',     Setting::get('company_tagline', ''));
                 // Homepage customisation
                 View::share('promoBannerUrl',  Setting::logoUrl('promo_banner_path'));
@@ -48,10 +50,12 @@ class AppServiceProvider extends ServiceProvider
                 View::share('fbEmbedUrl', $fbItems[0] ?? '');
                 View::share('ytEmbedUrl', $ytItems[0] ?? '');
             } else {
+                $tenant = tenant();
+                $defaultName = $tenant ? ($tenant->company_name ?? $tenant->name) : 'Admin';
                 View::share('brandLogoUrl',     null);
                 View::share('brandLogoDarkUrl', null);
                 View::share('brandFaviconUrl',  null);
-                View::share('brandName',        'Discover Group');
+                View::share('brandName',        $defaultName);
                 View::share('brandTagline',     '');
                 View::share('promoBannerUrl',   null);
                 View::share('promoBannerLink',  '');
@@ -61,10 +65,12 @@ class AppServiceProvider extends ServiceProvider
                 View::share('ytEmbedUrl',       '');
             }
         } catch (\Throwable) {
+            $tenant = tenant();
+            $defaultName = $tenant ? ($tenant->company_name ?? $tenant->name) : 'Admin';
             View::share('brandLogoUrl',     null);
             View::share('brandLogoDarkUrl', null);
             View::share('brandFaviconUrl',  null);
-            View::share('brandName',        'Discover Group');
+            View::share('brandName',        $defaultName);
             View::share('brandTagline',     '');
             View::share('promoBannerUrl',   null);
             View::share('promoBannerLink',  '');

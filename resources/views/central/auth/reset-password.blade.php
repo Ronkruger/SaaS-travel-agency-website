@@ -1,5 +1,5 @@
 @extends('central.layouts.app')
-@section('title', 'Log In')
+@section('title', 'Reset Password')
 
 @push('styles')
 <style>
@@ -13,42 +13,38 @@
     .form-group input:focus { outline: none; border-color: var(--primary); }
     .form-group .input-error { border-color: #dc2626; }
     .error-msg { color: #dc2626; font-size: .82rem; margin-top: .3rem; }
-    .register-link { text-align: center; margin-top: 1.5rem; font-size: .9rem; color: var(--text-muted); }
-    .register-link a { color: var(--primary); font-weight: 600; }
 </style>
 @endpush
 
 @section('content')
 <div class="login-page">
     <div class="login-card">
-        <h2>Welcome back</h2>
-        <p class="sub">Log in to manage your agency billing and subscription.</p>
+        <h2>Reset Password</h2>
+        <p class="sub">Enter your new password below.</p>
 
         @if($errors->any())
             <div class="flash flash-error mb-2">{{ $errors->first() }}</div>
         @endif
 
-        <form method="POST" action="{{ route('central.login') }}">
+        <form method="POST" action="{{ route('central.password.update') }}">
             @csrf
+            <input type="hidden" name="token" value="{{ $token }}">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="jane@youragency.com" class="{{ $errors->has('email') ? 'input-error' : '' }}" required autofocus>
+                <input type="email" id="email" name="email" value="{{ old('email', $email) }}" required autofocus readonly>
             </div>
             <div class="form-group">
-                <label for="password" style="display:flex;justify-content:space-between;align-items:center;">
-                    <span>Password</span>
-                    <a href="{{ route('central.password.request') }}" style="font-size:.85rem;font-weight:500;color:var(--primary);">Forgot?</a>
-                </label>
-                <input type="password" id="password" name="password" placeholder="Your password" required>
+                <label for="password">New Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="password_confirmation">Confirm Password</label>
+                <input type="password" id="password_confirmation" name="password_confirmation" required>
             </div>
             <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:.5rem">
-                Log In
+                Reset Password
             </button>
         </form>
-
-        <div class="register-link">
-            Don't have an account? <a href="{{ route('central.register') }}">Start free trial</a>
-        </div>
     </div>
 </div>
 @endsection

@@ -72,14 +72,14 @@
 {{-- Report Header --}}
 <div class="report-header">
     <div>
-        <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Discover Group</div>
+        <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">{{ $brandName ?? 'Admin' }}</div>
         <h1>Monthly Performance Report</h1>
         <div style="font-size:13px;color:#374151;font-weight:600">{{ $startOfMonth->format('F Y') }}</div>
     </div>
     <div class="meta">
         <strong>{{ $startOfMonth->format('F 1, Y') }} – {{ $startOfMonth->copy()->endOfMonth()->format('F d, Y') }}</strong>
         Generated: {{ now()->format('M d, Y H:i') }}<br>
-        Prepared by: Discover Group Admin
+        Prepared by: {{ $brandName ?? 'Admin' }}
     </div>
 </div>
 
@@ -238,7 +238,7 @@
 
 {{-- Footer --}}
 <div class="report-footer">
-    <span>Discover Group — Confidential. For internal use only.</span>
+    <span>{{ $brandName ?? 'Admin' }} — Confidential. For internal use only.</span>
     <span>{{ config('app.url') }} · Generated {{ now()->format('M d, Y H:i') }}</span>
 </div>
 
