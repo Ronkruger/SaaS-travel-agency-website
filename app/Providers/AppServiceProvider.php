@@ -16,16 +16,18 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Register Resend mailer transport
-        Mail::extend('resend', function () {
-            return new ResendTransport();
-        });
+        //
     }
 
     public function boot(): void
     {
         // Register model observers
         Booking::observe(BookingObserver::class);
+
+        // Register Resend mailer transport
+        Mail::extend('resend', function () {
+            return new ResendTransport();
+        });
 
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
