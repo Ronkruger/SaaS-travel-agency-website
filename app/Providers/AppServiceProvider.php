@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Models\Setting;
 use App\Models\Booking;
 use App\Observers\BookingObserver;
+use App\Mail\ResendTransport;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -14,7 +16,10 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Register Resend mailer transport
+        Mail::extend('resend', function () {
+            return new ResendTransport();
+        });
     }
 
     public function boot(): void
