@@ -121,6 +121,13 @@
         <a href="{{ route('platform.plans.index') }}" class="{{ request()->routeIs('platform.plans.*') ? 'active' : '' }}">
             <i class="fas fa-tags"></i> Subscription Plans
         </a>
+        <a href="{{ route('platform.gateway-requests.index') }}" class="{{ request()->routeIs('platform.gateway-requests.*') ? 'active' : '' }}">
+            <i class="fas fa-credit-card"></i> Gateway Requests
+            @php $pendingGwCount = \App\Models\GatewayRequest::where('status', 'pending')->count(); @endphp
+            @if($pendingGwCount > 0)
+                <span style="margin-left:auto;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:10px">{{ $pendingGwCount }}</span>
+            @endif
+        </a>
         <a href="{{ route('central.home') }}" target="_blank">
             <i class="fas fa-globe"></i> View Site
         </a>

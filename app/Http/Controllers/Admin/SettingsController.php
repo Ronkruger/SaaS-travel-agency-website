@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\GatewayRequest;
 use App\Models\Setting;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Request;
@@ -220,10 +221,13 @@ class SettingsController extends Controller
 
     public function payment()
     {
+        $tenantId = tenant()->getTenantKey();
+
         return view('admin.settings.payment', [
             'xenditSecretKey'   => Setting::get('xendit_secret_key', ''),
             'xenditWebhookToken'=> Setting::get('xendit_webhook_token', ''),
             'paymentMethods'    => json_decode(Setting::get('payment_methods', '[]'), true) ?: [],
+            'gatewayRequests'   => GatewayRequest::where('tenant_id', $tenantId)->latest()->get(),
         ]);
     }
 
@@ -241,5 +245,21 @@ class SettingsController extends Controller
         Setting::set('payment_methods', json_encode($request->input('payment_methods', [])));
 
         return back()->with('success', 'Payment settings saved successfully.');
+    }
+
+    public function storeGatewayRequest(Request $request)
+    {
+        $request->validate([
+            'gateway_name' => ['required', 'string', 'max:100'],
+            'message'      => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        GatewayRequest::create([
+            'tenant_id'    => tenant()->getTenantKey(),
+            'gateway_name' => $request->input('gateway_name'),
+            'message'      => $request->input('message'),
+        ]);
+
+        return back()->with('gateway_success', 'Your gateway request has been submitted. Our team will review it shortly.');
     }
 }

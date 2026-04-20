@@ -350,6 +350,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     // Payment Settings
     Route::get('/settings/payment', [SettingsController::class, 'payment'])->name('settings.payment')->middleware('admin.can:manage_settings');
     Route::put('/settings/payment', [SettingsController::class, 'updatePayment'])->name('settings.payment.update')->middleware('admin.can:manage_settings');
+    Route::post('/settings/payment/request-gateway', [SettingsController::class, 'storeGatewayRequest'])->name('settings.payment.request-gateway')->middleware('admin.can:manage_settings');
 
     // Admin Staff & Permissions (super_admin only for editing)
     Route::get('/staff', [AdminStaffController::class, 'index'])->name('staff.index');

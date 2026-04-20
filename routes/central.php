@@ -5,6 +5,7 @@ use App\Http\Controllers\Central\TenantRegistrationController;
 use App\Http\Controllers\Central\PlatformAuthController;
 use App\Http\Controllers\Central\PlatformDashboardController;
 use App\Http\Controllers\Central\PlatformTenantController;
+use App\Http\Controllers\Central\PlatformGatewayRequestController;
 use App\Http\Controllers\Central\PlatformPlanController;
 use App\Http\Controllers\Central\BillingWebhookController;
 use App\Http\Controllers\Central\TenantBillingController;
@@ -92,5 +93,9 @@ Route::prefix('platform')->name('platform.')->group(function () {
         Route::post('/plans', [PlatformPlanController::class, 'store'])->name('plans.store');
         Route::put('/plans/{plan}', [PlatformPlanController::class, 'update'])->name('plans.update');
         Route::delete('/plans/{plan}', [PlatformPlanController::class, 'destroy'])->name('plans.destroy');
+
+        // Gateway Requests
+        Route::get('/gateway-requests', [PlatformGatewayRequestController::class, 'index'])->name('gateway-requests.index');
+        Route::put('/gateway-requests/{gatewayRequest}', [PlatformGatewayRequestController::class, 'update'])->name('gateway-requests.update');
     });
 });
