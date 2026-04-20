@@ -99,12 +99,18 @@ class PageBuilderController extends Controller
             'settings' => 'nullable|array',
         ]);
 
-        $section->update([
+        $data = [
             'title'    => $validated['title'] ?? $section->title,
             'subtitle' => $validated['subtitle'] ?? $section->subtitle,
             'content'  => $validated['content'] ?? $section->content,
-            'settings' => $validated['settings'] ?? $section->settings,
-        ]);
+        ];
+
+        // Only update settings if the style panel was opened (inputs enabled & submitted)
+        if ($request->has('settings')) {
+            $data['settings'] = $validated['settings'];
+        }
+
+        $section->update($data);
 
         return redirect()->route('admin.page-builder.index')
             ->with('success', 'Section updated successfully.');

@@ -208,69 +208,53 @@
         @endif
 
         {{-- Style Customization Panel --}}
-        @php $s = $section->settings ?? []; @endphp
+        @php $s = $section->settings ?? []; $hasSettings = !empty($s); @endphp
         <div style="border:1px solid var(--gray-200);border-radius:10px;padding:20px;margin-bottom:20px;background:var(--gray-50)">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;cursor:pointer" onclick="document.getElementById('style-panel').style.display = document.getElementById('style-panel').style.display === 'none' ? 'block' : 'none'; this.querySelector('.chevron').classList.toggle('fa-chevron-down'); this.querySelector('.chevron').classList.toggle('fa-chevron-up')">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;cursor:pointer" onclick="toggleStylePanel()">
                 <h4 style="margin:0;font-size:.9rem;font-weight:700"><i class="fas fa-palette" style="margin-right:8px;color:var(--primary)"></i>Style Customization</h4>
-                <i class="fas fa-chevron-down chevron" style="color:var(--gray-400);font-size:.75rem"></i>
+                <i class="fas fa-chevron-down chevron" id="style-chevron" style="color:var(--gray-400);font-size:.75rem"></i>
             </div>
             <div id="style-panel" style="display:none">
                 {{-- Colors Row --}}
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:18px">
+                    @foreach([
+                        ['key' => 'bg_color', 'label' => 'Background Color', 'placeholder' => '#ffffff or linear-gradient(...)'],
+                        ['key' => 'text_color', 'label' => 'Text Color', 'placeholder' => '#374151'],
+                        ['key' => 'heading_color', 'label' => 'Heading Color', 'placeholder' => '#111827'],
+                        ['key' => 'btn_color', 'label' => 'Button Color', 'placeholder' => '#0A2D74'],
+                        ['key' => 'btn_text_color', 'label' => 'Button Text Color', 'placeholder' => '#ffffff'],
+                    ] as $colorField)
                     <div class="form-group" style="margin:0">
-                        <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Background Color</label>
+                        <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">{{ $colorField['label'] }}</label>
                         <div style="display:flex;gap:6px;align-items:center">
-                            <input type="color" name="settings[bg_color]" value="{{ $s['bg_color'] ?? '#ffffff' }}" style="width:36px;height:36px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;padding:2px" oninput="this.nextElementSibling.value=this.value">
-                            <input type="text" value="{{ $s['bg_color'] ?? '' }}" class="form-control" style="font-size:.8rem" placeholder="#ffffff" oninput="this.previousElementSibling.value=this.value" onchange="this.previousElementSibling.value=this.value; this.form.querySelector('[name=\'settings[bg_color]\']').value=this.value">
+                            @php
+                                $val = $s[$colorField['key']] ?? '';
+                                $isHex = preg_match('/^#[0-9a-fA-F]{6}$/', $val);
+                            @endphp
+                            <input type="color" value="{{ $isHex ? $val : '#000000' }}" style="width:36px;height:36px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;padding:2px" oninput="this.nextElementSibling.value=this.value;this.nextElementSibling.dispatchEvent(new Event('input'))">
+                            <input type="text" name="settings[{{ $colorField['key'] }}]" value="{{ $val }}" class="form-control style-input" style="font-size:.8rem" placeholder="{{ $colorField['placeholder'] }}" disabled oninput="var c=this.value;if(/^#[0-9a-fA-F]{6}$/.test(c))this.previousElementSibling.value=c;updateStylePreview()">
                         </div>
                     </div>
-                    <div class="form-group" style="margin:0">
-                        <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Text Color</label>
-                        <div style="display:flex;gap:6px;align-items:center">
-                            <input type="color" name="settings[text_color]" value="{{ $s['text_color'] ?? '#374151' }}" style="width:36px;height:36px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;padding:2px" oninput="this.nextElementSibling.value=this.value">
-                            <input type="text" value="{{ $s['text_color'] ?? '' }}" class="form-control" style="font-size:.8rem" placeholder="#374151" oninput="this.previousElementSibling.value=this.value">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:0">
-                        <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Heading Color</label>
-                        <div style="display:flex;gap:6px;align-items:center">
-                            <input type="color" name="settings[heading_color]" value="{{ $s['heading_color'] ?? '#111827' }}" style="width:36px;height:36px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;padding:2px" oninput="this.nextElementSibling.value=this.value">
-                            <input type="text" value="{{ $s['heading_color'] ?? '' }}" class="form-control" style="font-size:.8rem" placeholder="#111827" oninput="this.previousElementSibling.value=this.value">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:0">
-                        <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Button Color</label>
-                        <div style="display:flex;gap:6px;align-items:center">
-                            <input type="color" name="settings[btn_color]" value="{{ $s['btn_color'] ?? '#0A2D74' }}" style="width:36px;height:36px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;padding:2px" oninput="this.nextElementSibling.value=this.value">
-                            <input type="text" value="{{ $s['btn_color'] ?? '' }}" class="form-control" style="font-size:.8rem" placeholder="#0A2D74" oninput="this.previousElementSibling.value=this.value">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:0">
-                        <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Button Text Color</label>
-                        <div style="display:flex;gap:6px;align-items:center">
-                            <input type="color" name="settings[btn_text_color]" value="{{ $s['btn_text_color'] ?? '#ffffff' }}" style="width:36px;height:36px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;padding:2px" oninput="this.nextElementSibling.value=this.value">
-                            <input type="text" value="{{ $s['btn_text_color'] ?? '' }}" class="form-control" style="font-size:.8rem" placeholder="#ffffff" oninput="this.previousElementSibling.value=this.value">
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
 
                 {{-- Sizing Row --}}
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:18px">
                     <div class="form-group" style="margin:0">
                         <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Button Radius: <span id="btn-radius-val">{{ $s['btn_radius'] ?? '10' }}px</span></label>
-                        <input type="range" name="settings[btn_radius]" min="0" max="50" value="{{ $s['btn_radius'] ?? '10' }}" style="width:100%" oninput="document.getElementById('btn-radius-val').textContent=this.value+'px'">
+                        <input type="range" name="settings[btn_radius]" class="style-input" min="0" max="50" value="{{ $s['btn_radius'] ?? '10' }}" style="width:100%" disabled oninput="document.getElementById('btn-radius-val').textContent=this.value+'px';updateStylePreview()">
                     </div>
                     <div class="form-group" style="margin:0">
                         <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Font Size: <span id="font-size-val">{{ $s['font_size'] ?? '16' }}px</span></label>
-                        <input type="range" name="settings[font_size]" min="12" max="24" value="{{ $s['font_size'] ?? '16' }}" style="width:100%" oninput="document.getElementById('font-size-val').textContent=this.value+'px'">
+                        <input type="range" name="settings[font_size]" class="style-input" min="12" max="24" value="{{ $s['font_size'] ?? '16' }}" style="width:100%" disabled oninput="document.getElementById('font-size-val').textContent=this.value+'px';updateStylePreview()">
                     </div>
                     <div class="form-group" style="margin:0">
                         <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Heading Size: <span id="heading-size-val">{{ $s['heading_size'] ?? '36' }}px</span></label>
-                        <input type="range" name="settings[heading_size]" min="20" max="72" value="{{ $s['heading_size'] ?? '36' }}" style="width:100%" oninput="document.getElementById('heading-size-val').textContent=this.value+'px'">
+                        <input type="range" name="settings[heading_size]" class="style-input" min="20" max="72" value="{{ $s['heading_size'] ?? '36' }}" style="width:100%" disabled oninput="document.getElementById('heading-size-val').textContent=this.value+'px';updateStylePreview()">
                     </div>
                     <div class="form-group" style="margin:0">
                         <label style="display:block;font-weight:600;font-size:.8rem;margin-bottom:6px">Section Padding: <span id="padding-val">{{ $s['padding_y'] ?? '60' }}px</span></label>
-                        <input type="range" name="settings[padding_y]" min="20" max="120" value="{{ $s['padding_y'] ?? '60' }}" style="width:100%" oninput="document.getElementById('padding-val').textContent=this.value+'px'">
+                        <input type="range" name="settings[padding_y]" class="style-input" min="20" max="120" value="{{ $s['padding_y'] ?? '60' }}" style="width:100%" disabled oninput="document.getElementById('padding-val').textContent=this.value+'px';updateStylePreview()">
                     </div>
                 </div>
 
@@ -330,6 +314,22 @@ function addGalleryItem() {
     galleryIdx++;
 }
 
+// Style panel toggle — disabled inputs don't submit, preventing accidental overwrites
+var stylePanelOpen = false;
+function toggleStylePanel() {
+    stylePanelOpen = !stylePanelOpen;
+    var panel = document.getElementById('style-panel');
+    var chevron = document.getElementById('style-chevron');
+    panel.style.display = stylePanelOpen ? 'block' : 'none';
+    chevron.classList.toggle('fa-chevron-down', !stylePanelOpen);
+    chevron.classList.toggle('fa-chevron-up', stylePanelOpen);
+    // Enable/disable all style inputs so they only submit when panel is open
+    panel.querySelectorAll('.style-input').forEach(function(el) {
+        el.disabled = !stylePanelOpen;
+    });
+    if (stylePanelOpen) updateStylePreview();
+}
+
 // Live style preview
 function updateStylePreview() {
     var bg = document.querySelector('[name="settings[bg_color]"]');
@@ -345,18 +345,20 @@ function updateStylePreview() {
     var pt = document.getElementById('preview-text');
     var pb = document.getElementById('preview-btn');
     if (!preview) return;
-    preview.style.background = bg ? bg.value : '#fff';
-    pt.style.color = text ? text.value : '#374151';
+    var bgVal = bg ? bg.value : '';
+    preview.style.background = bgVal || '#f8fafc';
+    pt.style.color = text ? text.value || '#374151' : '#374151';
     pt.style.fontSize = fontSize ? fontSize.value + 'px' : '16px';
-    ph.style.color = heading ? heading.value : '#111827';
+    ph.style.color = heading ? heading.value || '#111827' : '#111827';
     ph.style.fontSize = headingSize ? headingSize.value + 'px' : '36px';
-    pb.style.background = btn ? btn.value : '#0A2D74';
-    pb.style.color = btnText ? btnText.value : '#fff';
+    pb.style.background = btn ? btn.value || '#0A2D74' : '#0A2D74';
+    pb.style.color = btnText ? btnText.value || '#fff' : '#fff';
     pb.style.borderRadius = radius ? radius.value + 'px' : '10px';
 }
-document.querySelectorAll('[name^="settings["]').forEach(function(el) {
-    el.addEventListener('input', updateStylePreview);
-});
-setTimeout(updateStylePreview, 100);
+
+// Auto-open style panel if section already has settings saved
+@if($hasSettings)
+document.addEventListener('DOMContentLoaded', function() { toggleStylePanel(); });
+@endif
 </script>
 @endpush
