@@ -106,23 +106,30 @@ class TenantRegistrationController extends Controller
         }
 
         // Activate trial and create tenant database
+        try {
+            // Manually trigger tenant database creation using the same jobs
+            // that TenantCreated event would normally dispatch
+            (new \Stancl\Tenancy\Jobs\CreateDatabase($tenant))->handle(
+                app(\Stancl\Tenancy\Database\DatabaseManager::class)
+            );
+            (new \Stancl\Tenancy\Jobs\MigrateDatabase($tenant))->handle();
+            (new \Stancl\Tenancy\Jobs\SeedDatabase($tenant))->handle();
+        } catch (\Throwable $e) {
+            \Log::error('Failed to create tenant database during activation', [
+                'tenant' => $tenant->id,
+                'error'  => $e->getMessage(),
+            ]);
+
+            return redirect()->route('central.register')
+                ->withErrors(['error' => 'Failed to set up your account. Please try again or contact support.']);
+        }
+
         $tenant->update([
             'trial_activated' => true,
             'activated_at'    => now(),
             'trial_ends_at'   => now()->addDays(30),
             'is_active'       => true,
             'activation_token' => null, // Clear token after use
-        ]);
-
-        // Manually trigger tenant database creation
-        $dbManager = app(\Stancl\Tenancy\Database\DatabaseManager::class);
-        $dbManager->ensureTenantCanBeCreated($tenant);
-        $dbManager->createTenantDatabase($tenant);
-
-        // Run migrations in tenant context
-        \Artisan::call('tenants:migrate', [
-            '--tenants' => [$tenant->id],
-            '--force' => true,
         ]);
 
         // Switch to tenant context and create their first admin user
