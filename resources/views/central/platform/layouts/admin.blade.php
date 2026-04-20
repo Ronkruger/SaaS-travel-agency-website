@@ -128,6 +128,9 @@
                 <span style="margin-left:auto;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:10px">{{ $pendingGwCount }}</span>
             @endif
         </a>
+        <a href="{{ route('platform.system.index') }}" class="{{ request()->routeIs('platform.system.*') ? 'active' : '' }}">
+            <i class="fas fa-heartbeat"></i> System Health
+        </a>
         <a href="{{ route('central.home') }}" target="_blank">
             <i class="fas fa-globe"></i> View Site
         </a>

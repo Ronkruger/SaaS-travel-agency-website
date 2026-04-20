@@ -7,6 +7,7 @@ use App\Http\Controllers\Central\PlatformDashboardController;
 use App\Http\Controllers\Central\PlatformTenantController;
 use App\Http\Controllers\Central\PlatformGatewayRequestController;
 use App\Http\Controllers\Central\PlatformPlanController;
+use App\Http\Controllers\Central\PlatformSystemController;
 use App\Http\Controllers\Central\BillingWebhookController;
 use App\Http\Controllers\Central\TenantBillingController;
 use Illuminate\Support\Facades\Route;
@@ -97,5 +98,9 @@ Route::prefix('platform')->name('platform.')->group(function () {
         // Gateway Requests
         Route::get('/gateway-requests', [PlatformGatewayRequestController::class, 'index'])->name('gateway-requests.index');
         Route::put('/gateway-requests/{gatewayRequest}', [PlatformGatewayRequestController::class, 'update'])->name('gateway-requests.update');
+
+        // System Health
+        Route::get('/system', [PlatformSystemController::class, 'index'])->name('system.index');
+        Route::get('/system/check', [PlatformSystemController::class, 'check'])->name('system.check');
     });
 });
