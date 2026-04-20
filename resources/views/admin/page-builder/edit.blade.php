@@ -59,20 +59,26 @@
                     <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Button 1 Text</label>
                     <input type="text" name="content[button_text]" value="{{ old('content.button_text', $c['button_text'] ?? '') }}" class="form-control" placeholder="Browse Tours">
                 </div>
-                <div class="form-group">
-                    <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Button 1 Link</label>
-                    <input type="text" name="content[button_link]" value="{{ old('content.button_link', $c['button_link'] ?? '') }}" class="form-control" placeholder="/tours">
-                </div>
+                @include('admin.page-builder.partials.link-picker', [
+                    'name'  => 'content[button_link]',
+                    'value' => $c['button_link'] ?? '',
+                    'label' => 'Button 1 Link',
+                    'pages' => $availablePages,
+                    'id'    => 'picker-hero-btn1',
+                ])
             </div>
             <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
                 <div class="form-group">
                     <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Button 2 Text</label>
                     <input type="text" name="content[button2_text]" value="{{ old('content.button2_text', $c['button2_text'] ?? '') }}" class="form-control" placeholder="Contact Us">
                 </div>
-                <div class="form-group">
-                    <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Button 2 Link</label>
-                    <input type="text" name="content[button2_link]" value="{{ old('content.button2_link', $c['button2_link'] ?? '') }}" class="form-control" placeholder="/contact">
-                </div>
+                @include('admin.page-builder.partials.link-picker', [
+                    'name'  => 'content[button2_link]',
+                    'value' => $c['button2_link'] ?? '',
+                    'label' => 'Button 2 Link',
+                    'pages' => $availablePages,
+                    'id'    => 'picker-hero-btn2',
+                ])
             </div>
             <div class="form-group">
                 <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Background Image URL</label>
@@ -122,10 +128,13 @@
                     <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Button Text</label>
                     <input type="text" name="content[button_text]" value="{{ old('content.button_text', $c['button_text'] ?? '') }}" class="form-control">
                 </div>
-                <div class="form-group">
-                    <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Button Link</label>
-                    <input type="text" name="content[button_link]" value="{{ old('content.button_link', $c['button_link'] ?? '') }}" class="form-control">
-                </div>
+                @include('admin.page-builder.partials.link-picker', [
+                    'name'  => 'content[button_link]',
+                    'value' => $c['button_link'] ?? '',
+                    'label' => 'Button Link',
+                    'pages' => $availablePages,
+                    'id'    => 'picker-cta-btn',
+                ])
             </div>
             <div class="form-group">
                 <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Background Image URL</label>
@@ -170,10 +179,13 @@
                 <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Image URL</label>
                 <input type="text" name="content[image_url]" value="{{ old('content.image_url', $c['image_url'] ?? $section->image_url ?? '') }}" class="form-control" placeholder="https://...">
             </div>
-            <div class="form-group">
-                <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Link (optional)</label>
-                <input type="text" name="content[link]" value="{{ old('content.link', $c['link'] ?? '') }}" class="form-control" placeholder="/tours">
-            </div>
+            @include('admin.page-builder.partials.link-picker', [
+                'name'  => 'content[link]',
+                'value' => $c['link'] ?? '',
+                'label' => 'Link (optional)',
+                'pages' => $availablePages,
+                'id'    => 'picker-promo-link',
+            ])
         </div>
 
         @elseif(in_array($section->section_type, ['categories', 'featured_tours', 'testimonials']))
@@ -360,5 +372,54 @@ function updateStylePreview() {
 @if($hasSettings)
 document.addEventListener('DOMContentLoaded', function() { toggleStylePanel(); });
 @endif
+
+// ── Link Picker ──────────────────────────────────────────
+function openLinkPicker(id) {
+    // Close any other open pickers first
+    document.querySelectorAll('.link-picker-dropdown').forEach(function(d) { d.style.display = 'none'; });
+    var dd = document.getElementById(id + '-dropdown');
+    dd.style.display = 'block';
+    // Lazy-load iframes
+    dd.querySelectorAll('iframe[data-src]').forEach(function(iframe) {
+        if (!iframe.src || iframe.src === 'about:blank') {
+            iframe.src = iframe.getAttribute('data-src');
+            iframe.onload = function() {
+                // Hide shimmer when loaded
+                var shimmer = iframe.parentElement.querySelector('.link-picker-shimmer');
+                if (shimmer) shimmer.style.display = 'none';
+            };
+        }
+    });
+}
+
+function closeLinkPicker(id) {
+    document.getElementById(id + '-dropdown').style.display = 'none';
+}
+
+function selectPage(id, path) {
+    document.getElementById(id + '-input').value = path;
+    closeLinkPicker(id);
+}
+
+// Close picker when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.link-picker-dropdown') && !e.target.closest('[onclick*="openLinkPicker"]')) {
+        document.querySelectorAll('.link-picker-dropdown').forEach(function(d) { d.style.display = 'none'; });
+    }
+});
 </script>
+@endpush
+
+@push('styles')
+<style>
+.link-picker-card:hover {
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    transform: translateY(-1px);
+}
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+</style>
 @endpush

@@ -82,10 +82,11 @@ class PageBuilderController extends Controller
 
     public function edit(PageSection $page_builder)
     {
-        $section      = $page_builder;
-        $sectionTypes = PageSection::sectionTypes();
+        $section        = $page_builder;
+        $sectionTypes   = PageSection::sectionTypes();
+        $availablePages = self::availablePages();
 
-        return view('admin.page-builder.edit', compact('section', 'sectionTypes'));
+        return view('admin.page-builder.edit', compact('section', 'sectionTypes', 'availablePages'));
     }
 
     public function update(Request $request, PageSection $page_builder)
@@ -158,6 +159,20 @@ class PageBuilderController extends Controller
             'font_size'      => '16',
             'heading_size'   => '',
             'padding_y'      => '60',
+        ];
+    }
+
+    public static function availablePages(): array
+    {
+        return [
+            ['path' => '/',             'label' => 'Home',          'icon' => 'fas fa-home',          'description' => 'Your main landing page'],
+            ['path' => '/tours',        'label' => 'Browse Tours',  'icon' => 'fas fa-map-marked-alt','description' => 'Tour catalog with filters'],
+            ['path' => '/about',        'label' => 'About Us',      'icon' => 'fas fa-info-circle',   'description' => 'Company info page'],
+            ['path' => '/contact',      'label' => 'Contact',       'icon' => 'fas fa-envelope',      'description' => 'Contact form'],
+            ['path' => '/destinations', 'label' => 'Destinations',  'icon' => 'fas fa-globe-americas','description' => 'Destinations by region'],
+            ['path' => '/diy',          'label' => 'DIY Builder',   'icon' => 'fas fa-magic',         'description' => 'Custom tour builder'],
+            ['path' => '/login',        'label' => 'Login',         'icon' => 'fas fa-sign-in-alt',   'description' => 'Customer login page'],
+            ['path' => '/register',     'label' => 'Register',      'icon' => 'fas fa-user-plus',     'description' => 'Customer sign-up page'],
         ];
     }
 
