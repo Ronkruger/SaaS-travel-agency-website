@@ -369,6 +369,6 @@ class PageBuilderController extends Controller
                 'button_link'      => '',
             ],
             default => [],
-        ];
+        };
     }
 }
