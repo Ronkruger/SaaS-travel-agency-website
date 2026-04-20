@@ -347,6 +347,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update')->middleware('admin.can:manage_settings');
     Route::delete('/settings/logo', [SettingsController::class, 'deleteLogo'])->name('settings.delete-logo')->middleware('admin.can:manage_settings');
 
+    // Payment Settings
+    Route::get('/settings/payment', [SettingsController::class, 'payment'])->name('settings.payment')->middleware('admin.can:manage_settings');
+    Route::put('/settings/payment', [SettingsController::class, 'updatePayment'])->name('settings.payment.update')->middleware('admin.can:manage_settings');
+
     // Admin Staff & Permissions (super_admin only for editing)
     Route::get('/staff', [AdminStaffController::class, 'index'])->name('staff.index');
     Route::get('/staff/{adminUser}/edit', [AdminStaffController::class, 'edit'])->name('staff.edit')->middleware('admin.can:manage_admins');

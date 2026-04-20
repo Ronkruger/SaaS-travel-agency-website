@@ -1,5 +1,27 @@
 <?php
 
+if (!function_exists('xendit_secret_key')) {
+    /**
+     * Get Xendit secret key: DB setting first, then env fallback.
+     */
+    function xendit_secret_key(): ?string
+    {
+        $dbKey = \App\Models\Setting::get('xendit_secret_key');
+        return !empty($dbKey) ? $dbKey : config('xendit.secret_key');
+    }
+}
+
+if (!function_exists('xendit_webhook_token')) {
+    /**
+     * Get Xendit webhook token: DB setting first, then env fallback.
+     */
+    function xendit_webhook_token(): ?string
+    {
+        $dbToken = \App\Models\Setting::get('xendit_webhook_token');
+        return !empty($dbToken) ? $dbToken : config('xendit.webhook_token');
+    }
+}
+
 if (!function_exists('cdn_url')) {
     /**
      * Resolve a stored media path to a publicly accessible URL.

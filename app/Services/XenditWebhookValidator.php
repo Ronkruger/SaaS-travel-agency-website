@@ -34,7 +34,7 @@ class XenditWebhookValidator
         $errors = [];
 
         // 1. Token validation
-        if ($token !== config('xendit.webhook_token')) {
+        if ($token !== xendit_webhook_token()) {
             $errors[] = 'invalid_token';
         }
 

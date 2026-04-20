@@ -25,7 +25,7 @@ class XenditController extends Controller
      */
     public static function createMultiTermInvoice(Booking $booking, array $coveredTerms, float $totalAmount): string
     {
-        Configuration::setXenditKey(config('xendit.secret_key'));
+        Configuration::setXenditKey(xendit_secret_key());
         $apiInstance = new InvoiceApi();
 
         // Build term labels and items
@@ -85,7 +85,7 @@ class XenditController extends Controller
      */
     public static function createInstallmentInvoice(Booking $booking, int $scheduleIndex, array $termEntry): string
     {
-        Configuration::setXenditKey(config('xendit.secret_key'));
+        Configuration::setXenditKey(xendit_secret_key());
 
         $apiInstance = new InvoiceApi();
 
@@ -131,7 +131,7 @@ class XenditController extends Controller
      */
     public static function createInvoice(Booking $booking): string
     {
-        Configuration::setXenditKey(config('xendit.secret_key'));
+        Configuration::setXenditKey(xendit_secret_key());
 
         $apiInstance = new InvoiceApi();
 
@@ -551,7 +551,7 @@ class XenditController extends Controller
         // Webhook hasn't processed — verify directly with Xendit
         if ($booking->xendit_invoice_id) {
             try {
-                Configuration::setXenditKey(config('xendit.secret_key'));
+                Configuration::setXenditKey(xendit_secret_key());
                 $api     = new InvoiceApi();
                 $invoice = $api->getInvoiceById($booking->xendit_invoice_id);
                 $xenditStatus = strtoupper($invoice->getStatus() ?? '');
@@ -657,7 +657,7 @@ class XenditController extends Controller
 
             if ($invoiceId) {
                 try {
-                    Configuration::setXenditKey(config('xendit.secret_key'));
+                    Configuration::setXenditKey(xendit_secret_key());
                     $api     = new InvoiceApi();
                     $invoice = $api->getInvoiceById($invoiceId);
                     $xenditStatus = strtoupper($invoice->getStatus() ?? '');

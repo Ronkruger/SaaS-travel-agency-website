@@ -115,8 +115,11 @@
             <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
                 <i class="fas fa-user-shield"></i> Staff &amp; Permissions
             </a>
-            <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.index') ? 'active' : '' }}">
                 <i class="fas fa-palette"></i> Branding
+            </a>
+            <a href="{{ route('admin.settings.payment') }}" class="{{ request()->routeIs('admin.settings.payment') ? 'active' : '' }}">
+                <i class="fas fa-credit-card"></i> Payment Setup
             </a>
             <a href="{{ route('home') }}" target="_blank">
                 <i class="fas fa-external-link-alt"></i> View Site

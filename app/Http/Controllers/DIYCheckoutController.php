@@ -111,7 +111,7 @@ class DIYCheckoutController extends Controller
      */
     public static function createDIYInvoice(DIYTourQuote $quote, DIYTourSession $session, float $amount, string $description): string
     {
-        Configuration::setXenditKey(config('xendit.secret_key'));
+        Configuration::setXenditKey(xendit_secret_key());
         $apiInstance = new InvoiceApi();
 
         $user = $session->user;
@@ -169,7 +169,7 @@ class DIYCheckoutController extends Controller
             // Webhook may not have arrived yet — verify directly with Xendit
             if ($quote->xendit_invoice_id) {
                 try {
-                    Configuration::setXenditKey(config('xendit.secret_key'));
+                    Configuration::setXenditKey(xendit_secret_key());
                     $api = new InvoiceApi();
                     $invoice = $api->getInvoiceById($quote->xendit_invoice_id);
                     $xenditStatus = strtoupper($invoice->getStatus() ?? '');

@@ -215,4 +215,31 @@ class SettingsController extends Controller
             Storage::disk('public')->delete($path);
         }
     }
+
+    // ── Payment Settings ─────────────────────────────────────
+
+    public function payment()
+    {
+        return view('admin.settings.payment', [
+            'xenditSecretKey'   => Setting::get('xendit_secret_key', ''),
+            'xenditWebhookToken'=> Setting::get('xendit_webhook_token', ''),
+            'paymentMethods'    => json_decode(Setting::get('payment_methods', '[]'), true) ?: [],
+        ]);
+    }
+
+    public function updatePayment(Request $request)
+    {
+        $request->validate([
+            'xendit_secret_key'    => ['nullable', 'string', 'max:500'],
+            'xendit_webhook_token' => ['nullable', 'string', 'max:500'],
+            'payment_methods'      => ['nullable', 'array'],
+            'payment_methods.*'    => ['string', 'in:CREDIT_CARD,BPI,BDO,GCASH,GRABPAY,PAYMAYA'],
+        ]);
+
+        Setting::set('xendit_secret_key', $request->input('xendit_secret_key', ''));
+        Setting::set('xendit_webhook_token', $request->input('xendit_webhook_token', ''));
+        Setting::set('payment_methods', json_encode($request->input('payment_methods', [])));
+
+        return back()->with('success', 'Payment settings saved successfully.');
+    }
 }

@@ -674,7 +674,7 @@ class BookingController extends Controller
         }
 
         try {
-            Configuration::setXenditKey(config('xendit.secret_key'));
+            Configuration::setXenditKey(xendit_secret_key());
             $api     = new InvoiceApi();
             $invoice = $api->getInvoiceById($invoiceId);
         } catch (\Throwable $e) {
