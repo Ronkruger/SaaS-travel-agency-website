@@ -122,7 +122,7 @@ class DIYCheckoutController extends Controller
             'external_id'          => $externalId,
             'amount'               => $amount,
             'description'          => $description,
-            'payer_email'          => $user?->email ?? 'noreply@discovergrp.com',
+            'payer_email'          => $user?->email ?? config('mail.from.address', 'noreply@example.com'),
             'customer'             => [
                 'given_names'   => $user?->name ?? 'Guest',
                 'email'         => $user?->email ?? null,

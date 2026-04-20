@@ -52,7 +52,7 @@ class XenditController extends Controller
             'external_id'          => $externalId,
             'amount'               => $totalAmount,
             'description'          => $description,
-            'payer_email'          => $booking->contact_email ?: 'noreply@discovergrp.com',
+            'payer_email'          => $booking->contact_email ?: config('mail.from.address', 'noreply@example.com'),
             'customer'             => [
                 'given_names'   => $booking->contact_name,
                 'email'         => $booking->contact_email ?: null,
@@ -97,7 +97,7 @@ class XenditController extends Controller
             'external_id'          => 'INSTALLMENT-' . $booking->id . '-' . $term . '-' . time(),
             'amount'               => $amount,
             'description'          => 'Installment ' . $termLabel . ': ' . $booking->tour->title,
-            'payer_email'          => $booking->contact_email ?: 'noreply@discovergrp.com',
+            'payer_email'          => $booking->contact_email ?: config('mail.from.address', 'noreply@example.com'),
             'customer'             => [
                 'given_names'   => $booking->contact_name,
                 'email'         => $booking->contact_email ?: null,

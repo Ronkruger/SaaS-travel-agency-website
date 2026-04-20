@@ -224,7 +224,7 @@
                 </a>
                 <p class="cta-sub">Our team reviews &amp; confirms within 24 hrs — no payment needed yet.</p>
                 <div class="cta-divider">or</div>
-                <a href="https://www.facebook.com/discovergrp" target="_blank" rel="noopener noreferrer"
+                <a href="#"
                    class="btn btn-facebook btn-full">
                     <i class="fab fa-facebook"></i>&nbsp; Contact Sales for Guidance
                 </a>

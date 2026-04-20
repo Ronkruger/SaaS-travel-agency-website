@@ -26,8 +26,8 @@ class AIItineraryService
             'headers'  => [
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type'  => 'application/json',
-                'HTTP-Referer'  => config('app.url', 'https://discovergrp.com'),
-                'X-Title'       => config('app.name', 'DiscoverGRP'),
+                'HTTP-Referer'  => config('app.url', 'https://example.com'),
+                'X-Title'       => config('app.name', 'TourSaaS'),
             ],
         ]);
     }

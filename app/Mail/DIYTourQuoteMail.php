@@ -24,7 +24,7 @@ class DIYTourQuoteMail extends Mailable
         $tourName = $this->session->latestItinerary?->tour_name ?? 'Your Custom Tour';
 
         return new Envelope(
-            subject: 'Your Official Quote — ' . $tourName . ' | Discover Group',
+            subject: 'Your Official Quote — ' . $tourName . ' | ' . (tenant() ? (tenant()->company_name ?? tenant()->name) : config('app.name')),
         );
     }
 

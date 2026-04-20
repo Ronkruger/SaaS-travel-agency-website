@@ -38,9 +38,9 @@
     <div class="header">
         @php $emailLogo = \App\Models\Setting::logoUrl('logo_path'); @endphp
         @if($emailLogo)
-            <img src="{{ $emailLogo }}" alt="Discover Group" style="max-height:48px;width:auto;margin-bottom:6px">
+            <img src="{{ $emailLogo }}" alt="{{ $brandName ?? "Your Agency" }}" style="max-height:48px;width:auto;margin-bottom:6px">
         @else
-            <h1>Discover Group</h1>
+            <h1>{{ $brandName ?? "Your Agency" }}</h1>
         @endif
         <p>Installment Payment Reminder</p>
     </div>
@@ -147,7 +147,7 @@
 
     {{-- Footer --}}
     <div class="footer">
-        <p>© {{ date('Y') }} Discover Group. All rights reserved.</p>
+        <p>© {{ date('Y') }} {{ $brandName ?? "Your Agency" }}. All rights reserved.</p>
         <p>This is an automated reminder. Please do not reply to this email.</p>
     </div>
 </div>

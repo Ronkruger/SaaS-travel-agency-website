@@ -43,9 +43,9 @@
     <div class="header">
         @php $emailLogo = \App\Models\Setting::logoUrl('logo_path'); @endphp
         @if($emailLogo)
-            <img src="{{ $emailLogo }}" alt="Discover Group" style="max-height:48px;width:auto;margin-bottom:6px;filter:brightness(0) invert(1)">
+            <img src="{{ $emailLogo }}" alt="{{ $brandName ?? "Your Agency" }}" style="max-height:48px;width:auto;margin-bottom:6px;filter:brightness(0) invert(1)">
         @else
-            <h1>Discover Group</h1>
+            <h1>{{ $brandName ?? "Your Agency" }}</h1>
         @endif
         <p>❌ Subscription Cancelled / Rejected</p>
     </div>
@@ -143,7 +143,7 @@
             ⚠️ This is an automated, system-generated email — please do not reply directly to this message.
             For assistance, contact us at <a href="mailto:{{ config('mail.from.address', 'bookings@discovergroup.com') }}">{{ config('mail.from.address', 'bookings@discovergroup.com') }}</a>.
         </p>
-        <p style="margin:6px 0 4px">© {{ date('Y') }} Discover Group. All rights reserved.</p>
+        <p style="margin:6px 0 4px">© {{ date('Y') }} {{ $brandName ?? "Your Agency" }}. All rights reserved.</p>
         <p style="margin-top:4px">
             <a href="{{ config('app.url') }}">{{ config('app.url') }}</a>
         </p>

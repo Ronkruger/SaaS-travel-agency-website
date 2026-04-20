@@ -20,7 +20,7 @@ class OtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Password Reset OTP — Discover Group',
+            subject: 'Your Password Reset OTP — ' . (tenant() ? (tenant()->company_name ?? tenant()->name) : config('app.name')),
         );
     }
 

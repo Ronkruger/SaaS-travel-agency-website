@@ -67,7 +67,7 @@ class PaymentReceiptController extends Controller
             'booking'  => $booking,
             'channel'  => $channel,
             'settings' => [
-                'company_name'  => Setting::get('company_name', 'Discover Group'),
+                'company_name'  => Setting::get('company_name', tenant()->company_name ?? tenant()->name ?? 'Your Agency'),
                 'tagline'       => Setting::get('company_tagline', 'Travel & Tours'),
                 'logo_url'      => Setting::get('pdf_logo_url') ?? Setting::get('logo_path'),
                 'accent_color'  => Setting::get('pdf_accent_color', '#1e3a8a'),

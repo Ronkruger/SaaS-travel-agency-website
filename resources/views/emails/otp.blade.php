@@ -29,7 +29,7 @@
 <div class="card">
 
     <div class="header">
-        <h1>Discover Group</h1>
+        <h1>{{ $brandName ?? "Your Agency" }}</h1>
         <p>🔐 Password Reset Request</p>
     </div>
 
@@ -37,7 +37,7 @@
         <p class="greeting">Hello,</p>
 
         <p class="info-text">
-            We received a request to reset the password for your Discover Group account
+            We received a request to reset the password for your {{ $brandName ?? "Your Agency" }} account
             associated with <strong>{{ $email }}</strong>.
         </p>
 
@@ -64,7 +64,7 @@
         <p style="margin:0 0 8px;background:#f3f4f6;border-radius:6px;padding:8px 12px;font-size:11px;color:#6b7280;display:inline-block">
             ⚠️ This is an automated, system-generated email — please do not reply directly to this message.
         </p>
-        &copy; {{ date('Y') }} <a href="#">Discover Group</a> &mdash; All rights reserved.
+        &copy; {{ date('Y') }} <a href="#">{{ $brandName ?? "Your Agency" }}</a> &mdash; All rights reserved.
     </div>
 
 </div>

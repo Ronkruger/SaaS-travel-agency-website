@@ -26,7 +26,7 @@ class DIYPaymentConfirmationMail extends Mailable
         $tourName = $this->session->latestItinerary?->tour_name ?? 'Your Custom Tour';
 
         return new Envelope(
-            subject: 'Payment Confirmed — ' . $tourName . ' | Discover Group',
+            subject: 'Payment Confirmed — ' . $tourName . ' | ' . (tenant() ? (tenant()->company_name ?? tenant()->name) : config('app.name')),
         );
     }
 

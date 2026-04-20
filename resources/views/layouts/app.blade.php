@@ -46,17 +46,12 @@
                     <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="navbar-logo-mark" style="max-height:40px;width:auto">
                 @endif
             @else
-                {{-- Fallback SVG --}}
-                <svg class="navbar-logo-full" width="168" height="40" viewBox="0 0 168 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect width="40" height="40" rx="9" fill="#0A2D74"/>
-                    <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#ffffff">D</text>
-                    <text x="50" y="20" font-family="'LemonMilk','Poppins',sans-serif" font-size="11" font-weight="800" letter-spacing="1.5" fill="#0A2D74">DISCOVER</text>
-                    <text x="50" y="35" font-family="'LemonMilk','Poppins',sans-serif" font-size="9" font-weight="700" letter-spacing="4.5" fill="#28A2DC">GROUP</text>
-                </svg>
-                <svg class="navbar-logo-mark" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect width="40" height="40" rx="9" fill="#0A2D74"/>
-                    <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#ffffff">D</text>
-                </svg>
+                {{-- Fallback: text-based logo using tenant name --}}
+                <span class="navbar-logo-full" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9px;background:#0A2D74;color:#fff;font-weight:900;font-size:20px;font-family:'Poppins',sans-serif">{{ strtoupper(substr($brandName, 0, 1)) }}</span>
+                    <span style="font-weight:800;font-size:15px;color:#0A2D74;font-family:'Poppins',sans-serif;letter-spacing:0.5px">{{ $brandName }}</span>
+                </span>
+                <span class="navbar-logo-mark" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9px;background:#0A2D74;color:#fff;font-weight:900;font-size:20px;font-family:'Poppins',sans-serif">{{ strtoupper(substr($brandName, 0, 1)) }}</span>
             @endif
         </a>
 
@@ -160,19 +155,17 @@
                     @if($footerLogo)
                         <img src="{{ $footerLogo }}" alt="{{ $brandName }}" style="max-height:40px;width:auto">
                     @else
-                        <svg width="168" height="40" viewBox="0 0 168 40" xmlns="http://www.w3.org/2000/svg" aria-label="DiscoverGroup" role="img">
-                            <rect width="40" height="40" rx="9" fill="#ffffff"/>
-                            <text x="20" y="28.5" text-anchor="middle" font-family="'LemonMilk','Poppins',sans-serif" font-size="22" font-weight="900" fill="#0A2D74">D</text>
-                            <text x="50" y="20" font-family="'LemonMilk','Poppins',sans-serif" font-size="11" font-weight="800" letter-spacing="1.5" fill="#ffffff">DISCOVER</text>
-                            <text x="50" y="35" font-family="'LemonMilk','Poppins',sans-serif" font-size="9" font-weight="700" letter-spacing="4.5" fill="#28A2DC">GROUP</text>
-                        </svg>
+                        <span style="display:inline-flex;align-items:center;gap:10px">
+                            <span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9px;background:#fff;color:#0A2D74;font-weight:900;font-size:20px;font-family:'Poppins',sans-serif">{{ strtoupper(substr($brandName, 0, 1)) }}</span>
+                            <span style="font-weight:800;font-size:15px;color:#fff;font-family:'Poppins',sans-serif;letter-spacing:0.5px">{{ $brandName }}</span>
+                        </span>
                     @endif
                 </div>
-                <p>Your trusted partner in creating exceptional travel experiences. Discover the world with confidence and style.</p>
-                <div class="social-links">
-                    <a href="#" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://www.instagram.com/discover_grp/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                </div>
+                @if($brandTagline)
+                    <p>{{ $brandTagline }}</p>
+                @else
+                    <p>Your trusted partner in creating exceptional travel experiences.</p>
+                @endif
             </div>
             <div class="footer-col">
                 <h4>Explore</h4>
@@ -186,8 +179,12 @@
             <div class="footer-col">
                 <h4>Get in Touch</h4>
                 <ul class="contact-list">
-                    <li><i class="fas fa-map-marker-alt"></i> 22nd Floor, The Upper Class Tower<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Quezon Ave, Diliman, QC 1103</li>
-                    <li><i class="fas fa-phone"></i> 02 8554 6954</li>
+                    @if($currentTenant->company_address ?? false)
+                        <li><i class="fas fa-map-marker-alt"></i> {{ $currentTenant->company_address }}</li>
+                    @endif
+                    @if($currentTenant->company_phone ?? false)
+                        <li><i class="fas fa-phone"></i> {{ $currentTenant->company_phone }}</li>
+                    @endif
                     <li><i class="fas fa-envelope"></i> {{ $currentTenant->email ?? '' }}</li>
                 </ul>
             </div>
@@ -204,7 +201,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; {{ date('Y') }} Discover Group. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} {{ $brandName }}. All rights reserved.</p>
             <div style="display:flex;gap:16px;font-size:.82rem">
                 <a href="#" style="color:#64748b;text-decoration:none">Privacy Policy</a>
                 <span style="color:#334155">•</span>

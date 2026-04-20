@@ -39,7 +39,7 @@ class ContactController extends Controller
                     $validated['message'],
                 ]),
                 function ($msg) use ($validated) {
-                    $msg->to('inquiry@discovergrp.com')
+                    $msg->to(tenant()->email ?? config('mail.from.address'))
                         ->replyTo($validated['email'], $validated['name'])
                         ->subject('[Contact Form] ' . $validated['subject'] . ' — ' . $validated['name']);
                 }

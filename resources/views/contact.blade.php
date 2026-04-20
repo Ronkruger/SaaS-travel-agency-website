@@ -12,106 +12,46 @@
 <section class="section" style="padding:56px 0">
     <div class="container">
 
-        {{-- 4-card row --}}
+        {{-- Contact info cards --}}
+        @php
+            $tenantEmail = $currentTenant->email ?? null;
+            $tenantPhone = $currentTenant->company_phone ?? null;
+            $tenantAddress = $currentTenant->company_address ?? null;
+        @endphp
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-bottom:56px">
+            @if($tenantPhone)
             <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);padding:36px 24px;text-align:center">
                 <div style="width:64px;height:64px;background:#F5A623;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                     <i class="fas fa-phone" style="color:#fff;font-size:1.4rem"></i>
                 </div>
                 <h4 style="margin:0 0 8px;font-size:1rem;font-weight:700">Phone</h4>
-                <p style="margin:0;color:#374151;font-size:.95rem">02 8554 6954</p>
+                <p style="margin:0;color:#374151;font-size:.95rem">{{ $tenantPhone }}</p>
             </div>
+            @endif
+            @if($tenantEmail)
             <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);padding:36px 24px;text-align:center">
                 <div style="width:64px;height:64px;background:#F5A623;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                     <i class="fas fa-envelope" style="color:#fff;font-size:1.4rem"></i>
                 </div>
                 <h4 style="margin:0 0 8px;font-size:1rem;font-weight:700">Email</h4>
-                <p style="margin:0;font-size:.95rem"><a href="mailto:inquiry@discovergrp.com" style="color:#0A2D74">inquiry@discovergrp.com</a></p>
+                <p style="margin:0;font-size:.95rem"><a href="mailto:{{ $tenantEmail }}" style="color:#0A2D74">{{ $tenantEmail }}</a></p>
             </div>
+            @endif
+            @if($tenantAddress)
             <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);padding:36px 24px;text-align:center">
                 <div style="width:64px;height:64px;background:#F5A623;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                     <i class="fas fa-map-marker-alt" style="color:#fff;font-size:1.4rem"></i>
                 </div>
                 <h4 style="margin:0 0 8px;font-size:1rem;font-weight:700">Office</h4>
-                <p style="margin:0;color:#374151;font-size:.9rem;line-height:1.6">22nd Floor, The Upper Class Tower<br>Quezon Ave cor. Sct. Reyes St<br>Diliman, Quezon City, 1103</p>
+                <p style="margin:0;color:#374151;font-size:.9rem;line-height:1.6">{{ $tenantAddress }}</p>
             </div>
+            @endif
             <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);padding:36px 24px;text-align:center">
                 <div style="width:64px;height:64px;background:#F5A623;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                     <i class="fas fa-clock" style="color:#fff;font-size:1.4rem"></i>
                 </div>
                 <h4 style="margin:0 0 8px;font-size:1rem;font-weight:700">Business Hours</h4>
                 <p style="margin:0;color:#374151;font-size:.9rem;line-height:1.7">Monday - Friday: 9AM - 6PM<br>Saturday: 9AM - 2PM</p>
-            </div>
-        </div>
-
-        {{-- Contact by Department --}}
-        <div style="text-align:center;margin-bottom:40px">
-            <h2 style="font-size:1.7rem;font-weight:700;margin:0 0 8px">Contact by Department</h2>
-            <p style="color:#6b7280;margin:0">Reach out to the right team for your needs</p>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-bottom:56px">
-            <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);padding:28px 24px">
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-                    <div style="width:48px;height:48px;background:#F5A623;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                        <i class="fas fa-users" style="color:#fff;font-size:1.1rem"></i>
-                    </div>
-                    <h4 style="margin:0;font-size:1rem;font-weight:700">Sales</h4>
-                </div>
-                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0995-674-3860</li>
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0919-394-6919</li>
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0962-440-2835</li>
-                </ul>
-            </div>
-            <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);padding:28px 24px">
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-                    <div style="width:48px;height:48px;background:#F5A623;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                        <i class="fas fa-file-alt" style="color:#fff;font-size:1.1rem"></i>
-                    </div>
-                    <h4 style="margin:0;font-size:1rem;font-weight:700">Visa</h4>
-                </div>
-                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0960-312-3656</li>
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0962-373-6463</li>
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0962-373-6465</li>
-                </ul>
-            </div>
-            <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);padding:28px 24px">
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-                    <div style="width:48px;height:48px;background:#F5A623;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                        <i class="fas fa-headset" style="color:#fff;font-size:1.1rem"></i>
-                    </div>
-                    <h4 style="margin:0;font-size:1rem;font-weight:700">Customer Relations</h4>
-                </div>
-                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0961-605-2958</li>
-                    <li style="font-size:.9rem;color:#374151"><i class="fas fa-phone" style="width:16px;color:#F5A623"></i> 0968-737-4685</li>
-                </ul>
-            </div>
-        </div>
-
-        {{-- Email Addresses --}}
-        <div style="text-align:center;margin-bottom:56px">
-            <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 14px">Email Addresses</h3>
-            <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
-                <a href="mailto:inquiry@discovergrp.com" style="color:#F5A623;text-decoration:none;font-size:.95rem"><i class="fas fa-envelope" style="margin-right:6px"></i>inquiry@discovergrp.com</a>
-                <span style="color:#d1d5db">|</span>
-                <a href="mailto:traveldesk@discovergrp.com" style="color:#F5A623;text-decoration:none;font-size:.95rem"><i class="fas fa-envelope" style="margin-right:6px"></i>traveldesk@discovergrp.com</a>
-            </div>
-        </div>
-
-        {{-- Follow Us --}}
-        <div style="text-align:center;margin-bottom:64px">
-            <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 16px">Follow Us</h3>
-            <div style="display:flex;align-items:center;justify-content:center;gap:16px">
-                <a href="https://www.facebook.com/discovergrp" target="_blank" rel="noopener"
-                   style="display:inline-flex;align-items:center;gap:8px;background:#1877f2;color:#fff;padding:11px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:.95rem">
-                    <i class="fab fa-facebook-f"></i> Facebook
-                </a>
-                <a href="https://www.instagram.com/discover_grp/" target="_blank" rel="noopener"
-                   style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;padding:11px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:.95rem">
-                    <i class="fab fa-instagram"></i> Instagram
-                </a>
             </div>
         </div>
 

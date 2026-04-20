@@ -1,8 +1,9 @@
 <div class="tour-card">
     @php
         $tourUrl = route('tours.show', $tour->slug);
-        $salesMessage = "Hi Discover Group! I am interested in this tour: {$tour->title} - {$tourUrl}";
-        $contactSalesUrl = 'https://www.facebook.com/messages/t/discovergrp';
+        $agencyName = $brandName ?? ($currentTenant->company_name ?? $currentTenant->name ?? 'your agency');
+        $salesMessage = "Hi {$agencyName}! I am interested in this tour: {$tour->title} - {$tourUrl}";
+        $contactSalesUrl = '#';
     @endphp
 
     <div class="tour-card-img">

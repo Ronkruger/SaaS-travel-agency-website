@@ -80,9 +80,9 @@
         <div class="header-top">
             @php $emailLogo = \App\Models\Setting::logoUrl('logo_path'); @endphp
             @if($emailLogo)
-                <img src="{{ $emailLogo }}" alt="Discover Group" style="max-height:48px;width:auto;margin-bottom:6px">
+                <img src="{{ $emailLogo }}" alt="{{ $brandName ?? "Your Agency" }}" style="max-height:48px;width:auto;margin-bottom:6px">
             @else
-                <h1>Discover Group</h1>
+                <h1>{{ $brandName ?? "Your Agency" }}</h1>
             @endif
             <p>Your adventure awaits</p>
         </div>
@@ -97,7 +97,7 @@
 
         <p class="greeting">Hi <strong>{{ $booking->contact_name }}</strong>,</p>
         <p style="font-size:14px;color:#4b5563;margin:0 0 24px;line-height:1.6">
-            Thank you for choosing Discover Group! Your reservation for
+            Thank you for choosing {{ $brandName ?? "Your Agency" }}! Your reservation for
             <strong>{{ $booking->tour->title }}</strong> has been received with booking number
             <strong style="color:#1e3a5f">{{ $booking->booking_number }}</strong>.
         </p>
@@ -262,7 +262,7 @@
             ⚠️ This is an automated, system-generated email — please do not reply directly to this message.
             For assistance, contact us at <a href="mailto:{{ config('mail.from.address', 'bookings@discovergroup.com') }}">{{ config('mail.from.address', 'bookings@discovergroup.com') }}</a>.
         </p>
-        <p style="margin:6px 0 4px">© {{ date('Y') }} Discover Group. All rights reserved.</p>
+        <p style="margin:6px 0 4px">© {{ date('Y') }} {{ $brandName ?? "Your Agency" }}. All rights reserved.</p>
         <p style="margin:0"><a href="{{ config('app.url') }}">{{ config('app.url') }}</a></p>
     </div>
 

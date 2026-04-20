@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Official Quote — Discover Group</title>
+    <title>Your Official Quote — {{ $brandName ?? "Your Agency" }}</title>
     <style>
         body { margin:0; padding:0; background:#f4f6f8; font-family:'Segoe UI',Arial,sans-serif; color:#1a202c; }
         .wrapper { max-width:600px; margin:0 auto; padding:32px 16px; }
@@ -37,9 +37,9 @@
     <div class="header">
         @php $emailLogo = \App\Models\Setting::logoUrl('logo_path'); @endphp
         @if($emailLogo)
-            <img src="{{ $emailLogo }}" alt="Discover Group" style="max-height:48px;width:auto;margin-bottom:6px">
+            <img src="{{ $emailLogo }}" alt="{{ $brandName ?? "Your Agency" }}" style="max-height:48px;width:auto;margin-bottom:6px">
         @else
-            <h1>Discover Group</h1>
+            <h1>{{ $brandName ?? "Your Agency" }}</h1>
         @endif
         <p>📋 Your Official Quote is Ready</p>
     </div>
@@ -134,7 +134,7 @@
             ⚠️ This is an automated, system-generated email — please do not reply directly to this message.
             For questions, contact us at <a href="mailto:bookings@discovergroup.com">bookings@discovergroup.com</a>.
         </p>
-        <p style="margin:6px 0 0">© {{ date('Y') }} Discover Group. All rights reserved.</p>
+        <p style="margin:6px 0 0">© {{ date('Y') }} {{ $brandName ?? "Your Agency" }}. All rights reserved.</p>
     </div>
 
 </div>
