@@ -334,6 +334,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     // Page Builder
     Route::get('/page-builder', [PageBuilderController::class, 'index'])->name('page-builder.index')->middleware('admin.can:manage_settings');
     Route::post('/page-builder', [PageBuilderController::class, 'store'])->name('page-builder.store')->middleware('admin.can:manage_settings');
+    Route::get('/page-builder/templates', [PageBuilderController::class, 'templates'])->name('page-builder.templates')->middleware('admin.can:manage_settings');
+    Route::post('/page-builder/templates/apply', [PageBuilderController::class, 'applyTemplate'])->name('page-builder.apply-template')->middleware('admin.can:manage_settings');
     Route::get('/page-builder/{page_builder}/edit', [PageBuilderController::class, 'edit'])->name('page-builder.edit')->middleware('admin.can:manage_settings');
     Route::put('/page-builder/{page_builder}', [PageBuilderController::class, 'update'])->name('page-builder.update')->middleware('admin.can:manage_settings');
     Route::delete('/page-builder/{page_builder}', [PageBuilderController::class, 'destroy'])->name('page-builder.destroy')->middleware('admin.can:manage_settings');

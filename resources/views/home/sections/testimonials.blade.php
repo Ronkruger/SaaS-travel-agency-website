@@ -1,9 +1,10 @@
+@php $s = $section->settings ?? []; @endphp
 @if(isset($latestReviews) && $latestReviews->count())
-<section class="section" style="padding:60px 0;background:#f9fafb">
+<section style="padding:{{ ($s['padding_y'] ?? '60') . 'px' }} 0;background-color:{{ $s['bg_color'] ?? '#f9fafb' }}">
     <div class="container">
         <div style="text-align:center;margin-bottom:40px">
-            <h2 style="font-size:1.8rem;font-weight:700;margin:0 0 8px">{{ $section->title ?? 'What Our Travelers Say' }}</h2>
-            @if($section->subtitle)<p style="color:#6b7280;margin:0">{{ $section->subtitle }}</p>@endif
+            <h2 style="font-size:1.8rem;font-weight:700;margin:0 0 8px;color:{{ $s['heading_color'] ?? '#111827' }}">{{ $section->title ?? 'What Our Travelers Say' }}</h2>
+            @if($section->subtitle)<p style="color:{{ $s['text_color'] ?? '#6b7280' }};margin:0">{{ $section->subtitle }}</p>@endif
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px">
             @foreach($latestReviews as $review)
@@ -15,7 +16,7 @@
                 </div>
                 <p style="color:#374151;font-size:.9rem;line-height:1.6;margin:0 0 16px">{{ Str::limit($review->comment, 150) }}</p>
                 <div style="display:flex;align-items:center;gap:10px">
-                    <div style="width:36px;height:36px;background:linear-gradient(135deg,#0A2D74,#1a4fa0);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem">
+                    <div style="width:36px;height:36px;background:{{ $s['btn_color'] ?? '#0A2D74' }};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem">
                         {{ strtoupper(substr($review->reviewer_name ?? 'G', 0, 1)) }}
                     </div>
                     <div>

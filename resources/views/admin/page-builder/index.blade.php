@@ -13,9 +13,14 @@
         <h1 class="page-title" style="margin:0 0 4px">Page Builder</h1>
         <p style="color:var(--gray-500);font-size:.9rem;margin:0">Drag and drop sections to build your home page.</p>
     </div>
-    <a href="{{ route('home') }}" target="_blank" class="btn btn-outline" style="gap:6px">
-        <i class="fas fa-external-link-alt"></i> Preview Site
-    </a>
+    <div style="display:flex;gap:10px">
+        <a href="{{ route('admin.page-builder.templates') }}" class="btn btn-primary" style="gap:6px">
+            <i class="fas fa-palette"></i> Browse Templates
+        </a>
+        <a href="{{ route('home') }}" target="_blank" class="btn btn-outline" style="gap:6px">
+            <i class="fas fa-external-link-alt"></i> Preview Site
+        </a>
+    </div>
 </div>
 
 <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start">
