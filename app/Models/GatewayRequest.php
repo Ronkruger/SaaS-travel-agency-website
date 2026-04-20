@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class GatewayRequest extends Model
 {
+    protected $connection = 'central';
+
     protected $fillable = [
         'tenant_id',
         'gateway_name',
