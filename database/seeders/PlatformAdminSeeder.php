@@ -10,7 +10,7 @@ class PlatformAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        PlatformAdmin::firstOrCreate(
+        PlatformAdmin::updateOrCreate(
             ['email' => env('PLATFORM_ADMIN_EMAIL', 'admin@saas.test')],
             [
                 'name' => 'Platform Admin',
