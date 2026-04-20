@@ -184,7 +184,7 @@
         <div class="step-number">2</div>
         <h3><i class="fas fa-folder-open text-primary"></i> Create Categories</h3>
         <p>Organize your tours by creating categories like "Beach Tours", "City Tours", "Adventure Packages", etc.</p>
-        <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">
+        <a href="{{ route('admin.categories.index') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Add Category
         </a>
     </div>
@@ -204,7 +204,7 @@
         <div class="step-number">4</div>
         <h3><i class="fas fa-file-alt text-primary"></i> Customize Pages</h3>
         <p>Edit your homepage, about page, and other content to tell your agency's story and showcase what makes you unique.</p>
-        <a href="{{ route('admin.pages.index') }}" class="btn btn-primary">
+        <a href="{{ route('admin.settings.index') }}" class="btn btn-primary">
             <i class="fas fa-edit"></i> Manage Pages
         </a>
     </div>
@@ -244,7 +244,7 @@
         <a href="{{ route('admin.users.index') }}" class="quick-link">
             <i class="fas fa-users"></i> Customers
         </a>
-        <a href="{{ route('admin.admin-users.index') }}" class="quick-link">
+        <a href="{{ route('admin.staff.index') }}" class="quick-link">
             <i class="fas fa-user-shield"></i> Team Members
         </a>
         <a href="{{ route('admin.reviews.index') }}" class="quick-link">
