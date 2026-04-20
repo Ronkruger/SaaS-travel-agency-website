@@ -70,7 +70,17 @@ class Handler extends ExceptionHandler
                 ], 401);
             }
 
-            return redirect()->guest(route('login'));
+            // Determine the correct login route based on request context
+            if ($request->is('platform/*')) {
+                return redirect()->guest(route('platform.login'));
+            }
+
+            $tenant = $request->route('tenant');
+            if ($tenant) {
+                return redirect()->guest(route('admin.auth.login', ['tenant' => $tenant]));
+            }
+
+            return redirect()->guest(route('central.login'));
         });
     }
 
