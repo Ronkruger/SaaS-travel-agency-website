@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\BookingPdfController;
 use App\Http\Controllers\Admin\PaymentReceiptController;
 use App\Http\Controllers\Admin\BookingImportController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\Auth\AdminAuth0Controller;
 use App\Http\Controllers\Admin\Auth\AdminOnboardingController;
@@ -329,6 +330,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.admin', 'throttle:admi
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::delete('/notifications/clear', [NotificationController::class, 'clearAll'])->name('notifications.clear');
+
+    // Page Builder
+    Route::get('/page-builder', [PageBuilderController::class, 'index'])->name('page-builder.index')->middleware('admin.can:manage_settings');
+    Route::post('/page-builder', [PageBuilderController::class, 'store'])->name('page-builder.store')->middleware('admin.can:manage_settings');
+    Route::get('/page-builder/{page_builder}/edit', [PageBuilderController::class, 'edit'])->name('page-builder.edit')->middleware('admin.can:manage_settings');
+    Route::put('/page-builder/{page_builder}', [PageBuilderController::class, 'update'])->name('page-builder.update')->middleware('admin.can:manage_settings');
+    Route::delete('/page-builder/{page_builder}', [PageBuilderController::class, 'destroy'])->name('page-builder.destroy')->middleware('admin.can:manage_settings');
+    Route::post('/page-builder/reorder', [PageBuilderController::class, 'reorder'])->name('page-builder.reorder')->middleware('admin.can:manage_settings');
+    Route::patch('/page-builder/{page_builder}/toggle', [PageBuilderController::class, 'toggle'])->name('page-builder.toggle')->middleware('admin.can:manage_settings');
 
     // Branding / Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index')->middleware('admin.can:manage_settings');

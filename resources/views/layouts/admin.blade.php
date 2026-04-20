@@ -109,6 +109,9 @@
                 <i class="fas fa-envelope-open-text"></i> Email Log
             </a>
             <div class="nav-section">ACCOUNT</div>
+            <a href="{{ route('admin.page-builder.index') }}" class="{{ request()->routeIs('admin.page-builder.*') ? 'active' : '' }}">
+                <i class="fas fa-paint-roller"></i> Page Builder
+            </a>
             <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
                 <i class="fas fa-user-shield"></i> Staff &amp; Permissions
             </a>

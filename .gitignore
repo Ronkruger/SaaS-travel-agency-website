@@ -29,3 +29,4 @@ yarn-error.log
 /storage/logs/
 *.log
 .user.ini
+resources/views/home/index.blade.php.bak

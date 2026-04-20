@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use App\Models\Tour;
+use App\Models\PageSection;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,8 @@ class RouteServiceProvider extends ServiceProvider
             $query = $isAdminRoute ? Tour::withTrashed() : Tour::query();
             return $query->where('slug', $value)->firstOrFail();
         });
+
+        Route::model('page_builder', PageSection::class);
 
         $this->routes(function () {
             // Central domain routes (SaaS platform, billing, platform admin)
