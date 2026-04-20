@@ -12,6 +12,11 @@ http {
         index index.php;
         client_max_body_size 20M;
 
+        # Fix "400 Bad Request - Request Header Or Cookie Too Large"
+        # Increase buffer sizes for large client request headers/cookies
+        large_client_header_buffers 4 32k;
+        client_header_buffer_size 8k;
+
         # FastCGI buffers — defaults (8 x 4k) are too small for Laravel responses
         # that include large session cookies, flashed messages and CSRF tokens.
         # Tenant registration was returning 302 successfully but nginx logged
