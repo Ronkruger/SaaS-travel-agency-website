@@ -115,8 +115,15 @@ class TenantRegistrationController extends Controller
         ]);
 
         // Manually trigger tenant database creation
-        $tenant->createDatabase();
-        $tenant->runMigrations();
+        $dbManager = app(\Stancl\Tenancy\Database\DatabaseManager::class);
+        $dbManager->ensureTenantCanBeCreated($tenant);
+        $dbManager->createTenantDatabase($tenant);
+
+        // Run migrations in tenant context
+        \Artisan::call('tenants:migrate', [
+            '--tenants' => [$tenant->id],
+            '--force' => true,
+        ]);
 
         // Switch to tenant context and create their first admin user
         tenancy()->initialize($tenant);
