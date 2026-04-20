@@ -361,7 +361,14 @@ class PageBuilderController extends Controller
             'gallery' => [
                 'images' => [],
             ],
+            'custom' => [
+                'body'             => '',
+                'layout'           => 'contained',
+                'background_image' => '',
+                'button_text'      => '',
+                'button_link'      => '',
+            ],
             default => [],
-        };
+        ];
     }
 }

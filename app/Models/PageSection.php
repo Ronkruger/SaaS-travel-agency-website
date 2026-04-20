@@ -75,6 +75,11 @@ class PageSection extends Model
                 'icon'  => 'fas fa-images',
                 'description' => 'Grid of images showcasing destinations or tours.',
             ],
+            'custom' => [
+                'label' => 'Custom Section',
+                'icon'  => 'fas fa-code',
+                'description' => 'Freestyle section with custom HTML, layout, and design.',
+            ],
         ];
     }
 }

@@ -217,6 +217,49 @@
             </div>
             <button type="button" onclick="addGalleryItem()" class="btn btn-sm btn-outline" style="margin-top:8px"><i class="fas fa-plus" style="margin-right:4px"></i> Add Image</button>
         </div>
+
+        @elseif($section->section_type === 'custom')
+        <div style="border:1px solid var(--gray-200);border-radius:10px;padding:20px;margin-bottom:20px;background:var(--gray-50)">
+            <h4 style="margin:0 0 16px;font-size:.9rem;font-weight:700"><i class="fas fa-code" style="margin-right:8px;color:var(--primary)"></i>Custom Section</h4>
+
+            {{-- Layout --}}
+            <div class="form-group" style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Layout</label>
+                <select name="content[layout]" class="form-control" style="max-width:260px">
+                    <option value="contained" {{ ($c['layout'] ?? '') === 'contained' ? 'selected' : '' }}>Contained (centered box)</option>
+                    <option value="full_width" {{ ($c['layout'] ?? '') === 'full_width' ? 'selected' : '' }}>Full Width</option>
+                    <option value="two_column" {{ ($c['layout'] ?? '') === 'two_column' ? 'selected' : '' }}>Two Columns (text + image)</option>
+                </select>
+            </div>
+
+            {{-- HTML Body --}}
+            <div class="form-group" style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Content (HTML supported)</label>
+                <textarea name="content[body]" class="form-control" rows="12" style="font-family:monospace;font-size:.85rem" placeholder="Write your content here... HTML tags like <h2>, <p>, <ul>, <img>, <a> are supported.">{{ old('content.body', $c['body'] ?? '') }}</textarea>
+                <small style="color:var(--gray-500);margin-top:4px;display:block"><i class="fas fa-info-circle" style="margin-right:4px"></i>Use HTML for full control. Basic tags: &lt;h2&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;img&gt;, &lt;a&gt;, &lt;ul&gt;, &lt;div&gt;</small>
+            </div>
+
+            {{-- Background Image --}}
+            <div class="form-group" style="margin-bottom:14px">
+                <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Background Image URL (optional)</label>
+                <input type="text" name="content[background_image]" value="{{ old('content.background_image', $c['background_image'] ?? '') }}" class="form-control" placeholder="https://images.unsplash.com/...">
+            </div>
+
+            {{-- Optional Button --}}
+            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+                <div class="form-group">
+                    <label style="display:block;font-weight:600;font-size:.85rem;margin-bottom:6px">Button Text (optional)</label>
+                    <input type="text" name="content[button_text]" value="{{ old('content.button_text', $c['button_text'] ?? '') }}" class="form-control" placeholder="Learn More">
+                </div>
+                @include('admin.page-builder.partials.link-picker', [
+                    'name'  => 'content[button_link]',
+                    'value' => $c['button_link'] ?? '',
+                    'label' => 'Button Link (optional)',
+                    'pages' => $availablePages,
+                    'id'    => 'picker-custom-btn',
+                ])
+            </div>
+        </div>
         @endif
 
         {{-- Style Customization Panel --}}
