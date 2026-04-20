@@ -95,12 +95,21 @@ class TenantRegistrationController extends Controller
 
         // Check if already activated
         if ($tenant->trial_activated) {
-            return redirect(url("/t/{$tenantId}/admin/auth/login"))
-                ->with('info', 'Your trial has already been activated. Please log in.');
+            // Verify the tenant database actually exists (recovery from failed previous activation)
+            $dbExists = $tenant->database()->manager()->databaseExists($tenant->database()->getName());
+
+            if ($dbExists) {
+                return redirect(url("/t/{$tenantId}/admin/auth/login"))
+                    ->with('info', 'Your trial has already been activated. Please log in.');
+            }
+
+            // Database missing — reset activation state so the flow below can re-run
+            \Log::warning('Tenant marked as activated but database missing, re-running activation', ['tenant' => $tenant->id]);
+            $tenant->update(['trial_activated' => false]);
         }
 
-        // Verify activation token
-        if (!Hash::check($request->token, $tenant->activation_token)) {
+        // Verify activation token (skip if token was already cleared during a failed activation)
+        if ($tenant->activation_token && !Hash::check($request->token, $tenant->activation_token)) {
             return redirect()->route('central.register')
                 ->withErrors(['error' => 'Invalid or expired activation token.']);
         }
@@ -135,15 +144,17 @@ class TenantRegistrationController extends Controller
         // Switch to tenant context and create their first admin user
         tenancy()->initialize($tenant);
 
-        \App\Models\AdminUser::create([
-            'name'         => $tenant->name,
-            'email'        => $tenant->email,
-            'password'     => $tenant->password, // Already hashed during registration
-            'department'   => 'executives',
-            'position'     => 'Owner',
-            'role'         => 'super_admin',
-            'is_onboarded' => false,
-        ]);
+        \App\Models\AdminUser::firstOrCreate(
+            ['email' => $tenant->email],
+            [
+                'name'         => $tenant->name,
+                'password'     => $tenant->password, // Already hashed during registration
+                'department'   => 'executives',
+                'position'     => 'Owner',
+                'role'         => 'super_admin',
+                'is_onboarded' => false,
+            ]
+        );
 
         tenancy()->end();
 
