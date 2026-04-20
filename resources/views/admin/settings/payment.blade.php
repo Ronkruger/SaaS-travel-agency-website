@@ -27,88 +27,249 @@
 </div>
 @endif
 
-{{-- Xendit Setup Guide --}}
+{{-- Interactive Xendit Setup Guide --}}
 <div class="card mb-4" id="setup-guide">
     <div class="card-header" style="cursor:pointer" onclick="toggleGuide()">
         <h3><i class="fas fa-book-open" style="color:var(--primary);margin-right:6px"></i> Xendit Setup Guide</h3>
-        <button type="button" class="btn btn-sm btn-outline" id="guide-toggle-btn">
-            <i class="fas fa-chevron-down" id="guide-chevron"></i>
-            <span id="guide-toggle-text">Show Guide</span>
-        </button>
+        <div style="display:flex;align-items:center;gap:12px">
+            <span id="guide-progress-label" style="font-size:.78rem;color:var(--gray-500);font-weight:600">0 / 7 completed</span>
+            <button type="button" class="btn btn-sm btn-outline" id="guide-toggle-btn">
+                <i class="fas fa-chevron-down" id="guide-chevron"></i>
+                <span id="guide-toggle-text">Show Guide</span>
+            </button>
+        </div>
     </div>
-    <div class="card-body" id="guide-content" style="display:none">
-        <p style="color:var(--gray-600);font-size:.88rem;margin-bottom:20px">
-            Follow these steps to connect your Xendit payment gateway and start accepting online payments from your customers.
-        </p>
+    <div id="guide-content" style="display:none">
+        {{-- Progress Bar --}}
+        <div style="padding:16px 24px 0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-size:.82rem;font-weight:600;color:var(--gray-600)">Setup Progress</span>
+                <span id="guide-pct" style="font-size:.82rem;font-weight:700;color:var(--primary)">0%</span>
+            </div>
+            <div style="height:8px;background:var(--gray-100,#f3f4f6);border-radius:99px;overflow:hidden">
+                <div id="guide-bar" style="height:100%;background:linear-gradient(90deg,var(--primary),#10b981);border-radius:99px;width:0%;transition:width .5s ease"></div>
+            </div>
+        </div>
 
-        <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:4px" id="guide-steps">
+
             {{-- Step 1 --}}
-            <div style="display:flex;gap:14px;align-items:flex-start">
-                <div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">1</div>
-                <div>
-                    <div style="font-weight:600;font-size:.9rem;margin-bottom:4px">Create a Xendit Account</div>
-                    <p style="font-size:.84rem;color:var(--gray-600);margin:0">Go to <a href="https://dashboard.xendit.co/register" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600">dashboard.xendit.co/register</a> and sign up for a free account. Complete the verification process with your business documents.</p>
+            <div class="guide-step" data-step="1">
+                <div class="guide-step-header" onclick="toggleStep(1)">
+                    <div class="guide-step-check" onclick="event.stopPropagation(); markStep(1)">
+                        <input type="checkbox" id="step-check-1" class="guide-checkbox">
+                        <label for="step-check-1" class="guide-check-label"></label>
+                    </div>
+                    <div class="guide-step-num">1</div>
+                    <div class="guide-step-title">Create a Xendit Account</div>
+                    <i class="fas fa-chevron-right guide-step-arrow"></i>
+                </div>
+                <div class="guide-step-body">
+                    <p>Go to <a href="https://dashboard.xendit.co/register" target="_blank" rel="noopener">dashboard.xendit.co/register</a> and sign up for a free account.</p>
+                    <div class="guide-step-details">
+                        <div class="guide-detail"><i class="fas fa-clock"></i> Takes about 5 minutes</div>
+                        <div class="guide-detail"><i class="fas fa-file-alt"></i> You'll need: Business email, phone number</div>
+                    </div>
+                    <div class="guide-step-actions">
+                        <a href="https://dashboard.xendit.co/register" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Open Xendit Signup
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="markStep(1); openNextStep(2)">
+                            <i class="fas fa-check"></i> Done — Next Step
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Step 2 --}}
-            <div style="display:flex;gap:14px;align-items:flex-start">
-                <div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">2</div>
-                <div>
-                    <div style="font-weight:600;font-size:.9rem;margin-bottom:4px">Complete Business Verification</div>
-                    <p style="font-size:.84rem;color:var(--gray-600);margin:0">Submit your business details and documents in the Xendit dashboard. Verification typically takes 1-2 business days. You can use <strong>Test Mode</strong> while waiting.</p>
+            <div class="guide-step" data-step="2">
+                <div class="guide-step-header" onclick="toggleStep(2)">
+                    <div class="guide-step-check" onclick="event.stopPropagation(); markStep(2)">
+                        <input type="checkbox" id="step-check-2" class="guide-checkbox">
+                        <label for="step-check-2" class="guide-check-label"></label>
+                    </div>
+                    <div class="guide-step-num">2</div>
+                    <div class="guide-step-title">Complete Business Verification</div>
+                    <i class="fas fa-chevron-right guide-step-arrow"></i>
+                </div>
+                <div class="guide-step-body">
+                    <p>Submit your business details and documents in the Xendit dashboard. You can use <strong>Test Mode</strong> while waiting for verification.</p>
+                    <div class="guide-step-details">
+                        <div class="guide-detail"><i class="fas fa-clock"></i> Verification: 1–2 business days</div>
+                        <div class="guide-detail"><i class="fas fa-file-alt"></i> You'll need: Business registration, valid ID, bank account details</div>
+                        <div class="guide-detail"><i class="fas fa-lightbulb" style="color:#f59e0b"></i> <strong>Tip:</strong> You can skip this and use test keys first</div>
+                    </div>
+                    <div class="guide-step-actions">
+                        <a href="https://dashboard.xendit.co/settings/account" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Open Verification Page
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="markStep(2); openNextStep(3)">
+                            <i class="fas fa-check"></i> Done — Next Step
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Step 3 --}}
-            <div style="display:flex;gap:14px;align-items:flex-start">
-                <div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">3</div>
-                <div>
-                    <div style="font-weight:600;font-size:.9rem;margin-bottom:4px">Get Your Secret API Key</div>
-                    <p style="font-size:.84rem;color:var(--gray-600);margin:0">Navigate to <a href="https://dashboard.xendit.co/settings/developers#api-keys" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600">Settings → Developers → API Keys</a>. Copy your <strong>Secret API Key</strong> (starts with <code>xnd_production_</code> or <code>xnd_development_</code>).</p>
+            <div class="guide-step" data-step="3">
+                <div class="guide-step-header" onclick="toggleStep(3)">
+                    <div class="guide-step-check" onclick="event.stopPropagation(); markStep(3)">
+                        <input type="checkbox" id="step-check-3" class="guide-checkbox">
+                        <label for="step-check-3" class="guide-check-label"></label>
+                    </div>
+                    <div class="guide-step-num">3</div>
+                    <div class="guide-step-title">Get Your Secret API Key</div>
+                    <i class="fas fa-chevron-right guide-step-arrow"></i>
+                </div>
+                <div class="guide-step-body">
+                    <p>Navigate to <strong>Settings → Developers → API Keys</strong> in your Xendit dashboard. Copy the <strong>Secret API Key</strong>.</p>
+                    <div class="guide-step-details">
+                        <div class="guide-detail"><i class="fas fa-key"></i> Starts with <code>xnd_production_</code> or <code>xnd_development_</code></div>
+                        <div class="guide-detail"><i class="fas fa-shield-alt" style="color:#dc2626"></i> <strong>Security:</strong> Never share this key publicly</div>
+                    </div>
+                    <div class="guide-step-actions">
+                        <a href="https://dashboard.xendit.co/settings/developers#api-keys" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Open API Keys Page
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="markStep(3); openNextStep(4)">
+                            <i class="fas fa-check"></i> Done — Next Step
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Step 4 --}}
-            <div style="display:flex;gap:14px;align-items:flex-start">
-                <div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">4</div>
-                <div>
-                    <div style="font-weight:600;font-size:.9rem;margin-bottom:4px">Set Up Webhooks</div>
-                    <p style="font-size:.84rem;color:var(--gray-600);margin:0">Go to <a href="https://dashboard.xendit.co/settings/developers#webhooks" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600">Settings → Developers → Webhooks</a>. Add the webhook URL shown below on this page. Copy the <strong>Verification Token</strong> from the same page.</p>
+            <div class="guide-step" data-step="4">
+                <div class="guide-step-header" onclick="toggleStep(4)">
+                    <div class="guide-step-check" onclick="event.stopPropagation(); markStep(4)">
+                        <input type="checkbox" id="step-check-4" class="guide-checkbox">
+                        <label for="step-check-4" class="guide-check-label"></label>
+                    </div>
+                    <div class="guide-step-num">4</div>
+                    <div class="guide-step-title">Set Up Webhooks</div>
+                    <i class="fas fa-chevron-right guide-step-arrow"></i>
+                </div>
+                <div class="guide-step-body">
+                    <p>In Xendit, go to <strong>Settings → Developers → Webhooks</strong>. Add the webhook URL below and copy the <strong>Verification Token</strong>.</p>
+                    <div style="background:var(--gray-50,#f9fafb);border:1px solid var(--gray-200,#e5e7eb);border-radius:8px;padding:10px 14px;margin:10px 0;display:flex;align-items:center;gap:8px">
+                        <code style="font-size:.82rem;flex:1;word-break:break-all">{{ route('xendit.webhook') }}</code>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('xendit.webhook') }}'); this.innerHTML='<i class=\'fas fa-check\' style=\'color:#10b981\'></i>'; setTimeout(()=>this.innerHTML='<i class=\'fas fa-copy\'></i>',2000)" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-400)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="guide-step-details">
+                        <div class="guide-detail"><i class="fas fa-link"></i> Paste this URL in Xendit's webhook settings</div>
+                        <div class="guide-detail"><i class="fas fa-lock"></i> Copy the Verification Token from the same page</div>
+                    </div>
+                    <div class="guide-step-actions">
+                        <a href="https://dashboard.xendit.co/settings/developers#webhooks" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Open Webhooks Page
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="markStep(4); openNextStep(5)">
+                            <i class="fas fa-check"></i> Done — Next Step
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Step 5 --}}
-            <div style="display:flex;gap:14px;align-items:flex-start">
-                <div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">5</div>
-                <div>
-                    <div style="font-weight:600;font-size:.9rem;margin-bottom:4px">Enter Your Keys Below</div>
-                    <p style="font-size:.84rem;color:var(--gray-600);margin:0">Paste your <strong>Secret API Key</strong> and <strong>Webhook Verification Token</strong> in the fields below and click <em>Save Payment Settings</em>.</p>
+            <div class="guide-step" data-step="5">
+                <div class="guide-step-header" onclick="toggleStep(5)">
+                    <div class="guide-step-check" onclick="event.stopPropagation(); markStep(5)">
+                        <input type="checkbox" id="step-check-5" class="guide-checkbox">
+                        <label for="step-check-5" class="guide-check-label"></label>
+                    </div>
+                    <div class="guide-step-num">5</div>
+                    <div class="guide-step-title">Enter Your Keys Below</div>
+                    <i class="fas fa-chevron-right guide-step-arrow"></i>
+                </div>
+                <div class="guide-step-body">
+                    <p>Scroll down to the <strong>Xendit API Keys</strong> section on this page and paste your Secret API Key and Webhook Verification Token.</p>
+                    <div class="guide-step-details">
+                        <div class="guide-detail"><i class="fas fa-arrow-down"></i> The form is right below this guide</div>
+                        <div class="guide-detail"><i class="fas fa-save"></i> Don't forget to click <strong>Save Payment Settings</strong></div>
+                    </div>
+                    <div class="guide-step-actions">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('xendit_secret_key').focus(); document.getElementById('xendit_secret_key').scrollIntoView({behavior:'smooth', block:'center'})">
+                            <i class="fas fa-arrow-down"></i> Jump to API Keys
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="markStep(5); openNextStep(6)">
+                            <i class="fas fa-check"></i> Done — Next Step
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Step 6 --}}
-            <div style="display:flex;gap:14px;align-items:flex-start">
-                <div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">6</div>
-                <div>
-                    <div style="font-weight:600;font-size:.9rem;margin-bottom:4px">Choose Payment Methods</div>
-                    <p style="font-size:.84rem;color:var(--gray-600);margin:0">Select the payment methods you want to accept (Credit Card, GCash, GrabPay, etc.). Make sure these are also <strong>activated in your Xendit dashboard</strong> under Payment Methods.</p>
+            <div class="guide-step" data-step="6">
+                <div class="guide-step-header" onclick="toggleStep(6)">
+                    <div class="guide-step-check" onclick="event.stopPropagation(); markStep(6)">
+                        <input type="checkbox" id="step-check-6" class="guide-checkbox">
+                        <label for="step-check-6" class="guide-check-label"></label>
+                    </div>
+                    <div class="guide-step-num">6</div>
+                    <div class="guide-step-title">Choose Payment Methods</div>
+                    <i class="fas fa-chevron-right guide-step-arrow"></i>
+                </div>
+                <div class="guide-step-body">
+                    <p>Select which payment methods to accept (Credit Card, GCash, GrabPay, etc.). Make sure these are also <strong>activated in your Xendit dashboard</strong>.</p>
+                    <div class="guide-step-details">
+                        <div class="guide-detail"><i class="fas fa-credit-card"></i> Enable methods in both Xendit AND this page</div>
+                        <div class="guide-detail"><i class="fas fa-lightbulb" style="color:#f59e0b"></i> <strong>Tip:</strong> Leave all unchecked to accept all available methods</div>
+                    </div>
+                    <div class="guide-step-actions">
+                        <a href="https://dashboard.xendit.co/settings/payment-methods" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Xendit Payment Methods
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="markStep(6); openNextStep(7)">
+                            <i class="fas fa-check"></i> Done — Next Step
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Step 7 --}}
-            <div style="display:flex;gap:14px;align-items:flex-start">
-                <div style="width:32px;height:32px;background:#10b981;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0"><i class="fas fa-check" style="font-size:.75rem"></i></div>
-                <div>
-                    <div style="font-weight:600;font-size:.9rem;margin-bottom:4px">Test & Go Live</div>
-                    <p style="font-size:.84rem;color:var(--gray-600);margin:0">Use a test key first to verify payments work, then switch to your live production key when ready. The connection status indicator below will confirm your setup.</p>
+            <div class="guide-step" data-step="7">
+                <div class="guide-step-header" onclick="toggleStep(7)">
+                    <div class="guide-step-check" onclick="event.stopPropagation(); markStep(7)">
+                        <input type="checkbox" id="step-check-7" class="guide-checkbox">
+                        <label for="step-check-7" class="guide-check-label"></label>
+                    </div>
+                    <div class="guide-step-num">🚀</div>
+                    <div class="guide-step-title">Test & Go Live</div>
+                    <i class="fas fa-chevron-right guide-step-arrow"></i>
+                </div>
+                <div class="guide-step-body">
+                    <p>Use a <strong>test/development key</strong> first to verify payments work correctly, then switch to your live production key when ready.</p>
+                    <div class="guide-step-details">
+                        <div class="guide-detail"><i class="fas fa-vial"></i> Test key: <code>xnd_development_...</code></div>
+                        <div class="guide-detail"><i class="fas fa-rocket"></i> Live key: <code>xnd_production_...</code></div>
+                        <div class="guide-detail"><i class="fas fa-check-circle" style="color:#10b981"></i> The <strong>Connection Status</strong> card below will turn green when connected</div>
+                    </div>
+                    <div class="guide-step-actions">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="markStep(7)">
+                            <i class="fas fa-party-horn"></i> Complete Setup! 🎉
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div style="margin-top:20px;padding:14px 18px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;font-size:.84rem;color:#0c4a6e">
-            <i class="fas fa-info-circle" style="margin-right:6px"></i>
-            <strong>Need help?</strong> Visit the <a href="https://docs.xendit.co/" target="_blank" rel="noopener" style="color:#0c4a6e;font-weight:600;text-decoration:underline">Xendit Documentation</a> or contact our support team for assistance.
+        {{-- All done banner --}}
+        <div id="guide-complete-banner" style="display:none;margin:0 24px 24px;padding:16px 20px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #6ee7b7;border-radius:12px;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:6px">🎉</div>
+            <div style="font-weight:700;font-size:.95rem;color:#065f46">All Steps Completed!</div>
+            <p style="font-size:.84rem;color:#047857;margin:4px 0 10px">Your Xendit payment gateway is fully configured. You're ready to accept payments!</p>
+            <button type="button" class="btn btn-sm" style="background:#065f46;color:#fff" onclick="resetGuide()">
+                <i class="fas fa-redo"></i> Reset Guide
+            </button>
+        </div>
+
+        <div style="padding:0 24px 20px">
+            <div style="padding:14px 18px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;font-size:.84rem;color:#0c4a6e">
+                <i class="fas fa-info-circle" style="margin-right:6px"></i>
+                <strong>Need help?</strong> Visit the <a href="https://docs.xendit.co/" target="_blank" rel="noopener" style="color:#0c4a6e;font-weight:600;text-decoration:underline">Xendit Documentation</a> or contact our support team for assistance.
+            </div>
         </div>
     </div>
 </div>
@@ -332,8 +493,138 @@
 
 @endsection
 
+@push('styles')
+<style>
+.guide-step { border:1px solid var(--gray-200,#e5e7eb); border-radius:12px; overflow:hidden; transition:all .3s ease; background:#fff; }
+.guide-step:hover { border-color:var(--gray-300,#d1d5db); }
+.guide-step.active { border-color:var(--primary); box-shadow:0 2px 12px rgba(10,45,116,.1); }
+.guide-step.completed { background:#f0fdf4; border-color:#bbf7d0; }
+.guide-step.completed .guide-step-title { color:#065f46; text-decoration:line-through; text-decoration-color:#6ee7b7; }
+.guide-step.completed .guide-step-num { background:#10b981 !important; }
+
+.guide-step-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; user-select:none; }
+.guide-step-header:hover { background:var(--gray-50,#f9fafb); }
+.guide-step.completed .guide-step-header:hover { background:#ecfdf5; }
+
+.guide-step-check { flex-shrink:0; }
+.guide-checkbox { display:none; }
+.guide-check-label { width:22px; height:22px; border:2px solid var(--gray-300,#d1d5db); border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; background:#fff; }
+.guide-check-label:hover { border-color:var(--primary); background:var(--primary-light,#eff6ff); }
+.guide-checkbox:checked + .guide-check-label { background:#10b981; border-color:#10b981; }
+.guide-checkbox:checked + .guide-check-label::after { content:'\f00c'; font-family:'Font Awesome 6 Free'; font-weight:900; color:#fff; font-size:.7rem; }
+
+.guide-step-num { width:28px; height:28px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; flex-shrink:0; transition:background .3s; }
+.guide-step-title { flex:1; font-weight:600; font-size:.9rem; transition:all .3s; }
+.guide-step-arrow { color:var(--gray-400); font-size:.75rem; transition:transform .3s; flex-shrink:0; }
+.guide-step.active .guide-step-arrow { transform:rotate(90deg); color:var(--primary); }
+
+.guide-step-body { max-height:0; overflow:hidden; transition:max-height .4s ease, padding .3s ease; padding:0 18px; }
+.guide-step.active .guide-step-body { max-height:500px; padding:0 18px 18px; }
+.guide-step-body p { font-size:.86rem; color:var(--gray-600,#6b7280); margin:0 0 12px; line-height:1.6; }
+.guide-step-body p a { color:var(--primary); font-weight:600; }
+.guide-step-body code { background:var(--gray-100,#f3f4f6); padding:2px 6px; border-radius:4px; font-size:.8rem; }
+
+.guide-step-details { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+.guide-detail { display:flex; align-items:center; gap:8px; font-size:.82rem; color:var(--gray-500,#6b7280); }
+.guide-detail i { width:16px; text-align:center; color:var(--primary); font-size:.8rem; }
+
+.guide-step-actions { display:flex; gap:8px; flex-wrap:wrap; padding-top:4px; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
+var TOTAL_STEPS = 7;
+var guideState = JSON.parse(localStorage.getItem('xendit_guide_state') || '{}');
+
+function getCompleted() { return Object.keys(guideState).filter(function(k) { return guideState[k]; }); }
+
+function updateProgress() {
+    var done = getCompleted().length;
+    var pct = Math.round((done / TOTAL_STEPS) * 100);
+    document.getElementById('guide-bar').style.width = pct + '%';
+    document.getElementById('guide-pct').textContent = pct + '%';
+    document.getElementById('guide-progress-label').textContent = done + ' / ' + TOTAL_STEPS + ' completed';
+
+    var banner = document.getElementById('guide-complete-banner');
+    var steps = document.getElementById('guide-steps');
+    if (done === TOTAL_STEPS) {
+        banner.style.display = 'block';
+        steps.style.opacity = '.6';
+    } else {
+        banner.style.display = 'none';
+        steps.style.opacity = '1';
+    }
+}
+
+function markStep(n) {
+    var cb = document.getElementById('step-check-' + n);
+    var step = document.querySelector('.guide-step[data-step="' + n + '"]');
+
+    if (cb.checked) {
+        cb.checked = false;
+        step.classList.remove('completed');
+        delete guideState[n];
+    } else {
+        cb.checked = true;
+        step.classList.add('completed');
+        guideState[n] = true;
+    }
+
+    localStorage.setItem('xendit_guide_state', JSON.stringify(guideState));
+    updateProgress();
+}
+
+function toggleStep(n) {
+    var step = document.querySelector('.guide-step[data-step="' + n + '"]');
+    if (step.classList.contains('active')) {
+        step.classList.remove('active');
+    } else {
+        // Close others
+        document.querySelectorAll('.guide-step.active').forEach(function(s) { s.classList.remove('active'); });
+        step.classList.add('active');
+    }
+}
+
+function openNextStep(n) {
+    if (n > TOTAL_STEPS) return;
+    document.querySelectorAll('.guide-step.active').forEach(function(s) { s.classList.remove('active'); });
+    var next = document.querySelector('.guide-step[data-step="' + n + '"]');
+    if (next) {
+        next.classList.add('active');
+        setTimeout(function() { next.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+    }
+}
+
+function resetGuide() {
+    guideState = {};
+    localStorage.setItem('xendit_guide_state', JSON.stringify(guideState));
+    document.querySelectorAll('.guide-checkbox').forEach(function(cb) { cb.checked = false; });
+    document.querySelectorAll('.guide-step').forEach(function(s) { s.classList.remove('completed', 'active'); });
+    updateProgress();
+    // Open step 1
+    toggleStep(1);
+}
+
+// Restore state on load
+function restoreGuide() {
+    for (var n = 1; n <= TOTAL_STEPS; n++) {
+        if (guideState[n]) {
+            document.getElementById('step-check-' + n).checked = true;
+            document.querySelector('.guide-step[data-step="' + n + '"]').classList.add('completed');
+        }
+    }
+    updateProgress();
+
+    // Auto-open first incomplete step
+    var done = getCompleted();
+    if (done.length < TOTAL_STEPS) {
+        for (var i = 1; i <= TOTAL_STEPS; i++) {
+            if (!guideState[i]) { toggleStep(i); break; }
+        }
+    }
+}
+
 function toggleKeyVisibility(id, btn) {
     var input = document.getElementById(id);
     var icon = btn.querySelector('i');
@@ -362,13 +653,16 @@ function toggleGuide() {
     chevron.className = visible ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
     text.textContent = visible ? 'Show Guide' : 'Hide Guide';
     localStorage.setItem('xendit_guide_visible', visible ? '0' : '1');
+    if (!visible) restoreGuide();
 }
-// Restore guide state from localStorage
+
+// Restore guide visibility
 (function() {
     if (localStorage.getItem('xendit_guide_visible') === '1') {
         document.getElementById('guide-content').style.display = 'block';
         document.getElementById('guide-chevron').className = 'fas fa-chevron-up';
         document.getElementById('guide-toggle-text').textContent = 'Hide Guide';
+        restoreGuide();
     }
 })();
 </script>
