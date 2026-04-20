@@ -28,7 +28,7 @@ class PageBuilderController extends Controller
         $section = PageSection::create([
             'page'         => 'home',
             'section_type' => $validated['section_type'],
-            'title'        => PageSection::sectionTypes()[$validated['section_type']]['label'],
+            'title'        => '',
             'sort_order'   => $maxOrder + 1,
             'is_active'    => true,
             'content'      => $this->defaultContent($validated['section_type']),
@@ -103,38 +103,29 @@ class PageBuilderController extends Controller
     {
         return match ($type) {
             'hero' => [
-                'heading'          => 'Welcome to Our Agency',
-                'subheading'       => 'Discover amazing travel experiences with us.',
-                'button_text'      => 'Browse Tours',
-                'button_link'      => '/tours',
-                'button2_text'     => 'Contact Us',
-                'button2_link'     => '/contact',
+                'heading'          => '',
+                'subheading'       => '',
+                'button_text'      => '',
+                'button_link'      => '',
+                'button2_text'     => '',
+                'button2_link'     => '',
                 'background_image' => '',
             ],
             'features' => [
-                'items' => [
-                    ['icon' => 'fas fa-globe', 'title' => 'Worldwide Tours', 'description' => 'Explore destinations across the globe.'],
-                    ['icon' => 'fas fa-shield-alt', 'title' => 'Secure Booking', 'description' => 'Your bookings are safe and guaranteed.'],
-                    ['icon' => 'fas fa-headset', 'title' => '24/7 Support', 'description' => 'We are here to help you anytime.'],
-                ],
+                'items' => [],
             ],
             'cta' => [
-                'heading'     => 'Ready to Start Your Adventure?',
-                'subheading'  => 'Book your dream vacation today.',
-                'button_text' => 'Get Started',
-                'button_link' => '/tours',
+                'heading'     => '',
+                'subheading'  => '',
+                'button_text' => '',
+                'button_link' => '',
                 'background_image' => '',
             ],
             'text_block' => [
-                'body' => '<p>Add your content here.</p>',
+                'body' => '',
             ],
             'stats' => [
-                'items' => [
-                    ['number' => '500+', 'label' => 'Happy Travelers'],
-                    ['number' => '50+', 'label' => 'Destinations'],
-                    ['number' => '100+', 'label' => 'Tour Packages'],
-                    ['number' => '24/7', 'label' => 'Support'],
-                ],
+                'items' => [],
             ],
             'promo_banner' => [
                 'link' => '',
