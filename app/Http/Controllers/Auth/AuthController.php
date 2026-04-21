@@ -13,7 +13,7 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        return view('auth.login');
+        return $this->noStoreView('auth.login');
     }
 
     public function login(Request $request)

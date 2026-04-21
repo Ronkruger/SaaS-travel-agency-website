@@ -12,7 +12,7 @@ class PlatformAuthController extends Controller
 {
     public function showLogin()
     {
-        return view('central.platform.login');
+        return $this->noStoreView('central.platform.login');
     }
 
     public function login(Request $request)

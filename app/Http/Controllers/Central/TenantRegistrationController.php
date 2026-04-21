@@ -167,7 +167,7 @@ class TenantRegistrationController extends Controller
 
     public function showLoginForm()
     {
-        return view('central.auth.login');
+        return $this->noStoreView('central.auth.login');
     }
 
     public function login(Request $request)
