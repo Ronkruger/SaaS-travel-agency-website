@@ -7,6 +7,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
@@ -81,6 +82,33 @@ class Handler extends ExceptionHandler
             }
 
             return redirect()->guest(route('central.login'));
+        });
+
+        $this->renderable(function (TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'Your session expired. Please refresh and try again.',
+                    'code' => 'TOKEN_MISMATCH'
+                ], 419);
+            }
+
+            $message = 'Your session expired. Please try again.';
+
+            if ($request->is('platform/*')) {
+                return redirect()->guest(route('platform.login'))->with('error', $message);
+            }
+
+            $tenant = $request->route('tenant');
+
+            if ($tenant && $request->is('t/*/admin/*')) {
+                return redirect()->guest(route('admin.auth.login', ['tenant' => $tenant]))->with('error', $message);
+            }
+
+            if ($tenant) {
+                return redirect()->guest(route('login', ['tenant' => $tenant]))->with('error', $message);
+            }
+
+            return redirect()->guest(route('central.login'))->with('error', $message);
         });
     }
 
