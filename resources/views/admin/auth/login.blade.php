@@ -104,31 +104,12 @@
         .auth-card-head h3 { font-size: 1.625rem; font-weight: 800; color: var(--gray-900); margin-bottom: .375rem; }
         .auth-card-head p { color: var(--gray-500); font-size: .9375rem; }
 
-        /* Auth0 button */
-        .btn-auth0 {
-            display: flex; align-items: center; justify-content: center; gap: .75rem;
-            width: 100%; padding: .75rem 1.25rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            background: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: .9375rem; font-weight: 600; color: var(--gray-700);
-            cursor: pointer; transition: all .2s;
-            text-decoration: none;
-        }
-        .btn-auth0:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
-        .btn-auth0 .auth0-badge {
-            width: 22px; height: 22px; border-radius: 50%;
-            background: #eb5424; display: flex; align-items: center; justify-content: center;
-        }
-        .btn-auth0 .auth0-badge svg { width: 14px; height: 14px; fill: #fff; }
-
         /* Divider */
         .auth-divider {
             display: flex; align-items: center; gap: .875rem;
             color: #9ca3af; font-size: .8125rem; font-weight: 600;
             text-transform: uppercase; letter-spacing: .06em;
-            margin: 1.5rem 0;
+            margin: 0 0 1.5rem;
         }
         .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
 
@@ -249,19 +230,11 @@
                 </div>
             @endif
 
-            {{-- Auth0 SSO --}}
-            <a href="{{ route('admin.auth.auth0.redirect') }}" class="btn-auth0">
-                <div class="auth0-badge">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.2 6.4L17 0H7L4.8 6.4 12 11.2l7.2-4.8zM4.8 6.4L2.6 13.2l4.6 3.4L4.8 6.4zM7 24l3.4-4.4H7L4.8 13 2.6 13.2 7 24zm10-0l4.4-10.8-2.2-.2L16.6 19.6H13L16.6 24h.4zm1.2-17.6l-2.4 10-6-3.4-6 3.4-2.4-10"/></svg>
-                </div>
-                Continue with Auth0
-            </a>
-
-            <div class="auth-divider">or sign in with email</div>
+            <div class="auth-divider">Sign in with email</div>
 
             <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:.75rem 1rem;margin-bottom:1.25rem;display:flex;gap:.625rem;align-items:center;font-size:.8125rem;color:#92400e">
                 <i class="fas fa-lock" style="flex-shrink:0"></i>
-                Email &amp; password sign-in is reserved for the <strong>system administrator</strong> only. Employees should use Auth0.
+                Email &amp; password sign-in is reserved for the <strong>system administrator</strong> only.
             </div>
 
             <form method="POST" action="{{ route('admin.auth.login.post') }}">
